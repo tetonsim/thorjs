@@ -1,0 +1,21 @@
+{
+  "name": "thorjs",
+  "version": "19.0.0",
+  "description": "Thor API JS Library",
+  "private": true,
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "xmlhttprequest": "^1.8.0"
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "webpack-cli": "^3.2.3"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "tetonsim",
+  "license": "ISC"
+}
