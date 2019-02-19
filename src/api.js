@@ -26,6 +26,10 @@ class API {
     this.token = null;
   }
 
+  static get version() {
+    return '19.0';
+  }
+
   _request(method, route, success, error, data) {
     var xhttp = new XMLHttpRequest();
 
@@ -60,6 +64,8 @@ class API {
 
     xhttp.open(method, this.host + route, false);
 
+    xhttp.setRequestHeader('Accept-version', API.version);
+
     if (this.token !== null) {
       xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
     }
@@ -77,6 +83,40 @@ class API {
    * @callback API~error
    * @param {string} error
    */
+
+   /**
+    * Verify version successfull callback
+    * @callback API~verify-version
+    * @param {boolean} compatible True if the host version is compatible with this client library
+    * @param {string} client_version The client version - also available through API.version
+    * @param {string} server_version The server version
+    */
+
+  /**
+  * 
+  * @param {*} success 
+  * @param {API~error} error 
+  */
+  verifyVersion(success, error) {
+    let parseVersion = function(resp) {
+      let sv = resp.version.split('.');
+      let cv = API.version.split('.');
+
+      let sv_maj = parseInt(sv[0]);
+      let sv_min = parseInt(sv[1]);
+
+      let cv_maj = parseInt(cv[0]);
+      let cv_min = parseInt(cv[1]);
+
+      // Require the exact same version. As versions advance
+      // how can we make this less restrictive?
+      let compatible = sv_maj !== cv_maj || sv_min !== cv_min;
+      
+      success(compatible, cv, sv);
+    }
+
+    this._request('GET', '/', parseVersion, error);
+  }
 
    /**
     * Checks if a token is already in use and

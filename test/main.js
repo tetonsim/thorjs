@@ -28,4 +28,20 @@ after(function() {
   console.log('Logged out');
 });
 
+describe('Main', function() {
+  xit('version-compatibility', function(done) {
+    thor.verifyVersion(
+      function(compatible, cv, sv) {
+        assert.ok(compatible);
+        done();
+      },
+      function(error) {
+        console.error(error);
+        assert.ok(false);
+        done();
+      }
+    )
+  });
+});
+
 module.exports = thor;
