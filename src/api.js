@@ -78,9 +78,32 @@ class API {
    * @param {string} error
    */
 
+   /**
+    * Checks if a token is already in use and
+    * returns the user information if available, otherwise null
+    * @returns {Object}
+    */
+   whoAmI() {
+    let getUserInfoFromServer = false;
+
+    if (this.token === null) {
+      // Check local storage for a token
+
+      getUserInfoFromServer = true;
+
+      return null;
+    }
+
+    if (this.user === null || getUserInfoFromServer) {
+
+    }
+
+    return this.user;
+  }
+
   /**
    * Login successful callback.
-   * @callback API~login-success
+   * @callback API~getToken-success
    * @param {Object} user
    * @param {string} user.id
    * @param {string} user.email
@@ -92,10 +115,10 @@ class API {
    * Retrieves and stores an API token
    * @param {string} email Email address
    * @param {string} password Password
-   * @param {API~login-success} success Callback function if login is successful.
-   * @param {API~error} error Callback function if login is unsuccessful.
+   * @param {API~getToken-success} success Callback function if token is obtained.
+   * @param {API~error} error Callback function if token creation fails.
    */
-  login(email, password, success, error) {
+  getToken(email, password, success, error) {
     var api = this;
 
     var getToken = function(response) {
@@ -117,16 +140,31 @@ class API {
   }
 
   /**
+   * Refreshes the API token. This is not usable for expired tokens. If a refresh
+   * is attempted on an expired token the server will return 401 Unauthorized.
+   * @param {API~getToken-success} success Callback function if refresh is successful.
+   * @param {API~error} error Callback function if refresh is unsuccessful.
+   */
+  refreshToken(success, error) {
+    if (this.token === null) {
+      error('null token');
+      return;
+    }
+
+    this._request('PUT', '/auth/token', success, error);
+  }
+
+  /**
    * Logout successful callback.
-   * @callback API~logout-success
+   * @callback API~releaseToken-success
    */
 
   /**
    * Deletes the stored API token.
-   * @param {API~logout-success} success 
+   * @param {API~releaseToken-success} success 
    * @param {API~error} error 
    */
-  logout(success, error) {
+  releaseToken(success, error) {
     var api = this;
 
     this._request('DELETE', '/auth/token',
@@ -238,7 +276,7 @@ class API {
   }
 
   feaRunWait(id, completed, failed, error, interval=1000, timeout=undefined) {
-    
+
   }
 }
 

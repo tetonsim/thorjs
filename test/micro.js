@@ -187,8 +187,6 @@ describe('Micro', function() {
 
             let elas = resp.result.materials[0].elastic;
 
-            console.log(elas);
-
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.type, 'transverse_isotropic');
             assert.strictEqual(elas.iso_plane, 12);

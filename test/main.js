@@ -11,7 +11,7 @@ const thor = new Thor.API({
 
 before(function(done) {
   
-  thor.login('tom.brady@mailinator.com', 'ilovegiz',
+  thor.getToken('tom.brady@mailinator.com', 'ilovegiz',
     function(user) {
       console.log(user.first_name + ' ' + user.last_name + ' logged in (' + user.id + ')');
       done();
@@ -24,7 +24,7 @@ before(function(done) {
 });
 
 after(function() {
-  thor.logout();
+  thor.releaseToken();
   console.log('Logged out');
 });
 
