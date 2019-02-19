@@ -41,9 +41,11 @@ function defaultComposite(volume_fraction, L_over_D) {
   return new Composite(matrix, fiber, volume_fraction, L_over_D);
 }
 
+let timeout = 60 * 1000;
+
 describe('Micro', function() {
   describe('Hexpack', function() {
-    this.timeout(10000);
+    this.timeout(timeout);
 
     it('valid',
       function(done) {
@@ -85,7 +87,7 @@ describe('Micro', function() {
 
 describe('Micro', function() {
   describe('ShortFiber', function() {
-    this.timeout(15000);
+    this.timeout(timeout);
 
     it('L/D = 50',
       function(done) {        
@@ -111,7 +113,7 @@ describe('Micro', function() {
 
 describe('Micro', function() {
   describe('ExtrudedLayer', function() {
-    this.timeout(15000);
+    this.timeout(timeout);
 
     it('pla',
       function(done) {        
@@ -168,7 +170,7 @@ describe('Micro', function() {
 
 describe('Micro', function() {
   describe('Infill', function() {
-    this.timeout(20000);
+    this.timeout(timeout);
 
     it('grid-pla',
       function(done) {

@@ -6,7 +6,7 @@ const { Elastic, Material } = require('../src/material');
 const assert = require('assert');
 
 const thor = new Thor.API({
-  host: 'http://127.0.0.1:8000'
+  host: 'https://api.fea.cloud' //'http://127.0.0.1:8000'
 });
 
 before(function(done) {
@@ -29,7 +29,7 @@ after(function() {
 });
 
 describe('Main', function() {
-  xit('version-compatibility', function(done) {
+  it('version-compatibility', function(done) {
     thor.verifyVersion(
       function(compatible, cv, sv) {
         assert.ok(compatible);

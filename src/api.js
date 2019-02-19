@@ -231,7 +231,7 @@ class API {
    * @param {API~error} error 
    */
   microNewRun(run, success, error) {
-    this._request('POST', '/micro/v1/run',
+    this._request('POST', '/micro/run',
       success, error, run
     );
   }
@@ -243,7 +243,7 @@ class API {
    * @param {*} error 
    */
   microRunStatus(id, success, error) {
-    this._request('GET', '/micro/v1/run/' + id,
+    this._request('GET', '/micro/run/' + id,
       success, error
     );
   }
@@ -282,12 +282,12 @@ class API {
   }
 
   feaTemplateList(success, error, start=0, take=20) {
-    this._request('GET', '/fea/v1/templates?s=' + start + '&t=' + take,
+    this._request('GET', '/fea/templates?s=' + start + '&t=' + take,
       success, error);
   }
 
   feaTemplate(id, success, error) {
-    this._request('GET', '/fea/v1/template/' + id,
+    this._request('GET', '/fea/template/' + id,
       success, error);
   }
 
