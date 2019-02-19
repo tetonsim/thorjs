@@ -110,9 +110,9 @@ class API {
 
       // Require the exact same version. As versions advance
       // how can we make this less restrictive?
-      let compatible = sv_maj !== cv_maj || sv_min !== cv_min;
+      let compatible = (sv_maj === cv_maj && sv_min === cv_min);
       
-      success(compatible, cv, sv);
+      success(compatible, API.version, resp.version);
     }
 
     this._request('GET', '/', parseVersion, error);
