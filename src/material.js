@@ -30,7 +30,9 @@ class Material {
    * @param {Elastic} [elastic] Elastic properties
    */
   constructor(name, elastic = null) {
+    this.id = null;
     this.name = name;
+    this.density = null;
     this.elastic = elastic;
   }
 }

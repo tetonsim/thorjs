@@ -2,7 +2,7 @@ const assert = require('assert');
 
 const { Micro, Builders } = require('../src/micro');
 const { Elastic, Material, Composite } = require('../src/material');
-const { PrintConfig } = require('../src/print');
+const { Config } = require('../src/machine');
 
 const thor = require('./main');
 
@@ -119,7 +119,7 @@ describe('Micro', function() {
       function(done) {        
         let layer = Builders.ExtrudedLayer(
           new Material('pla', Elastic.Isotropic(3.5, 0.34)),
-          new PrintConfig()
+          new Config()
         );
 
         runAndCheck(layer, done,
@@ -144,7 +144,7 @@ describe('Micro', function() {
       function(done) {        
         let layer = Builders.ExtrudedLayer(
           defaultComposite(15, 50),
-          new PrintConfig()
+          new Config()
         );
 
         runAndCheck(layer, done,
@@ -174,7 +174,7 @@ describe('Micro', function() {
 
     it('grid-pla',
       function(done) {
-        let print = new PrintConfig();
+        let print = new Config();
 
         print.infill_type = 'grid';
         print.infill_volume_fraction = 50;

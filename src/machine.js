@@ -2,7 +2,7 @@
 /**
  * 3D printer configuration settings
  */
-class PrintConfig {
+class Config {
   constructor() {
     this.layer_width = 0.45;
     this.layer_height = 0.2;
@@ -20,4 +20,21 @@ class PrintConfig {
   }
 }
 
-module.exports = { PrintConfig };
+class Vendor {
+  constructor(name) {
+    this.id = null;
+    this.name = name;
+  }
+}
+
+class Machine {
+  constructor(name) {
+    this.id = null;
+    this.name = name;
+    this.vendor = null;
+    this.process = null;
+    this.config = new Config();
+  }
+}
+
+module.exports = { Config, Vendor, Machine };

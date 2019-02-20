@@ -1,6 +1,8 @@
+const { Elastic, Material } = require('./material');
+const { Machine } = require('./machine');
 
-if (window === undefined) {
-  //var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+if (typeof window === 'undefined') {
+  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 
 /**
@@ -222,6 +224,122 @@ class API {
         }
       },
       error);
+  }
+
+  /**
+   * 
+   * @callback API~materialSearch-success
+   * @this {Material[]}
+   */
+  
+  /**
+   * Retrieves all Material definitions
+   * @param {API~materialSearch-success} success 
+   * @param {API~error} error 
+   */
+  materialSearch(success, error) {
+    var processMatDefs = function(resp) {
+      let mats = [];
+
+      resp.forEach(
+        function(jmat) { // convert JSON mat definition to Material
+          let e = new Elastic();
+          Object.assign(e, jmat.elastic);
+          let m = new Material(jmat.name, e);
+          m.id = jmat.id;
+          mats.push(m);
+        }
+      )
+
+      success.bind(mats)();
+    }
+
+    this._request('GET', '/material/search', processMatDefs, error);
+  }
+  /**
+   * 
+   * @callback API~materialGet-success
+   * @this {Material}
+   */
+  
+  /**
+   * Retrieves the Material definition for the given id
+   * @param {API~materialGet-success} success 
+   * @param {API~error} error 
+   */
+  materialGet(id, success, error) {
+    var processMatDef = function(resp) {
+      let props = resp.properties;
+      let e = new Elastic();
+
+      Object.assign(e, props.elastic);
+
+      let m = new Material(resp.name, e);
+
+      m.id = resp.id;
+      m.density = props.density;
+
+      success.bind(m)();
+    }
+
+    this._request('GET', '/material/' + id, processMatDef, error);
+  }
+
+  /**
+   * 
+   * @callback API~machineSearch-success
+   * @this {Machine[]}
+   */
+  
+  /**
+   * Retrieves all Machine definitions
+   * @param {API~machineSearch-success} success 
+   * @param {API~error} error 
+   */
+  machineSearch(success, error) {
+    var processMachDefs = function(resp) {
+      let machs = [];
+
+      resp.forEach(
+        function(jmach) { // convert JSON mat definition to Machine
+          let m = new Machine(jmach.name);
+    
+          m.id = resp.id;
+          m.process = resp.process;
+    
+          machs.push(m); 
+        }
+      )
+
+      success.bind(machs)();
+    }
+
+    this._request('GET', '/machine/search', processMachDefs, error);
+  }
+  /**
+   * 
+   * @callback API~materialGet-success
+   * @this {Material}
+   */
+  
+  /**
+   * Retrieves the Material definition for the given id
+   * @param {API~materialGet-success} success 
+   * @param {API~error} error 
+   */
+  machineGet(id, success, error) {
+    var processMachDef = function(resp) {
+      let m = new Machine(resp.name);
+
+      m.id = resp.id;
+      m.process = resp.process;
+
+      Object.assign(m.config, resp.config);
+
+      success.bind(m)();
+    }
+
+    this._request('GET', '/machine/' + id, processMachDef, error);
   }
 
   /**

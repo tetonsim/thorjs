@@ -6,7 +6,8 @@ const { Elastic, Material } = require('../src/material');
 const assert = require('assert');
 
 const thor = new Thor.API({
-  host: 'https://api.fea.cloud' //'http://127.0.0.1:8000'
+  //host: 'https://api.fea.cloud' //'http://127.0.0.1:8000'
+  host: 'http://127.0.0.1:5000'
 });
 
 before(function(done) {

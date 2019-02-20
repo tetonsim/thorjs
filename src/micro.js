@@ -1,5 +1,5 @@
 const { Elastic, Material, Composite } = require('./material');
-const { PrintConfig } = require('./print');
+const { Config } = require('./machine');
 
 class JobMaterial {
   constructor(name, source, source_name) {
@@ -233,15 +233,15 @@ const Builders = {
   /**
    * Builds a Micro run with a target Extruded Layer job
    * @param {(Material|Composite)} material Print material
-   * @param {Print} print
+   * @param {Config} printConfig
    */
-  ExtrudedLayer: function(material, print) {
+  ExtrudedLayer: function(material, printConfig) {
     var micro = new Micro();
 
     if (material instanceof Material) {
       micro.materials.push(material);
 
-      var jlayer = JobBuilders.ExtrudedLayer(material, print);
+      var jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       micro.jobs.push(jlayer);
     } else if (material instanceof Composite) {
@@ -254,7 +254,7 @@ const Builders = {
       let jsf = JobBuilders.ShortFiber(jhexpack, jpart, material);
 
       // short fiber feeds into extruded layer model
-      var jlayer = JobBuilders.ExtrudedLayer(jsf, print);
+      var jlayer = JobBuilders.ExtrudedLayer(jsf, printConfig);
 
       micro.jobs.push(jhexpack, jpart, jsf, jlayer);
     }
@@ -266,18 +266,18 @@ const Builders = {
    * Builds a Micro run with a target Infill job. Infill configuration is picked
    * up from the print configuration.
    * @param {(Material|Composite)} material Print material
-   * @param {Print} print
+   * @param {Config} printConfig
    */
-  Infill: function(material, print) {
+  Infill: function(material, printConfig) {
     var micro = new Micro();
 
     if (material instanceof Material) {
       micro.materials.push(material);
 
-      let jlayer = JobBuilders.ExtrudedLayer(material, print);
+      let jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       // extrusion layer feeds into infill unit cell
-      var jinfill = JobBuilders.Infill(jlayer, print);
+      var jinfill = JobBuilders.Infill(jlayer, printConfig);
 
       micro.jobs.push(jlayer, jinfill);
 
@@ -291,10 +291,10 @@ const Builders = {
       let jsf = JobBuilders.ShortFiber(jhexpack, jpart, material);
 
       // short fiber feeds into extruded layer unit cell
-      let jlayer = JobBuilders.ExtrudedLayer(jsf, print);
+      let jlayer = JobBuilders.ExtrudedLayer(jsf, printConfig);
 
       // extrusion layer feeds into infill unit cell
-      var jinfill = JobBuilders.Infill(jlayer, print);
+      var jinfill = JobBuilders.Infill(jlayer, printConfig);
 
       micro.jobs.push(jhexpack, jpart, jsf, jlayer, jinfill);
     }
