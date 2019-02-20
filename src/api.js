@@ -1,6 +1,6 @@
 
-if (XMLHttpRequest === undefined) {
-  var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+if (window === undefined) {
+  //var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 
 /**
@@ -62,7 +62,7 @@ class API {
       }
     }
 
-    xhttp.open(method, this.host + route, false);
+    xhttp.open(method, this.host + route, true);
 
     xhttp.setRequestHeader('Accept-version', API.version);
 
