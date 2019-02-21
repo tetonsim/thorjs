@@ -88,7 +88,7 @@ class Job {
 /**
  * Input to a micromechanics run
  * @memberof Micro
- * @property {Micro.JobMaterial[]} materials
+ * @property {Material.FEA[]} materials
  * @property {Micro.Job[]} jobs
  */
 class Input {
@@ -220,7 +220,7 @@ const Builders = {
   Hexpack: function(composite) {
     var micro = new Input();
     
-    micro.materials.push(composite.matrix, composite.fiber);
+    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
 
     var jhexpack = JobBuilders.Hexpack(composite);
 
@@ -238,7 +238,7 @@ const Builders = {
   Particulate: function(composite) {
     var micro = new Input();
 
-    micro.materials.push(composite.matrix, compositefiber);
+    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
 
     var jpart = JobBuilders.Particulate(composite);
 
@@ -256,7 +256,7 @@ const Builders = {
   ShortFiber: function(composite) {
     var micro = new Input();
 
-    micro.materials.push(composite.matrix, composite.fiber);
+    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
 
     var jhexpack = JobBuilders.Hexpack(composite);
     var jpart = JobBuilders.Particulate(composite);
@@ -276,13 +276,13 @@ const Builders = {
     var micro = new Input();
 
     if (material instanceof Material) {
-      micro.materials.push(material);
+      micro.materials.push(material.fea);
 
       var jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       micro.jobs.push(jlayer);
     } else if (material instanceof Composite) {
-      micro.materials.push(material.matrix, material.fiber);
+      micro.materials.push(material.matrix.fea, material.fiber.fea);
 
       let jhexpack = JobBuilders.Hexpack(material);
       let jpart = JobBuilders.Particulate(material);
@@ -309,7 +309,7 @@ const Builders = {
     var micro = new Input();
 
     if (material instanceof Material) {
-      micro.materials.push(material);
+      micro.materials.push(material.fea);
 
       let jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
@@ -319,7 +319,7 @@ const Builders = {
       micro.jobs.push(jlayer, jinfill);
 
     } else if (material instanceof Composite) {
-      micro.materials.push(material.matrix, material.fiber);
+      micro.materials.push(material.matrix.fea, material.fiber.fea);
 
       let jhexpack = JobBuilders.Hexpack(material);
       let jpart = JobBuilders.Particulate(material);

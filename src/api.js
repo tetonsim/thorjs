@@ -22,6 +22,12 @@ const _HelperCallbacks = {
   }
 };
 
+/**
+ * An API error
+ * @property {string} message Error message if one is available
+ * @property {number} http_code The HTTP status code returned by the server
+ * @property {string|number} app_code An error code returned by the back end application, if applicable
+ */
 class Error {
   constructor(message, http_code, app_code) {
     this.message = message;
@@ -84,7 +90,7 @@ class API {
         }
 
         if (err !== null && error !== undefined) {
-          error.bind(errmsg)();
+          error.bind(err)();
         }
       }
     }
@@ -248,24 +254,9 @@ class API {
    * @param {API~error} error 
    */
   materialSearch(success, error) {
-    /*var processMatDefs = function() {
-      let mats = [];
-
-      this.forEach(
-        function(jmat) { // convert JSON mat definition to Material
-          let e = new Elastic();
-          Object.assign(e, jmat.elastic);
-          let m = new Material(jmat.name, e);
-          m.id = jmat.id;
-          mats.push(m);
-        }
-      )
-
-      success.bind(mats)();
-    }*/
-
     this._request('GET', '/material/search', success, error);
   }
+  
   /**
    * 
    * @callback API~materialGet-success
@@ -401,22 +392,54 @@ class API {
     getStatus();
   }
 
+  /**
+   * 
+   * @callback API~feaTemplate
+   * @this {FEA.Template}
+   */
+
+   /**
+    * Get list of FEA templates (model definitions will be excluded/null)
+    * @param {API~feaTemplate} success 
+    * @param {API~error} error 
+    * @param {number} start 
+    * @param {number} take 
+    */
   feaTemplateList(success, error, start=0, take=20) {
     this._request('GET', '/fea/templates?s=' + start + '&t=' + take,
       success, error);
   }
 
+   /**
+    * Get a full FEA template definition
+    * @param {string} id unique Id of FEA template to retrieve
+    * @param {API~feaTemplate} success 
+    * @param {API~error} error
+    */
   feaTemplate(id, success, error) {
     this._request('GET', '/fea/template/' + id,
       success, error);
   }
 
-  feaModelCreate(model, success, error) {
+  /**
+   * 
+   * @callback API~feaModel
+   * @this {FEA.Model}
+   */
 
+  /**
+   * 
+   * @param {FEA.Model} model 
+   * @param {API~feaModel} success 
+   * @param {API~error} error 
+   */
+  feaModelCreate(model, success, error) {
+    model.id = null;
+
+    this._request('POST', '/fea/model', success, error);
   }
 
-  feaModelUpdate(id, model, success, error) {
-
+  feaModelSave(model, success, error) {
   }
 
   feaModel(id, success, error) {

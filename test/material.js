@@ -7,9 +7,9 @@ const thor = require('./main');
 let timeout = 1000;
 
 describe('Material', function() {
-  describe('Search', function() {
-    this.timeout(timeout);
+  this.timeout(timeout);
 
+  describe('Search', function() {
     it('default',
       function(done) {
 
@@ -28,10 +28,7 @@ describe('Material', function() {
 
   });
 
-
   describe('Get', function() {
-    this.timeout(timeout);
-
     it('default',
       function(done) {
 
@@ -41,7 +38,7 @@ describe('Material', function() {
           matId,
           function() {
             assert.strictEqual(this.id, matId);
-            //assert.ok(this.elastic instanceof Elastic);
+            assert.ok('elastic' in this.properties);
             done();
           },
           function() {

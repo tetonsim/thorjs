@@ -25,6 +25,14 @@ class Elastic {
 }
 
 /**
+ * Material definition for FEA sim
+ * @typedef FEA
+ * @memberof Material
+ * @property {string} name
+ * @property {Material.Elastic} elastic
+ */
+
+/**
  * An engineering material definition
  * @memberof Material
  */
@@ -38,8 +46,19 @@ class Material {
   constructor(name, elastic = null) {
     this.id = null;
     this.name = name;
-    this.density = null;
-    this.elastic = elastic;
+    this.properties = {
+      elastic: elastic
+    };
+  }
+
+  /**
+   * @returns {Material.FEA}
+   */
+  get fea() {
+    return {
+      name: this.name,
+      elastic: this.properties.elastic
+    }
   }
 }
 
