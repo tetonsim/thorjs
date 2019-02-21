@@ -18,8 +18,8 @@ describe('Machine', function() {
             assert.ok(this.length > 0);
             done();
           },
-          function(error) {
-            throw error;
+          function() {
+            throw this;
           }
         )
 
@@ -44,8 +44,8 @@ describe('Machine', function() {
             assert.strictEqual(this.process, "FDM");
             done();
           },
-          function(error) {
-            throw error;
+          function() {
+            throw this;
           }
         )
 

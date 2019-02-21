@@ -13,13 +13,13 @@ const thor = new Thor.API({
 before(function(done) {
   
   thor.getToken('tom.brady@mailinator.com', 'ilovegiz',
-    function(user) {
-      console.log(user.first_name + ' ' + user.last_name + ' logged in (' + user.id + ')');
+    function() {
+      console.log(this.first_name + ' ' + this.last_name + ' logged in (' + this.id + ')');
       done();
     },
-    function(error) {
-      console.error('Login failed: ' + error);
-      done(error);
+    function() {
+      console.error('Login failed: ' + this);
+      done(this.message);
     }
   );
 });
@@ -36,8 +36,8 @@ describe('Main', function() {
         assert.ok(compatible);
         done();
       },
-      function(error) {
-        console.error(error);
+      function() {
+        console.error(this);
         assert.ok(false);
         done();
       }

@@ -20,6 +20,11 @@ class Config {
   }
 }
 
+/**
+ * Additive manufacturing machine vendor
+ * @property {string} id Unique id
+ * @property {string} name
+ */
 class Vendor {
   constructor(name) {
     this.id = null;
@@ -27,6 +32,14 @@ class Vendor {
   }
 }
 
+/**
+ * Additive manufacturing machine
+ * @property {string} id Unique id
+ * @property {string} name
+ * @property {Vendor} vendor
+ * @property {string} process The AM process this machine uses. Always FDM right now.
+ * @property {Config} config The default print configuration for the machine
+ */
 class Machine {
   constructor(name) {
     this.id = null;

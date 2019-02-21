@@ -8,22 +8,22 @@ const thor = require('./main');
 
 function runAndCheck(run, done, callback) {
   thor.microNewRun(run,
-    function(resp) {
-      thor.microRunStatusWait(resp.id, 
-        function(resp2) {
-          callback(resp2);
+    function() {
+      thor.microRunStatusWait(this.id, 
+        function() {
+          callback(this);
           done();
         },
-        function(resp2) {
-          callback(resp2);
+        function() {
+          callback(this);
           done();
         }, 
-        function(error) {
-          done(error);
+        function() {
+          done(this);
         });
     },
-    function(error) {
-      done(error);
+    function() {
+      done(this);
     }
   );
 }
@@ -52,12 +52,12 @@ describe('Micro', function() {
         let hexpack = Builders.Hexpack(defaultComposite(15));
 
         runAndCheck(hexpack, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.iso_plane, 23);
@@ -74,8 +74,8 @@ describe('Micro', function() {
         let hexpack = Builders.Hexpack(defaultComposite(4));
 
         runAndCheck(hexpack, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'failed');
+          function(run) {
+            assert.strictEqual(run.status, 'failed');
           }
         );
 
@@ -94,12 +94,12 @@ describe('Micro', function() {
         let sf = Builders.ShortFiber(defaultComposite(15, 50));
 
         runAndCheck(sf, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.iso_plane, 23);
@@ -123,12 +123,12 @@ describe('Micro', function() {
         );
 
         runAndCheck(layer, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.E11 > 0.0);
             assert.ok(elas.E22 > 0.0);
@@ -148,12 +148,12 @@ describe('Micro', function() {
         );
 
         runAndCheck(layer, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.E11 > 0.0);
             assert.ok(elas.E22 > 0.0);
@@ -182,12 +182,12 @@ describe('Micro', function() {
         let infill = Builders.Infill( new Material('pla', Elastic.Isotropic(3.5, 0.34)), print );
 
         runAndCheck(infill, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.type, 'transverse_isotropic');

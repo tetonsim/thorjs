@@ -1,6 +1,10 @@
 const { Elastic, Material, Composite } = require('./material');
 const { Config } = require('./machine');
 
+/**
+ * @namespace Micro
+ */
+
 class JobMaterial {
   constructor(name, source, source_name) {
     this.name = name;
@@ -81,7 +85,13 @@ class Job {
   }
 }
 
-class Micro {
+/**
+ * Input to a micromechanics run
+ * @memberof Micro
+ * @property {Micro.JobMaterial[]} materials
+ * @property {Micro.Job[]} jobs
+ */
+class Input {
   constructor() {
     this.materials = [];
     this.jobs = [];
@@ -90,13 +100,39 @@ class Micro {
 
 /**
  * Represents a micromechanics run
+ * @memberof Micro
+ * @property {string} id
+ * @property {string} error Error message, if applicable
+ * @property {Input} input Full micromechanics input definition
+ * @property {string} target The name of a job in micro that results will be calculated for
+ * @property {string} status Status of the run (waiting, running, completed, or failed)
+ * @property {Result} result Result of the run, if available 
  */
-class MicroRun {
-  constructor(micro, target) {
-    this.input = micro;
+class Run {
+  /**
+   * 
+   * @param {Input} input 
+   * @param {string} target The name of a job in micro that results will be calculated for
+   */
+  constructor(input, target) {
+    this.id = null;
+    this.error = null;
+    this.expires = null;
+    this.input = input;
     this.target = target;
+    this.status = null;
+    this.result = null;
   }
 }
+
+/**
+ * The results from a successful run of MicroRun
+ * @typedef {Object} Result
+ * @memberof Micro
+ * @property {Object} meta Meta information about the run
+ * @property {Material[]} materials
+ */
+
 
 const JobBuilders = {
   Hexpack: function(composite) {
@@ -174,6 +210,7 @@ const JobBuilders = {
 /**
  * Helper functions to build up the Micro run for common use cases
  * @namespace
+ * @memberof Micro
  */
 const Builders = {
   /**
@@ -181,7 +218,7 @@ const Builders = {
    * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
    */
   Hexpack: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
     
     micro.materials.push(composite.matrix, composite.fiber);
 
@@ -189,7 +226,7 @@ const Builders = {
 
     micro.jobs.push(jhexpack);
 
-    var run = new MicroRun(micro, jhexpack.name);
+    var run = new Run(micro, jhexpack.name);
 
     return run;
   },
@@ -199,7 +236,7 @@ const Builders = {
    * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
    */
   Particulate: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
 
     micro.materials.push(composite.matrix, compositefiber);
 
@@ -207,7 +244,7 @@ const Builders = {
 
     micro.jobs.push(jpart);
 
-    var run = new MicroRun(micro, jpart.name);
+    var run = new Run(micro, jpart.name);
 
     return run;
   },
@@ -217,7 +254,7 @@ const Builders = {
    * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
    */
   ShortFiber: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
 
     micro.materials.push(composite.matrix, composite.fiber);
 
@@ -227,7 +264,7 @@ const Builders = {
 
     micro.jobs.push(jhexpack, jpart, jsf);
 
-    return new MicroRun(micro, jsf.name);
+    return new Run(micro, jsf.name);
   },
 
   /**
@@ -236,7 +273,7 @@ const Builders = {
    * @param {Config} printConfig
    */
   ExtrudedLayer: function(material, printConfig) {
-    var micro = new Micro();
+    var micro = new Input();
 
     if (material instanceof Material) {
       micro.materials.push(material);
@@ -259,7 +296,7 @@ const Builders = {
       micro.jobs.push(jhexpack, jpart, jsf, jlayer);
     }
 
-    return new MicroRun(micro, jlayer.name);
+    return new Run(micro, jlayer.name);
   },
 
   /**
@@ -269,7 +306,7 @@ const Builders = {
    * @param {Config} printConfig
    */
   Infill: function(material, printConfig) {
-    var micro = new Micro();
+    var micro = new Input();
 
     if (material instanceof Material) {
       micro.materials.push(material);
@@ -299,8 +336,8 @@ const Builders = {
       micro.jobs.push(jhexpack, jpart, jsf, jlayer, jinfill);
     }
 
-    return new MicroRun(micro, jinfill.name);
+    return new Run(micro, jinfill.name);
   }
 };
 
-module.exports = { Micro, Builders };
+module.exports = { Input, Run, Builders };

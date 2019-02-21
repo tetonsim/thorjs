@@ -5,6 +5,31 @@ if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 
+const _HelperCallbacks = {
+  getToken: function(api, success, error) {
+    return function() {
+      if (this.error && error !== undefined) {
+        error.bind(this)();
+      } else {
+        api.token = this.token;
+        api.user = this.user;
+
+        if (success !== undefined) {
+          success.bind(api.user)();
+        }
+      }
+    }
+  }
+};
+
+class Error {
+  constructor(message, http_code, app_code) {
+    this.message = message;
+    this.http_code = http_code;
+    this.app_code = app_code;
+  }
+}
+
 /**
  * Handles Thor API requests
  */
@@ -44,22 +69,22 @@ class API {
           var response = err.message;
         }
 
+        let err = null;
+
         if (xhttp.status === 200) {
           if (success !== undefined) {
-            success(response);
+            success.bind(response)();
           }
         } else if (xhttp.status === 401) {
-          if (error !== undefined) {
-            error('Unauthorized');
-          }  
+          err = new Error('Unauthorized', xhttp.status);
         } else if (xhttp.status === 500) {
-          if (error !== undefined) {
-            error('Internal server error');
-          }
+          err = new Error('Internal server error', xhttp.status);
         } else {
-          if (error !== undefined) {
-            error(response);
-          }
+          err = new Error(response, xhttp.status);
+        }
+
+        if (err !== null && error !== undefined) {
+          error.bind(errmsg)();
         }
       }
     }
@@ -83,7 +108,7 @@ class API {
   /**
    * API error callback
    * @callback API~error
-   * @param {string} error
+   * @this {Error}
    */
 
    /**
@@ -96,12 +121,12 @@ class API {
 
   /**
   * 
-  * @param {*} success 
+  * @param {API~verify-version} success 
   * @param {API~error} error 
   */
   verifyVersion(success, error) {
-    let parseVersion = function(resp) {
-      let sv = resp.version.split('.');
+    let parseVersion = function() {
+      let sv = this.version.split('.');
       let cv = API.version.split('.');
 
       let sv_maj = parseInt(sv[0]);
@@ -114,7 +139,7 @@ class API {
       // how can we make this less restrictive?
       let compatible = (sv_maj === cv_maj && sv_min === cv_min);
       
-      success(compatible, API.version, resp.version);
+      success(compatible, API.version, this.version);
     }
 
     this._request('GET', '/', parseVersion, error);
@@ -124,6 +149,7 @@ class API {
     * Checks if a token is already in use and
     * returns the user information if available, otherwise null
     * @returns {Object}
+    * @todo Implement token retrieval
     */
    whoAmI() {
     let getUserInfoFromServer = false;
@@ -146,11 +172,11 @@ class API {
   /**
    * Login successful callback.
    * @callback API~getToken-success
-   * @param {Object} user
-   * @param {string} user.id
-   * @param {string} user.email
-   * @param {string} user.first_name
-   * @param {string} user.last_name
+   * @this {Object}
+   * @param {string} this.id
+   * @param {string} this.email
+   * @param {string} this.first_name
+   * @param {string} this.last_name
    */
 
   /**
@@ -161,24 +187,8 @@ class API {
    * @param {API~error} error Callback function if token creation fails.
    */
   getToken(email, password, success, error) {
-    var api = this;
-
-    var getToken = function(response) {
-      if (response.error) {
-        if (error !== undefined) {
-          error(response.error);
-        }
-      } else {
-        api.token = response.token;
-        api.user = response.user;
-
-        if (success !== undefined) {
-          success(api.user);
-        }
-      }
-    };
-
-    this._request('POST', '/auth/token', getToken, error, { email: email, password: password });
+    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error), 
+      error, { email: email, password: password });
   }
 
   /**
@@ -193,7 +203,7 @@ class API {
       return;
     }
 
-    this._request('PUT', '/auth/token', success, error);
+    this._request('PUT', '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
   }
 
   /**
@@ -210,8 +220,8 @@ class API {
     var api = this;
 
     this._request('DELETE', '/auth/token',
-      function(response) {
-        if (response.success) {
+      function() {
+        if (this.success) {
           api.token = null;
           api.user = null;
           if (success !== undefined) {
@@ -219,7 +229,7 @@ class API {
           }
         } else {
           if (error !== undefined) {
-            error('Failed to logout');
+            error.bind(new Error('Failed to logout'));
           }
         }
       },
@@ -238,10 +248,10 @@ class API {
    * @param {API~error} error 
    */
   materialSearch(success, error) {
-    var processMatDefs = function(resp) {
+    /*var processMatDefs = function() {
       let mats = [];
 
-      resp.forEach(
+      this.forEach(
         function(jmat) { // convert JSON mat definition to Material
           let e = new Elastic();
           Object.assign(e, jmat.elastic);
@@ -252,9 +262,9 @@ class API {
       )
 
       success.bind(mats)();
-    }
+    }*/
 
-    this._request('GET', '/material/search', processMatDefs, error);
+    this._request('GET', '/material/search', success, error);
   }
   /**
    * 
@@ -268,21 +278,7 @@ class API {
    * @param {API~error} error 
    */
   materialGet(id, success, error) {
-    var processMatDef = function(resp) {
-      let props = resp.properties;
-      let e = new Elastic();
-
-      Object.assign(e, props.elastic);
-
-      let m = new Material(resp.name, e);
-
-      m.id = resp.id;
-      m.density = props.density;
-
-      success.bind(m)();
-    }
-
-    this._request('GET', '/material/' + id, processMatDef, error);
+    this._request('GET', '/material/' + id, success, error);
   }
 
   /**
@@ -314,17 +310,17 @@ class API {
       success.bind(machs)();
     }
 
-    this._request('GET', '/machine/search', processMachDefs, error);
+    this._request('GET', '/machine/search', success, error);
   }
   /**
    * 
-   * @callback API~materialGet-success
-   * @this {Material}
+   * @callback API~machineGet-success
+   * @this {Machine}
    */
   
   /**
-   * Retrieves the Material definition for the given id
-   * @param {API~materialGet-success} success 
+   * Retrieves the Machine definition for the given id
+   * @param {API~machineGet-success} success 
    * @param {API~error} error 
    */
   machineGet(id, success, error) {
@@ -339,13 +335,19 @@ class API {
       success.bind(m)();
     }
 
-    this._request('GET', '/machine/' + id, processMachDef, error);
+    this._request('GET', '/machine/' + id, success, error);
   }
 
   /**
    * 
-   * @param {MicroRun} run 
-   * @param {API~microNewRun-success} success 
+   * @callback API~microRun
+   * @this {Micro.Run}
+   */
+
+  /**
+   * 
+   * @param {Micro.Run} run 
+   * @param {API~microRun} success 
    * @param {API~error} error 
    */
   microNewRun(run, success, error) {
@@ -355,10 +357,10 @@ class API {
   }
 
   /**
-   * Retrieve micromechanics run status
-   * @param {*} id 
-   * @param {*} success 
-   * @param {*} error 
+   * Retrieve MicroRun for given id
+   * @param {string} id 
+   * @param {API~microRun} success 
+   * @param {API~error} error 
    */
   microRunStatus(id, success, error) {
     this._request('GET', '/micro/run/' + id,
@@ -373,8 +375,8 @@ class API {
    * and will give up and call the error callback if the status does
    * not come back as completed or failed within the timeout.
    * @param {string} id 
-   * @param {*} completed 
-   * @param {*} failed 
+   * @param {API~microRun} completed 
+   * @param {API~microRun} failed 
    * @param {API~error} error 
    * @param {number} [interval] Interval in ms to re-check status
    * @param {number} [timeout] Time in ms to stop checking for status update
@@ -386,13 +388,13 @@ class API {
       api.microRunStatus(id, success, error);
     }
 
-    function success(resp) {
-      if (resp.status === 'waiting' || resp.status === 'running') {
+    function success() {
+      if (this.status === 'waiting' || this.status === 'running') {
         setTimeout(getStatus, interval);
-      } else if (resp.status === 'completed') {
-        completed(resp);
-      } else if (resp.status === 'failed') {
-        failed(resp);
+      } else if (this.status === 'completed') {
+        completed.bind(this)();
+      } else if (this.status === 'failed') {
+        failed.bind(this)();
       }
     }
 

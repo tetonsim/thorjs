@@ -18,8 +18,8 @@ describe('Material', function() {
             assert.ok(this.length > 0);
             done();
           },
-          function(error) {
-            throw error;
+          function() {
+            throw this;
           }
         )
 
@@ -41,11 +41,11 @@ describe('Material', function() {
           matId,
           function() {
             assert.strictEqual(this.id, matId);
-            assert.ok(this.elastic instanceof Elastic);
+            //assert.ok(this.elastic instanceof Elastic);
             done();
           },
-          function(error) {
-            throw error;
+          function() {
+            throw this;
           }
         )
 

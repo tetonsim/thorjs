@@ -1,6 +1,10 @@
+/**
+ * @namespace Material
+ */
 
 /**
  * Represents Elastic material behavior
+ * @memberof Material
  */
 class Elastic {
   constructor() {
@@ -22,12 +26,14 @@ class Elastic {
 
 /**
  * An engineering material definition
+ * @memberof Material
  */
 class Material {
   /**
    * 
    * @param {string} name Name of material
-   * @param {Elastic} [elastic] Elastic properties
+   * @param {Material.Elastic} [elastic] Elastic properties
+   * @todo How to handle reported materials with reinforcements (not computed via micromechanics)
    */
   constructor(name, elastic = null) {
     this.id = null;
@@ -39,12 +45,13 @@ class Material {
 
 /**
  * Represents a composite material
+ * @memberof Material
  */
 class Composite {
   /**
    * 
-   * @param {Material} matrix 
-   * @param {Material} fiber 
+   * @param {Material.Material} matrix 
+   * @param {Material.Material} fiber 
    * @param {number} volume_fraction 
    * @param {number} [L_over_D]
    */
