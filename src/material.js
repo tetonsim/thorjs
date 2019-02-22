@@ -26,39 +26,89 @@ class Elastic {
 
 /**
  * Material definition for FEA sim
- * @typedef FEA
  * @memberof Material
  * @property {string} name
  * @property {Material.Elastic} elastic
  */
+class FEA {
+  constructor(name, elastic) {
+    this.name = name;
+    this.elastic = elastic;
+  }
+}
+
+
+ /**
+  * Material supplier
+  * @typedef Supplier
+  * @memberof Material
+  * @property {string} id
+  * @property {string} name
+  */
+
+ /**
+  * Material family definition (e.g. ABS, Polycarbonate, etc.)
+  * @typedef Family
+  * @memberof Material
+  * @property {string} id
+  * @property {string} name
+  * @property {string} abbreviation
+  */
+
+ /**
+  * @typedef Property
+  * @memberof Material
+  * @property {string} name Display name
+  * @property {number} value
+  */
 
 /**
  * An engineering material definition
  * @memberof Material
+ * @property {string} id
+ * @property {string} name
+ * @property {Material.Supplier} supplier
+ * @property {Material.Family} family
+ * @property {Reinforcement} reinforcement
+ * @property {Object<string, Material.Property>} structural
  */
 class Material {
   /**
    * 
    * @param {string} name Name of material
    * @param {Material.Elastic} [elastic] Elastic properties
-   * @todo How to handle reported materials with reinforcements (not computed via micromechanics)
    */
   constructor(name, elastic = null) {
     this.id = null;
     this.name = name;
-    this.properties = {
-      elastic: elastic
-    };
+    this.family = null;
+    this.vendor = null;
+    this.reinforcement = null;
+    this.structural = {};
+  }
+
+  /**
+   * @returns {Material.Elastic}
+   */
+  get elastic() {
+    let s = this.structural;
+    if ('E' in s) {
+      return Elastic.Isotropic(s.E.value, s.nu.value);
+    } else if ('Ea' in s) {
+      // TODO
+    } else if ('E11' in s) {
+      // TODO
+    } else if ('C11' in s) {
+      // TODO 
+    }
+    return null;
   }
 
   /**
    * @returns {Material.FEA}
    */
   get fea() {
-    return {
-      name: this.name,
-      elastic: this.properties.elastic
-    }
+    return new FEA(this.name, this.elastic);
   }
 }
 
@@ -69,8 +119,8 @@ class Material {
 class Composite {
   /**
    * 
-   * @param {Material.Material} matrix 
-   * @param {Material.Material} fiber 
+   * @param {Material.FEA} matrix 
+   * @param {Material.FEA} fiber 
    * @param {number} volume_fraction 
    * @param {number} [L_over_D]
    */
@@ -82,4 +132,4 @@ class Composite {
   }
 }
 
-module.exports = { Elastic, Material, Composite };
+module.exports = { Elastic, Material, Composite, FEA };

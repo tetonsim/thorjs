@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 const { Micro, Builders } = require('../src/micro');
-const { Elastic, Material, Composite } = require('../src/material');
+const { Elastic, FEA, Composite } = require('../src/material');
 const { Config } = require('../src/machine');
 
 const thor = require('./main');
@@ -30,11 +30,11 @@ function runAndCheck(run, done, callback) {
 
 function defaultComposite(volume_fraction, L_over_D) {
 
-  let fiber = new Material(
+  let fiber = new FEA(
     'carbon', Elastic.Isotropic(200.0, 0.25)
   );
   
-  let matrix = new Material(
+  let matrix = new FEA(
     'pla', Elastic.Isotropic(3.5, 0.34)
   );
   
@@ -118,7 +118,7 @@ describe('Micro', function() {
     it('pla',
       function(done) {        
         let layer = Builders.ExtrudedLayer(
-          new Material('pla', Elastic.Isotropic(3.5, 0.34)),
+          new FEA('pla', Elastic.Isotropic(3.5, 0.34)),
           new Config()
         );
 
@@ -179,7 +179,7 @@ describe('Micro', function() {
         print.infill_type = 'grid';
         print.infill_volume_fraction = 50;
 
-        let infill = Builders.Infill( new Material('pla', Elastic.Isotropic(3.5, 0.34)), print );
+        let infill = Builders.Infill( new FEA('pla', Elastic.Isotropic(3.5, 0.34)), print );
 
         runAndCheck(infill, done,
           function(run) {

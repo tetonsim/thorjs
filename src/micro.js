@@ -1,4 +1,4 @@
-const { Elastic, Material, Composite } = require('./material');
+const { Elastic, Material, Composite, FEA } = require('./material');
 const { Config } = require('./machine');
 
 /**
@@ -175,7 +175,7 @@ const JobBuilders = {
     let layer = new ExtrudedLayer(print);
     let jlayer = new Job('layer', layer);
 
-    if (source instanceof Material) {
+    if (source instanceof FEA) {
       jlayer.materials.push(
         JobMaterial.FromMaterial('plastic', source.name)
       );
@@ -215,12 +215,12 @@ const JobBuilders = {
 const Builders = {
   /**
    * Builds a Micro run with a target Hexpack job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   Hexpack: function(composite) {
     var micro = new Input();
     
-    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
+    micro.materials.push(composite.matrix, composite.fiber);
 
     var jhexpack = JobBuilders.Hexpack(composite);
 
@@ -233,12 +233,12 @@ const Builders = {
 
   /**
    * Builds a Micro run with a target Spherical Particulate BCC job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   Particulate: function(composite) {
     var micro = new Input();
 
-    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
+    micro.materials.push(composite.matrix, composite.fiber);
 
     var jpart = JobBuilders.Particulate(composite);
 
@@ -251,12 +251,12 @@ const Builders = {
 
   /**
    * Builds a Micro run with a target ShortFiber job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   ShortFiber: function(composite) {
     var micro = new Input();
 
-    micro.materials.push(composite.matrix.fea, composite.fiber.fea);
+    micro.materials.push(composite.matrix, composite.fiber);
 
     var jhexpack = JobBuilders.Hexpack(composite);
     var jpart = JobBuilders.Particulate(composite);
@@ -269,20 +269,20 @@ const Builders = {
 
   /**
    * Builds a Micro run with a target Extruded Layer job
-   * @param {(Material|Composite)} material Print material
+   * @param {Material.FEA|Material.Composite} material Print material
    * @param {Config} printConfig
    */
   ExtrudedLayer: function(material, printConfig) {
     var micro = new Input();
 
-    if (material instanceof Material) {
-      micro.materials.push(material.fea);
+    if (material instanceof FEA) {
+      micro.materials.push(material);
 
       var jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       micro.jobs.push(jlayer);
     } else if (material instanceof Composite) {
-      micro.materials.push(material.matrix.fea, material.fiber.fea);
+      micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
       let jpart = JobBuilders.Particulate(material);
@@ -302,14 +302,14 @@ const Builders = {
   /**
    * Builds a Micro run with a target Infill job. Infill configuration is picked
    * up from the print configuration.
-   * @param {(Material|Composite)} material Print material
+   * @param {Material.FEA|Material.Composite} material Print material
    * @param {Config} printConfig
    */
   Infill: function(material, printConfig) {
     var micro = new Input();
 
-    if (material instanceof Material) {
-      micro.materials.push(material.fea);
+    if (material instanceof FEA) {
+      micro.materials.push(material);
 
       let jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
@@ -319,7 +319,7 @@ const Builders = {
       micro.jobs.push(jlayer, jinfill);
 
     } else if (material instanceof Composite) {
-      micro.materials.push(material.matrix.fea, material.fiber.fea);
+      micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
       let jpart = JobBuilders.Particulate(material);
