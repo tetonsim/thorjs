@@ -1,8 +1,3 @@
-
-/**
- * @namespace FEA
- */
-
 /**
  * @typedef {Object} Model
  * @memberof FEA
@@ -17,4 +12,11 @@
  * @property {FEA.Model} model FEA model definition
  */
 
- module.exports = { }
+/**
+ * @namespace FEA
+ */
+ const FEA = {
+
+ };
+
+ module.exports = FEA;
