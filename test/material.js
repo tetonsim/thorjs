@@ -1,7 +1,5 @@
 const assert = require('assert');
 
-const { Elastic, Material, Composite } = require('../src/material');
-
 const thor = require('./main');
 
 let timeout = 1000;

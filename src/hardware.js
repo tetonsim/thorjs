@@ -1,6 +1,6 @@
-
 /**
  * 3D printer configuration settings
+ * @memberof Hardware
  */
 class Config {
   constructor() {
@@ -22,6 +22,7 @@ class Config {
 
 /**
  * Additive manufacturing machine vendor
+ * @memberof Hardware
  * @property {string} id Unique id
  * @property {string} name
  */
@@ -34,6 +35,7 @@ class Vendor {
 
 /**
  * Additive manufacturing machine
+ * @memberof Hardware
  * @property {string} id Unique id
  * @property {string} name
  * @property {Vendor} vendor
@@ -50,4 +52,13 @@ class Machine {
   }
 }
 
-module.exports = { Config, Vendor, Machine };
+/**
+ * @namespace Hardware
+ */
+const Hardware = {
+  Vendor: Vendor,
+  Machine: Machine,
+  Config: Config
+}
+
+module.exports = Hardware;

@@ -1,8 +1,4 @@
 /**
- * @namespace Material
- */
-
-/**
  * Represents Elastic material behavior
  * @memberof Material
  */
@@ -38,33 +34,42 @@ class FEA {
 }
 
 
- /**
-  * Material supplier
-  * @typedef Supplier
-  * @memberof Material
-  * @property {string} id
-  * @property {string} name
-  */
+/**
+* Material supplier
+* @typedef Supplier
+* @memberof Material
+* @property {string} id
+* @property {string} name
+*/
 
- /**
-  * Material family definition (e.g. ABS, Polycarbonate, etc.)
-  * @typedef Family
-  * @memberof Material
-  * @property {string} id
-  * @property {string} name
-  * @property {string} abbreviation
-  */
+/**
+* Material family definition (e.g. ABS, Polycarbonate, etc.)
+* @typedef Family
+* @memberof Material
+* @property {string} id
+* @property {string} name
+* @property {string} abbreviation
+*/
 
- /**
-  * @typedef Property
-  * @memberof Material
-  * @property {string} name Display name
-  * @property {number} value
-  */
+/**
+ * @typedef Reinforcement
+ * @memberof Material
+ * @property {string} name
+ * @property {number} weight_fraction
+ * @property {number} L_over_D
+ */
+
+/**
+* @typedef Property
+* @memberof Material
+* @property {string} name Display name
+* @property {number} value
+*/
 
 /**
  * An engineering material definition
  * @memberof Material
+ * @alias Material
  * @property {string} id
  * @property {string} name
  * @property {Material.Supplier} supplier
@@ -72,7 +77,7 @@ class FEA {
  * @property {Reinforcement} reinforcement
  * @property {Object<string, Material.Property>} structural
  */
-class Material {
+class _Material {
   /**
    * 
    * @param {string} name Name of material
@@ -132,4 +137,14 @@ class Composite {
   }
 }
 
-module.exports = { Elastic, Material, Composite, FEA };
+/**
+ * @namespace Material
+ */
+const Material = {
+  Material: _Material,
+  Elastic: Elastic,
+  Composite: Composite,
+  FEA: FEA
+};
+
+module.exports = Material;

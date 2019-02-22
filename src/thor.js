@@ -1,21 +1,11 @@
-const { Elastic, Material, Composite } = require('./material');
-const { Builders } = require('./micro');
-const { Config, Vendor, Machine } = require('./machine');
+const Material = require('./material');
+const Micro = require('./micro');
+const Hardware = require('./hardware');
 const API = require('./api');
 
 module.exports = {
-  Material: {
-    Elastic: Elastic,
-    Material: Material,
-    Composite: Composite
-  },
-  Micro: {
-    Builders: Builders
-  },
-  Machine: {
-    Config,
-    Vendor,
-    Machine
-  },
+  Material: Material,
+  Micro: Micro,
+  Hardware: Hardware,
   API: API
 }

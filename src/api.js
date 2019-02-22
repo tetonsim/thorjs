@@ -1,5 +1,3 @@
-const { Elastic, Material } = require('./material');
-const { Machine } = require('./machine');
 
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
@@ -245,7 +243,7 @@ class API {
   /**
    * 
    * @callback API~materialSearch-success
-   * @this {Material[]}
+   * @this {Material.Material[]}
    */
   
   /**
@@ -256,11 +254,11 @@ class API {
   materialSearch(success, error) {
     this._request('GET', '/material/search', success, error);
   }
-  
+
   /**
    * 
    * @callback API~materialGet-success
-   * @this {Material}
+   * @this {Material.Material}
    */
   
   /**
@@ -275,7 +273,7 @@ class API {
   /**
    * 
    * @callback API~machineSearch-success
-   * @this {Machine[]}
+   * @this {Hardware.Machine[]}
    */
   
   /**
@@ -284,29 +282,12 @@ class API {
    * @param {API~error} error 
    */
   machineSearch(success, error) {
-    var processMachDefs = function(resp) {
-      let machs = [];
-
-      resp.forEach(
-        function(jmach) { // convert JSON mat definition to Machine
-          let m = new Machine(jmach.name);
-    
-          m.id = resp.id;
-          m.process = resp.process;
-    
-          machs.push(m); 
-        }
-      )
-
-      success.bind(machs)();
-    }
-
     this._request('GET', '/machine/search', success, error);
   }
   /**
    * 
    * @callback API~machineGet-success
-   * @this {Machine}
+   * @this {Hardware.Machine}
    */
   
   /**
@@ -315,17 +296,6 @@ class API {
    * @param {API~error} error 
    */
   machineGet(id, success, error) {
-    var processMachDef = function(resp) {
-      let m = new Machine(resp.name);
-
-      m.id = resp.id;
-      m.process = resp.process;
-
-      Object.assign(m.config, resp.config);
-
-      success.bind(m)();
-    }
-
     this._request('GET', '/machine/' + id, success, error);
   }
 

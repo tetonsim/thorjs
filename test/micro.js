@@ -1,8 +1,8 @@
 const assert = require('assert');
 
-const { Micro, Builders } = require('../src/micro');
-const { Elastic, FEA, Composite } = require('../src/material');
-const { Config } = require('../src/machine');
+const Micro = require('../src/micro');
+const Material = require('../src/material');
+const Hardware = require('../src/hardware');
 
 const thor = require('./main');
 
@@ -30,15 +30,15 @@ function runAndCheck(run, done, callback) {
 
 function defaultComposite(volume_fraction, L_over_D) {
 
-  let fiber = new FEA(
-    'carbon', Elastic.Isotropic(200.0, 0.25)
+  let fiber = new Material.FEA(
+    'carbon', Material.Elastic.Isotropic(200.0, 0.25)
   );
   
-  let matrix = new FEA(
-    'pla', Elastic.Isotropic(3.5, 0.34)
+  let matrix = new Material.FEA(
+    'pla', Material.Elastic.Isotropic(3.5, 0.34)
   );
   
-  return new Composite(matrix, fiber, volume_fraction, L_over_D);
+  return new Material.Composite(matrix, fiber, volume_fraction, L_over_D);
 }
 
 let timeout = 60 * 1000;
@@ -49,7 +49,7 @@ describe('Micro', function() {
 
     it('valid',
       function(done) {
-        let hexpack = Builders.Hexpack(defaultComposite(15));
+        let hexpack = Micro.Builders.Hexpack(defaultComposite(15));
 
         runAndCheck(hexpack, done,
           function(run) {
@@ -71,7 +71,7 @@ describe('Micro', function() {
     it('low_vf',
       function(done) {
         
-        let hexpack = Builders.Hexpack(defaultComposite(4));
+        let hexpack = Micro.Builders.Hexpack(defaultComposite(4));
 
         runAndCheck(hexpack, done,
           function(run) {
@@ -91,7 +91,7 @@ describe('Micro', function() {
 
     it('L/D = 50',
       function(done) {        
-        let sf = Builders.ShortFiber(defaultComposite(15, 50));
+        let sf = Micro.Builders.ShortFiber(defaultComposite(15, 50));
 
         runAndCheck(sf, done,
           function(run) {
@@ -117,9 +117,9 @@ describe('Micro', function() {
 
     it('pla',
       function(done) {        
-        let layer = Builders.ExtrudedLayer(
-          new FEA('pla', Elastic.Isotropic(3.5, 0.34)),
-          new Config()
+        let layer = Micro.Builders.ExtrudedLayer(
+          new Material.FEA('pla', Material.Elastic.Isotropic(3.5, 0.34)),
+          new Hardware.Config()
         );
 
         runAndCheck(layer, done,
@@ -142,9 +142,9 @@ describe('Micro', function() {
 
     it('pla-cf',
       function(done) {        
-        let layer = Builders.ExtrudedLayer(
+        let layer = Micro.Builders.ExtrudedLayer(
           defaultComposite(15, 50),
-          new Config()
+          new Hardware.Config()
         );
 
         runAndCheck(layer, done,
@@ -174,12 +174,14 @@ describe('Micro', function() {
 
     it('grid-pla',
       function(done) {
-        let print = new Config();
+        let print = new Hardware.Config();
 
         print.infill_type = 'grid';
         print.infill_volume_fraction = 50;
 
-        let infill = Builders.Infill( new FEA('pla', Elastic.Isotropic(3.5, 0.34)), print );
+        let pla = new Material.FEA('pla', Material.Elastic.Isotropic(3.5, 0.34));
+
+        let infill = Micro.Builders.Infill(pla, print);
 
         runAndCheck(infill, done,
           function(run) {

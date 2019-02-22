@@ -1,6 +1,6 @@
 const assert = require('assert');
 
-const { Config, Vendor, Machine } = require('../src/machine');
+const Hardware = require('../src/hardware');
 
 const thor = require('./main');
 

@@ -1,9 +1,5 @@
-const { Elastic, Material, Composite, FEA } = require('./material');
-const { Config } = require('./machine');
-
-/**
- * @namespace Micro
- */
+const Material = require('./material');
+const Hardware = require('./hardware');
 
 class JobMaterial {
   constructor(name, source, source_name) {
@@ -130,7 +126,7 @@ class Run {
  * @typedef {Object} Result
  * @memberof Micro
  * @property {Object} meta Meta information about the run
- * @property {Material[]} materials
+ * @property {Material.Material[]} materials
  */
 
 
@@ -175,7 +171,7 @@ const JobBuilders = {
     let layer = new ExtrudedLayer(print);
     let jlayer = new Job('layer', layer);
 
-    if (source instanceof FEA) {
+    if (source instanceof Material.FEA) {
       jlayer.materials.push(
         JobMaterial.FromMaterial('plastic', source.name)
       );
@@ -270,18 +266,18 @@ const Builders = {
   /**
    * Builds a Micro run with a target Extruded Layer job
    * @param {Material.FEA|Material.Composite} material Print material
-   * @param {Config} printConfig
+   * @param {Hardware.Config} printConfig
    */
   ExtrudedLayer: function(material, printConfig) {
     var micro = new Input();
 
-    if (material instanceof FEA) {
+    if (material instanceof Material.FEA) {
       micro.materials.push(material);
 
       var jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       micro.jobs.push(jlayer);
-    } else if (material instanceof Composite) {
+    } else if (material instanceof Material.Composite) {
       micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
@@ -303,12 +299,12 @@ const Builders = {
    * Builds a Micro run with a target Infill job. Infill configuration is picked
    * up from the print configuration.
    * @param {Material.FEA|Material.Composite} material Print material
-   * @param {Config} printConfig
+   * @param {Hardware.Config} printConfig
    */
   Infill: function(material, printConfig) {
     var micro = new Input();
 
-    if (material instanceof FEA) {
+    if (material instanceof Material.FEA) {
       micro.materials.push(material);
 
       let jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
@@ -318,7 +314,7 @@ const Builders = {
 
       micro.jobs.push(jlayer, jinfill);
 
-    } else if (material instanceof Composite) {
+    } else if (material instanceof Material.Composite) {
       micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
@@ -340,4 +336,13 @@ const Builders = {
   }
 };
 
-module.exports = { Input, Run, Builders };
+/**
+ * @namespace Micro
+ */
+const Micro = {
+  Input: Input,
+  Run: Run,
+  Builders: Builders
+};
+
+module.exports = Micro;
