@@ -1,9 +1,14 @@
 
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+
+  var os = require('os');
+  var path = require('path');
+
+  var location = path.join(os.homedir(), '.thor');
   
   var LocalStorage = require('node-localstorage').LocalStorage;
-  localStorage = new LocalStorage('./.thor');
+  localStorage = new LocalStorage(location);
 }
 
 const _HelperCallbacks = {
@@ -262,6 +267,8 @@ class API {
           if (success !== undefined) {
             success();
           }
+
+          localStorage.removeItem('token');
         } else {
           if (error !== undefined) {
             error.bind(new Error('Failed to logout'));
@@ -430,33 +437,35 @@ class API {
 
   /**
    * 
+   * @param {string} name
    * @param {FEA.Model} model 
    * @param {API~feaModel} success 
    * @param {API~error} error 
    */
-  feaModelCreate(model, success, error) {
+  feaModelCreate(name, model, success, error) {
     model.id = null;
 
-    this._request('POST', '/fea/model', success, error);
+    this._request('POST', '/fea/model', success, error, { name: name, model: model });
   }
 
-  feaModelSave(model, success, error) {
+  feaModelSave(id, model, success, error) {
+    this._request('PUT', '/fea/model', success, error, { id: id, model: model });
   }
 
   feaModel(id, success, error) {
-
+    this._request('GET', '/fea/model/' + id, success, error);
   }
 
   feaRunCreate(model_id, success, error) {
-
+    this._request('POST', '/fea/run', success, error, { model_id: model_id });
   }
 
   feaRun(id, success, error) {
-
+    this._request('GET', '/fea/run/' + id, success, error);
   }
 
-  feaRunSubmit(id, success, error) {
-
+  feaRunSubmit(id, success, error, force=false) {
+    this._request('POST', '/fea/run/submit', success, error, { id: id, force: force });
   }
 
   feaRunWait(id, completed, failed, error, interval=1000, timeout=undefined) {

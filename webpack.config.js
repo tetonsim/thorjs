@@ -2,8 +2,8 @@ const path = require('path');
 const webpack = require('webpack');
 
 let externals = {
-  xmlhttprequest: 'XMLHttpRequest'  
-}
+  xmlhttprequest: 'XMLHttpRequest'
+};
 
 externals['node-localstorage'] = 'localStorage';
 
@@ -16,6 +16,8 @@ base_config = {
   ],
   node: {
     fs: 'empty',
+    os: 'empty',
+    path: 'empty',
     child_process: 'empty'
   }
 };
@@ -42,4 +44,15 @@ dev_config = {
 
 Object.assign(dev_config, base_config);
 
-module.exports = [prod_config, dev_config];
+cli_config = {
+  entry: './src/cli.js',
+  target: 'node',
+  mode: 'production',
+  output: {
+    filename: 'thor.cli.js',
+    //library: 'thor',
+    path: path.resolve(__dirname, 'build')
+  }
+};
+
+module.exports = [prod_config, dev_config, cli_config];
