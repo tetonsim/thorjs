@@ -1,6 +1,9 @@
 
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  
+  var LocalStorage = require('node-localstorage').LocalStorage;
+  localStorage = new LocalStorage('./.thor');
 }
 
 const _HelperCallbacks = {
@@ -11,6 +14,8 @@ const _HelperCallbacks = {
       } else {
         api.token = this.token;
         api.user = this.user;
+
+        localStorage.setItem('token', JSON.stringify(api.token));
 
         if (success !== undefined) {
           success.bind(api.user)();
@@ -59,6 +64,12 @@ class API {
 
   static get version() {
     return '19.0';
+  }
+
+  get config() {
+    return {
+      host: this.host
+    }
   }
 
   _request(method, route, success, error, data) {
@@ -155,22 +166,42 @@ class API {
     * @returns {Object}
     * @todo Implement token retrieval
     */
-   whoAmI() {
+   whoAmI(success, error) {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
       // Check local storage for a token
+      let saved_token = localStorage.getItem('token');
+
+      if (saved_token === null || saved_token === undefined) {
+        error.bind(new Error('No token available', 401))();
+        return false;
+      }
+
+      this.token = JSON.parse(saved_token);
 
       getUserInfoFromServer = true;
-
-      return null;
     }
 
     if (this.user === null || getUserInfoFromServer) {
+      let api = this;
+      
+      let clearUser = function() {
+        api.user = null;
+        api.token = null;
+        error.bind(this)();
+      }
 
+      this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
+    } else {
+      success.bind({
+        success: true,
+        user: this.user,
+        token: this.token
+      })();
     }
 
-    return this.user;
+    return true;
   }
 
   /**

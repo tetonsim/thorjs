@@ -88,23 +88,23 @@ class _Material {
     this.name = name;
     this.family = null;
     this.vendor = null;
-    this.reinforcement = null;
-    this.structural = {};
+    this.properties = {};
   }
 
   /**
    * @returns {Material.Elastic}
    */
   get elastic() {
-    let s = this.structural;
-    if ('E' in s) {
+    let struc = this.properties.structural;
+    let stiff = struc.stiffness;
+    if (struc.isotropy == 'isotropic') {
       return Elastic.Isotropic(s.E.value, s.nu.value);
-    } else if ('Ea' in s) {
+    } else if (struc.isotropy == 'transverse_isotropic') {
       // TODO
-    } else if ('E11' in s) {
+    } else if (struc.isotropy == 'orthotropic') {
       // TODO
-    } else if ('C11' in s) {
-      // TODO 
+    } else if (struc.isotropy == 'anisotropic') {
+      // TODO
     }
     return null;
   }

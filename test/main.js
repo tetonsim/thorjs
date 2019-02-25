@@ -6,7 +6,8 @@ const { Elastic, Material } = require('../src/material');
 const assert = require('assert');
 
 const thor = new Thor.API({
-  //host: 'https://api.fea.cloud' //'http://127.0.0.1:8000'
+  //host: 'https://api.fea.cloud'
+  //host: 'http://127.0.0.1:8000'
   host: 'http://127.0.0.1:5000'
 });
 
@@ -37,9 +38,22 @@ describe('Main', function() {
         done();
       },
       function() {
-        console.error(this);
-        assert.ok(false);
+        done(this);
+      }
+    )
+  });
+
+  it ('whoAmI', function(done) {
+    // use a fresh API
+    let thor2 = new Thor.API(thor.config);
+    thor2.whoAmI(
+      function() {
+        assert.ok(thor2.user !== null);
+        assert.ok(thor2.token !== null);
         done();
+      },
+      function() {
+        done(this);
       }
     )
   });

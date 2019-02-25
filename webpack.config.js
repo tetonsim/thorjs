@@ -1,14 +1,18 @@
 const path = require('path');
 const webpack = require('webpack');
 
+let externals = {
+  xmlhttprequest: 'XMLHttpRequest'  
+}
+
+externals['node-localstorage'] = 'localStorage';
+
 base_config = {
   entry: './src/thor.js',
   target: 'web',
-  externals: {
-    xmlhttprequest: 'XMLHttpRequest'
-  },
+  externals: externals,
   plugins: [
-    new webpack.IgnorePlugin(/xmlhttprequest/),
+    new webpack.IgnorePlugin(/xmlhttprequest/)
   ],
   node: {
     fs: 'empty',

@@ -36,11 +36,11 @@ describe('Material', function() {
           matId,
           function() {
             assert.strictEqual(this.id, matId);
-            assert.ok('elastic' in this.properties);
+            assert.ok('structural' in this.properties);
             done();
           },
           function() {
-            throw this;
+            done(this);
           }
         )
 
