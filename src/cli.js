@@ -8,6 +8,18 @@ const readline = require('readline');
 const Writable = require('stream').Writable;
 const thor = require('./thor');
 
+// default configuration
+const HOST = 'https://api.fea.cloud';
+let config = {
+  host: HOST
+};
+
+let jconfig = thor.API.localStorage.getItem('config');
+
+if (jconfig !== null) {
+  config = JSON.parse(jconfig);
+}
+
 let api = new thor.API({host: 'http://127.0.0.1:5000'});
 
 app
@@ -20,6 +32,10 @@ app
   .action(logout);
 
 app
+  .command('config')
+  .action(configure);
+
+app
   .command('micro')
   .option('-i|--input [file]')
   .option('-t|--target [job]')
@@ -28,6 +44,37 @@ app
 //console.log(process.argv);
 
 app.parse(process.argv);
+
+function configure() {
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  console.log('Input the parameters to re-configure Thor.');
+  console.log('Leave inputs empty to use the default, specified in parantheses.');
+  console.log('If you were previously logged in, this process will log you out.');
+
+  let new_config = {
+    host: HOST
+  };
+
+  rl.question('Host (' + HOST + '): ',
+    function(host) {
+
+      if (host.length > 0) {
+        new_config.host = host;
+      }
+
+      thor.API.localStorage.setItem('config', JSON.stringify(new_config));
+
+      rl.close();
+    }
+  );
+
+  api.releaseToken();
+}
 
 function login() {
   var mutableStdout = new Writable({

@@ -71,6 +71,13 @@ class API {
     return '19.0';
   }
 
+  /**
+   * @returns The LocalStorage object used by the API
+   */
+  static get localStorage() {
+    return localStorage;
+  }
+
   get config() {
     return {
       host: this.host
