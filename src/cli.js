@@ -1,6 +1,6 @@
 'use strict';
 
-const version = '19.0.3';
+const version = typeof VERSION === 'undefined' ? 'dev' : VERSION;
 
 const app = require('commander');
 const fs = require('fs');
@@ -37,8 +37,8 @@ app
 
 app
   .command('micro')
-  .option('-i|--input [file]')
-  .option('-t|--target [job]')
+  .option('-i, --input [file]')
+  .option('-t, --target [job]')
   .action(micro);
 
 //console.log(process.argv);

@@ -1,5 +1,12 @@
 const path = require('path');
 const webpack = require('webpack');
+const pjson = require('./package.json');
+
+let version = pjson.version;
+
+if (process.env.BUILD_NUMBER) {
+  version = version + '.' + process.env.BUILD_NUMBER;
+}
 
 let externals = {
   xmlhttprequest: 'XMLHttpRequest'
@@ -7,12 +14,19 @@ let externals = {
 
 externals['node-localstorage'] = 'localStorage';
 
-base_config = {
+let definitions = new webpack.DefinePlugin(
+  {
+    VERSION: JSON.stringify(version)
+  }
+);
+
+base_web_config = {
   entry: './src/thor.js',
   target: 'web',
   externals: externals,
   plugins: [
-    new webpack.IgnorePlugin(/xmlhttprequest/)
+    new webpack.IgnorePlugin(/xmlhttprequest/),
+    definitions
   ],
   node: {
     fs: 'empty',
@@ -31,7 +45,7 @@ prod_config = {
   }
 };
 
-Object.assign(prod_config, base_config);
+Object.assign(prod_config, base_web_config);
 
 dev_config = {
   mode: 'development',
@@ -42,7 +56,7 @@ dev_config = {
   }
 };
 
-Object.assign(dev_config, base_config);
+Object.assign(dev_config, base_web_config);
 
 cli_config = {
   entry: './src/cli.js',
@@ -52,7 +66,10 @@ cli_config = {
     filename: 'thor.cli.js',
     //library: 'thor',
     path: path.resolve(__dirname, 'build')
-  }
+  },
+  plugins: [
+    definitions
+  ]
 };
 
 module.exports = [prod_config, dev_config, cli_config];
