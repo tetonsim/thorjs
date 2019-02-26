@@ -107,7 +107,21 @@ class API {
         } else if (xhttp.status === 500) {
           err = new Error('Internal server error', xhttp.status);
         } else {
-          err = new Error(response, xhttp.status);
+          let message = null;
+          
+          if ('error' in response) {
+            message = response.error;
+          }
+
+          if ('exception' in response) {
+            message = message + ' :: ' + response.exception;
+          }
+
+          if (message === null) {
+            message = response;
+          }
+
+          err = new Error(message, xhttp.status);
         }
 
         if (err !== null && error !== undefined) {

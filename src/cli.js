@@ -4,6 +4,7 @@ const version = typeof VERSION === 'undefined' ? 'dev' : VERSION;
 
 const app = require('commander');
 const fs = require('fs');
+const path = require('path');
 const readline = require('readline');
 const Writable = require('stream').Writable;
 const thor = require('./thor');
@@ -41,7 +42,10 @@ app
   .option('-t, --target [job]')
   .action(micro);
 
-//console.log(process.argv);
+app
+  .command('fea')
+  .option('-i, --input [file]')
+  .action(fea);
 
 app.parse(process.argv);
 
@@ -186,4 +190,84 @@ function micro(req, opt) {
 
     }
   );
+}
+
+function fea(req, opt) {
+  let that = this;
+  let lastStatus = '';
+
+  whoAmI(makeModel);
+
+  function makeModel() {
+    if (!fs.existsSync(that.input)) {
+      throw that.input + ' does not exist';
+    }
+
+    let content = fs.readFileSync(that.input);
+    let input = JSON.parse(content);
+    let target = that.target;
+
+    api.feaModelCreate(input.name, input,
+      function() {
+        console.log('FEA model created: ' + this.id);
+        makeRun(this.id);
+      },
+      function() {
+        console.error('Failed to create FEA model: ' + this.message);
+      }
+    );
+  }
+
+  function makeRun(model_id) {
+    api.feaRunCreate(model_id,
+      function() {
+        console.log('FEA run created: ' + this.run.id);
+        submitRun(this.run.id);
+      },
+      function() {
+        console.error('Failed to create FEA run: ' + this.message);
+      }
+    );
+  }
+
+  function submitRun(run_id) {
+    api.feaRunSubmit(run_id,
+      function() {
+        console.log('FEA run submitted: ' + this.id);
+        runCheck(run_id);
+      },
+      function() {
+        console.error('Failed to submit FEA run: ' + this.message);
+      }
+    );
+  }
+
+  function runCheck(id) {
+    api.feaRun(id,
+      function() {
+        if (this.status === 'finished') {
+          let inpfile = path.parse(that.input);
+          let rstfile = path.join(inpfile.dir, inpfile.name + '.rst');
+
+          console.log('Writing results to ' + rstfile);
+
+          fs.writeFileSync(
+            rstfile, JSON.stringify(this.result)
+          );
+
+          console.log('Finished!');
+
+        } else if (this.status === 'aborted' || this.status === 'failed' || this.status === 'crashed') {
+          console.error('Run failed: ', this.error);
+        } else {
+          setTimeout(function() { runCheck(id) }, 2000);
+        }
+
+        if (this.status !== lastStatus) {
+          console.log('Status: ' + this.status);
+          lastStatus = this.status;
+        }
+      }
+    );
+  }
 }
