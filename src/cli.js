@@ -247,15 +247,13 @@ function fea(req, opt) {
       function() {
         if (this.status === 'finished') {
           let inpfile = path.parse(that.input);
-          let rstfile = path.join(inpfile.dir, inpfile.name + '.rst');
+          let rstfile = path.join(inpfile.dir, inpfile.base + '.rst');
 
           console.log('Writing results to ' + rstfile);
 
           fs.writeFileSync(
             rstfile, JSON.stringify(this.result)
           );
-
-          console.log('Finished!');
 
         } else if (this.status === 'aborted' || this.status === 'failed' || this.status === 'crashed') {
           console.error('Run failed: ', this.error);
