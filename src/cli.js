@@ -20,7 +20,7 @@ if (jconfig !== null) {
   config = JSON.parse(jconfig);
 }
 
-let api = new thor.API({host: 'http://127.0.0.1:5000'});
+let api = new thor.API(config);
 
 app
   .version(version)
