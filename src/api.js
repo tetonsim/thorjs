@@ -453,7 +453,10 @@ class API {
   /**
    * 
    * @callback API~feaModel
-   * @this {FEA.Model}
+   * @this {Object}
+   * @param {string} this.id
+   * @param {string} this.name
+   * @param {FEA.Model} this.model
    */
 
   /**
@@ -473,24 +476,61 @@ class API {
     this._request('PUT', '/fea/model', success, error, { id: id, model: model });
   }
 
+  /**
+   * 
+   * @param {string} id 
+   * @param {API~feaModel} success 
+   * @param {API~error} error 
+   */
   feaModel(id, success, error) {
     this._request('GET', '/fea/model/' + id, success, error);
   }
 
+  /**
+   * 
+   * @callback API~feaRunCreate
+   * @this {Object}
+   * @param {boolean} this.success
+   * @param {string} this.error
+   * @param {FEA.Run} this.run
+   */
+
+  /**
+   * 
+   * @param {string} model_id 
+   * @param {API~feaRunCreate} success 
+   * @param {API~error} error 
+   */
   feaRunCreate(model_id, success, error) {
     this._request('POST', '/fea/run', success, error, { model_id: model_id });
   }
 
+  /**
+   * 
+   * @callback API~feaRun
+   * @this {FEA.Run}
+   */
+
+  /**
+   * 
+   * @param {string} id 
+   * @param {API~feaRun} success 
+   * @param {API~error} error 
+   */
   feaRun(id, success, error) {
     this._request('GET', '/fea/run/' + id, success, error);
   }
 
+  /**
+   * 
+   * @param {string} id 
+   * @param {API~feaRun} success 
+   * @param {API~error} error 
+   * @param {boolean} [force] Force the run submission if it was previously submitted.
+   *                        This will overwrite any existing results.
+   */
   feaRunSubmit(id, success, error, force=false) {
     this._request('POST', '/fea/run/submit', success, error, { id: id, force: force });
-  }
-
-  feaRunWait(id, completed, failed, error, interval=1000, timeout=undefined) {
-
   }
 }
 
