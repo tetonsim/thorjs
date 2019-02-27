@@ -230,6 +230,18 @@ class API {
     return true;
   }
 
+  register(first_name, last_name, email, password, success, error) {
+    this._request('POST', '/auth/register', success, error,
+      {
+        email: email,
+        first_name: first_name,
+        last_name: last_name,
+        password: password,
+        confirm_password: password
+      }
+    );
+  }
+
   /**
    * Login successful callback.
    * @callback API~getToken-success

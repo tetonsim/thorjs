@@ -37,6 +37,10 @@ app
   .action(configure);
 
 app
+  .command('register')
+  .action(register);
+
+app
   .command('micro')
   .option('-i, --input [file]')
   .option('-t, --target [job]')
@@ -80,7 +84,7 @@ function configure() {
   api.releaseToken();
 }
 
-function login() {
+function _getCredentials(callback) {
   var mutableStdout = new Writable({
     write: function(chunk, encoding, callback) {
       if (!this.muted) {
@@ -104,23 +108,30 @@ function login() {
 
       rl.question('',
         function(pass) {
-          api.getToken(email, pass,
-            function() {
-              console.log('Hi ' + this.first_name + ', you are logged in.');
-              console.log('Use the logout command to log out.');
-            },
-            function() {
-              console.error('Failed to login');
-              //console.error(this.http_code);
-              //console.error(this.message);
-            }
-          );
-
+          callback(email, pass);
           rl.close();
         }
       );
     }
   );
+}
+
+function login() {
+  var loginWithCreds = function(email, pass) {
+    api.getToken(email, pass,
+      function() {
+        console.log('Hi ' + this.first_name + ', you are logged in.');
+        console.log('Use the logout command to log out.');
+      },
+      function() {
+        console.error('Failed to login');
+        //console.error(this.http_code);
+        //console.error(this.message);
+      }
+    );
+  }
+
+  _getCredentials(loginWithCreds);
 }
 
 function whoAmI(callback) {
@@ -140,6 +151,44 @@ function logout() {
         },
         function() {
           console.error('Failed to log out');
+        }
+      );
+    }
+  );
+}
+
+function register() {
+  var first_name;
+  var last_name;
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  var registerWithCreds = function(email, pass) {
+    api.register(first_name, last_name, email, pass,
+      function() {
+        console.log('Successful registration. Use login command to log in.');
+      },
+      function() {
+        console.error('Failed to register');
+        console.error(this.message);
+        rl.close();
+      }
+    );
+  }
+
+  rl.question('First Name: ', 
+    function(first_name_ans) {
+      first_name = first_name_ans;
+      rl.question('Last Name: ',
+        function(last_name_ans) {
+          last_name = last_name_ans;
+          
+          rl.close();
+
+          _getCredentials(registerWithCreds);
         }
       );
     }
