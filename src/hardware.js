@@ -34,6 +34,14 @@ class Vendor {
 }
 
 /**
+ * @typedef MachineMaterial
+ * @memberof Hardware
+ * @type {Object}
+ * @property {string} id
+ * @property {string} name
+ */
+
+/**
  * Additive manufacturing machine
  * @memberof Hardware
  * @property {string} id Unique id
@@ -41,6 +49,7 @@ class Vendor {
  * @property {Vendor} vendor
  * @property {string} process The AM process this machine uses. Always FDM right now.
  * @property {Config} config The default print configuration for the machine
+ * @property {Hardware.MachineMaterial[]} materials Valid materials for this machine
  */
 class Machine {
   constructor(name) {

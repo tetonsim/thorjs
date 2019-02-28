@@ -42,6 +42,7 @@ describe('Machine', function() {
           function() {
             assert.strictEqual(this.id, machId);
             assert.strictEqual(this.process, "FDM");
+            assert.ok(this.materials.length > 0);
             done();
           },
           function() {
