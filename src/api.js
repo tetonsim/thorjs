@@ -147,6 +147,15 @@ class API {
   }
 
   /**
+   * API general success callback to indicate a successful
+   * API call when no particular object information is returned.
+   * For example - to indicate a successful object deletion.
+   * @callback API~success
+   * @this {Object}
+   * @param {string} this.message
+   */
+
+  /**
    * API error callback
    * @callback API~error
    * @this {Error}
@@ -280,13 +289,8 @@ class API {
   }
 
   /**
-   * Logout successful callback.
-   * @callback API~releaseToken-success
-   */
-
-  /**
    * Deletes the stored API token.
-   * @param {API~releaseToken-success} success 
+   * @param {API~success} success 
    * @param {API~error} error 
    */
   releaseToken(success, error) {
@@ -496,6 +500,17 @@ class API {
    */
   feaModel(id, success, error) {
     this._request('GET', '/fea/model/' + id, success, error);
+  }
+
+  /**
+   * 
+   * @param {string} id 
+   * @param {API~success} success 
+   * @param {API~error} error 
+   * @param {boolean} [force=false] Force delete if model contains runs
+   */
+  feaModelDelete(id, success, error, force=false) {
+    this._request('DELETE', '/fea/model/' + id, success, error, { force: force });
   }
 
   /**

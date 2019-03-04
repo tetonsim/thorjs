@@ -291,6 +291,18 @@ function fea(req, opt) {
     );
   }
 
+  function deleteModelAndRuns(model_id) {
+    api.feaModelDelete(model_id,
+      function() {
+        // do nothing
+      },
+      function() {
+        console.warn('Unable to delete model: ', this.error);
+      },
+      true
+    );
+  }
+
   function runCheck(id) {
     api.feaRun(id,
       function() {
@@ -304,6 +316,7 @@ function fea(req, opt) {
             rstfile, JSON.stringify(this.result)
           );
 
+          deleteModelAndRuns(this.femodel);
         } else if (this.status === 'aborted' || this.status === 'failed' || this.status === 'crashed') {
           console.error('Run failed: ', this.error);
         } else {
