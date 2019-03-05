@@ -187,10 +187,10 @@ const JobBuilders = {
   },
 
   Infill: function(jlayer, print) {
-    if (print.infill_type === 'grid' || print.infill_type === 'square') {
-      var infill = new InfillSquare(print.infill_volume_fraction, print.layer_width);
-    } else if (print.infill_type === 'triangle') {
-      var infill = new InfillTriangle(print.infill_volume_fraction, print.layer_width);
+    if (print.infill.pattern === 'grid' || print.infill.pattern === 'square') {
+      var infill = new InfillSquare(print.infill.density, print.layer_width);
+    } else if (print.infill.pattern === 'triangle') {
+      var infill = new InfillTriangle(print.infill.density, print.layer_width);
     }
     
     let jinfill = new Job('infill', infill);

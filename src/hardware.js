@@ -7,8 +7,17 @@ class Config {
     this.layer_width = 0.45;
     this.layer_height = 0.2;
     this.overlap = 0.0;
-    this.infill_type = 'grid';
-    this.infill_volume_fraction = 20;
+    this.walls = 2;
+    this.bottom_layer = {
+      layers: [45, -45]
+    };
+    this.top_layer = {
+      layers: [45, -45]
+    };
+    this.infill = {
+      pattern: 'grid',
+      density: 50
+    };
   }
 
   /**
