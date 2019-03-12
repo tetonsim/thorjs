@@ -62,6 +62,9 @@ cli_config = {
   entry: './src/cli.js',
   target: 'node',
   mode: 'production',
+  externals: {
+    three: 'THREE'
+  },
   output: {
     filename: 'thor.cli.js',
     //library: 'thor',
