@@ -439,13 +439,19 @@ class API {
 
   /**
    * 
+   * @callback API~feaTemplateList
+   * @this {FEA.Template[]}
+   */
+
+  /**
+   * 
    * @callback API~feaTemplate
    * @this {FEA.Template}
    */
 
    /**
     * Get list of FEA templates (model definitions will be excluded/null)
-    * @param {API~feaTemplate} success 
+    * @param {API~feaTemplateList} success 
     * @param {API~error} error 
     * @param {number} start 
     * @param {number} take 
