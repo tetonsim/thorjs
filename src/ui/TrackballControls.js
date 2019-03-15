@@ -620,7 +620,5 @@ THREE.TrackballControls = function ( object, domElement ) {
 THREE.TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 THREE.TrackballControls.prototype.constructor = THREE.TrackballControls;
 
-module.exports = {
-	TrackballControls: THREE.TrackballControls
-};
+module.exports = THREE.TrackballControls;
 
