@@ -56,8 +56,12 @@ class Results {
       } else {
         let nodeTracker = geom.nodeMap.get(node[0]);
         if (nodeTracker !== undefined) {
-          for (let vIndex of nodeTracker.vertexIndices) {
-            deformVertex(geom.vertices[vIndex]);
+          if (nodeTracker.vertexIndices.length > 0) {
+            for (let vIndex of nodeTracker.vertexIndices) {
+              deformVertex(geom.vertices[vIndex]);
+            }
+          } else {
+            deformVertex(geom.vertices[val.id - 1]);
           }
         }
       }
@@ -66,13 +70,26 @@ class Results {
     geom.verticesNeedUpdate = true;
   }
 
-  contour(geom, stepName, nodeRsltName) {
-    let rslt = this.getNodeResult(stepName, nodeRsltName);
-    let contour = new Contour.Node(rslt);
+  contour(geom, stepName, nodeRsltName, component=0) {
+    let result = this.getNodeResult(stepName, nodeRsltName);
+    let contour = new Contour.Node(result, component);
 
-    for (let face of geom.faces) {
+    for (let val of result.values) {
+      let nmap = geom.nodeMap.get(val.id);
 
+      if (nmap === undefined) {
+        continue;
+      }
+
+      for (let faceIndex of nmap.faceIndices) {
+        let face = geom.faces[faceIndex[0]];
+        face.vertexColors[faceIndex[1]].set(
+          contour.color(val.data[component])
+        );
+      }
     }
+
+    geom.colorsNeedUpdate = true;
   }
 }
 

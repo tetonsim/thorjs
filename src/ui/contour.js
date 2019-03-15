@@ -1,7 +1,7 @@
 const THREE = require('three');
 
 class Node {
-  constructor(result) {
+  constructor(result, component=0) {
     this.name = result.name;
     this.min = Infinity;
     this.max = -Infinity;
@@ -9,19 +9,20 @@ class Node {
     this.hues = [];
     this.colors = [];
 
-    for (var v in result.values) {
-        var magn = Math.hypot(...(result.values[v].data));
+    for (let val of result.values) {
+        //let magn = Math.hypot(...(val.data));
+        let magn = val.data[component];
         this.min = Math.min(this.min, magn);
         this.max = Math.max(this.max, magn)
     }
 
-    var hue_min = 0.;
-    var hue_max = 2. / 3.;
+    let hue_min = 0.;
+    let hue_max = 2. / 3.;
 
-    var dhue = (hue_max - hue_min) / (this.ncolors - 1);
+    let dhue = (hue_max - hue_min) / (this.ncolors - 1);
 
-    var hue = hue_min;
-    for (h = 0; h < this.ncolors; h++) {
+    let hue = hue_min;
+    for (let h = 0; h < this.ncolors; h++) {
         this.hues.push(hue);
         hue = hue + dhue;
     }
@@ -34,13 +35,14 @@ class Node {
   }
 
   color(data) {
-    var value = Math.hypot(...data);
-    var ihue = (this.ncolors - 1) * (value - this.max) / (this.min - this.max);
+    //let value = Math.hypot(...data);
+    let value = data;
+    let ihue = (this.ncolors - 1) * (value - this.max) / (this.min - this.max);
     ihue = Math.round(ihue);
 
-    var lightness = 0.5;
+    let lightness = 0.5;
 
-    var c = new THREE.Color(0x000000);
+    let c = new THREE.Color(0x000000);
     c.setHSL(this.hues[ihue], 1., lightness);
 
     return c;

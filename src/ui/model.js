@@ -44,7 +44,11 @@ class Model {
           for (let ijk of faceIndices) {
             let face = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
             if (initVertexColor !== null) {
-              face.vertexColors = [initVertexColor, initVertexColor, initVertexColor];
+              face.vertexColors = [
+                new THREE.Color(initVertexColor),
+                new THREE.Color(initVertexColor),
+                new THREE.Color(initVertexColor)
+              ];
             }
             geom.faces.push(face);
 

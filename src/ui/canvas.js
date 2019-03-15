@@ -101,12 +101,20 @@ class Canvas {
   }
 
   deform(stepName, scaleFactor=1.0) {
-    this.results.deform(this.model.mesh.nodes, this.surface.geometry, stepName, scaleFactor);
-    this.results.deform(this.model.mesh.nodes, this.wireframe.geometry, stepName, scaleFactor);
-    this.resize(this.surface.geometry);
+    for (let m of [this.surface, this.wireframe, this.contour]) {
+      if (m.visible) {
+        this.results.deform(this.model.mesh.nodes, m.geometry, stepName, scaleFactor);
+      }
+    }
+    //this.resize(this.surface.geometry);
   }
 
+  nodeContour(stepName, nodeResultName, component) {
+    this.results.contour(this.contour.geometry, stepName, nodeResultName, component);
 
+    this.surface.visible = false;
+    this.contour.visible = true;
+  }
 
   resize(box) {
     let sizer = new Sizer(box);
