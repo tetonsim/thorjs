@@ -3,9 +3,11 @@ const Hardware = require('./hardware');
 const Material = require('./material');
 const Micro = require('./micro');
 const API = require('./api');
+const THREE = require('three');
 const Canvas = require('./ui/canvas');
 
 const UI = {
+  THREE: THREE,
   Canvas: Canvas
 };
 

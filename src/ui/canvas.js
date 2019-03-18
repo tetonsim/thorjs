@@ -13,6 +13,7 @@ class Canvas {
 
     this.model = null;
     this.results = null;
+    this.sizer = null;
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true });
 
@@ -34,6 +35,10 @@ class Canvas {
     this.scene.add(this.camera);
     this.scene.add(this.ambient);
     this.scene.add(this.headlamp);
+
+    this.axesHelper = new THREE.AxesHelper(1);
+    this.axesHelper.userData.size = 1;
+    this.scene.add(this.axesHelper);
 
     this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.staticMoving = true;
@@ -118,25 +123,28 @@ class Canvas {
   }
 
   resize(box) {
-    let sizer = new Sizer(box);
+    this.sizer = new Sizer(box);
 
-    this.camera.near = sizer.camera.near;
-    this.camera.far = sizer.camera.far;
+    this.camera.near = this.sizer.camera.near;
+    this.camera.far = this.sizer.camera.far;
     this.camera.position.set(
-        sizer.camera.position.x,
-        sizer.camera.position.y,
-        sizer.camera.position.z
+      this.sizer.camera.position.x,
+      this.sizer.camera.position.y,
+      this.sizer.camera.position.z
     );
 
     this.camera.updateProjectionMatrix();
 
     this.controls.target.set(
-        sizer.camera.lookAt.x,
-        sizer.camera.lookAt.y,
-        sizer.camera.lookAt.z,
+      this.sizer.center.x,
+      this.sizer.center.y,
+      this.sizer.center.z,
     );
 
     this.headlamp.target = this.meshes;
+
+    let axesScale = this.sizer.axesHelper / this.axesHelper.userData.size;
+    this.axesHelper.geometry.scale(axesScale, axesScale, axesScale);
   }
 
   toggleSurface() {
@@ -150,7 +158,59 @@ class Canvas {
   toggleContour() {
     this.contour.visible = !this.contour.visible;
   }
+
+  center() {
+    this.controls.target.copy(
+      this.sizer.center
+    );
+  }
   
+  zoomToFit(zoomOutFactor=1.1, dz=0) {
+    this.center();
+
+    // vdist is the distance vector from the current camera position to the center
+    let vdist = this.sizer.center.clone();
+    vdist.negate();
+    vdist.add(this.camera.position);
+
+    /*
+    // Get the bounding box in the camera view's frame of reference
+    let rbox = this.sizer.box.clone();
+    let rotM = new THREE.Matrix4();
+
+    rotM.makeRotationFromEuler(this.camera.rotation);
+
+    let rotMInv = new THREE.Matrix4();
+    rotMInv.getInverse(rotM);
+
+    rbox.applyMatrix4(rotMInv);
+
+    let hx = Math.abs(rbox.max.x - rbox.min.x);
+    let hy = Math.abs(rbox.max.y - rbox.min.y);
+    let cz = Math.abs(rbox.max.z + rbox.min.z) / 2;
+    */
+
+    // For now we're just using the bounding sphere radius. This will
+    // result in a conservative zoom factor
+    let hx = 2 * this.sizer.sphere.radius;
+    let hy = 2 * this.sizer.sphere.radius;
+
+    let fovRadians = this.camera.fov * Math.PI / 180.0;
+    let filledDistX = hx / (2 * Math.tan(fovRadians / 2)) / this.camera.aspect;
+    let filledDistY = hy / (2 * Math.tan(fovRadians / 2));
+
+    let filledDist = Math.max(filledDistX, filledDistY);
+
+    let zoom = Math.abs(filledDist / vdist.length());
+
+    zoom = zoomOutFactor * Math.abs(zoom);
+
+    this.camera.position.set(
+      this.sizer.center.x + zoom * (this.camera.position.x - this.sizer.center.x),
+      this.sizer.center.y + zoom * (this.camera.position.y - this.sizer.center.y),
+      this.sizer.center.z + zoom * (this.camera.position.z - this.sizer.center.z)
+    )
+  }
 };
 
 module.exports = Canvas;

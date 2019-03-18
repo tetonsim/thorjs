@@ -1,23 +1,22 @@
 const THREE = require('three');
 
 class Sizer {
-  constructor(box_or_geom) {
-    if (box_or_geom instanceof THREE.Geometry) {
-      box_or_geom.computeBoundingBox();
-      var box = box_or_geom.boundingBox;
-    } else {
-      var box = box_or_geom;
-    }
+  constructor(geom) {
+    geom.computeBoundingBox();
+    geom.computeBoundingSphere();
 
-    const dim = new THREE.Vector3();
-    box.getSize(dim);
+    this.box = geom.boundingBox;
+    this.sphere = geom.boundingSphere;
 
-    var maxdim = Math.max(dim.x, dim.y, dim.z);
+    this.dim = new THREE.Vector3();
+    this.box.getSize(this.dim);
 
-    this.box = box;
+    let maxdim = Math.max(this.dim.x, this.dim.y, this.dim.z);
+
     this.cone = 0.025 * maxdim;
     this.arrow = 0.025 * maxdim;
     this.axesHelper = 0.5 * maxdim;
+    this.center = this.box.getCenter();
 
     const zoom = 3;
     const pos = zoom * maxdim;
@@ -25,11 +24,7 @@ class Sizer {
     this.camera = {
         near: 0.01 * maxdim,
         far: 100 * maxdim,
-        position: new THREE.Vector3(pos, pos, pos),
-        lookAt: new THREE.Vector3(
-            0.5 * (box.min.x + box.max.x),
-            0.5 * (box.min.y + box.max.y),
-            0.5 * (box.min.z + box.max.z))
+        position: new THREE.Vector3(pos, pos, pos)
     };
   }
 }
