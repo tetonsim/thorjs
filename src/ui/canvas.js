@@ -201,7 +201,13 @@ class Canvas {
 
     let filledDist = Math.max(filledDistX, filledDistY);
 
-    let zoom = Math.abs(filledDist / vdist.length());
+    let vdistLen = Math.abs(vdist.length());
+
+    if (vdistLen < 1.0E-10 * this.sizer.maxDimension()) {
+      return;
+    }
+
+    let zoom = Math.abs(filledDist / vdistLen);
 
     zoom = zoomOutFactor * Math.abs(zoom);
 
@@ -210,6 +216,41 @@ class Canvas {
       this.sizer.center.y + zoom * (this.camera.position.y - this.sizer.center.y),
       this.sizer.center.z + zoom * (this.camera.position.z - this.sizer.center.z)
     )
+  }
+
+  setViewFromVectors(position, up) {
+    this.camera.position.copy(position);
+    this.camera.up.copy(up);
+    this.zoomToFit();
+  }
+
+  setView(view) {
+    this.setViewFromVectors(view.position, view.up);
+  }
+
+  get views() {
+    let s = this.sizer;
+    return {
+      XY: {
+        position: new THREE.Vector3(s.center.x, s.center.y, s.dim.z),
+        up: new THREE.Vector3(0, 1, 0)
+      },
+
+      XZ: {
+        position: new THREE.Vector3(s.center.x, -s.dim.y, s.center.z),
+        up: new THREE.Vector3(0, 0, 1)
+      },
+
+      YZ: {
+        position: new THREE.Vector3(s.dim.x, s.center.y, s.center.z),
+        up: new THREE.Vector3(0, 0, 1)
+      },
+
+      isometric: {
+        position: s.camera.position.clone(),
+        up: new THREE.Vector3(0, 1, 0)
+      }
+    }
   }
 };
 

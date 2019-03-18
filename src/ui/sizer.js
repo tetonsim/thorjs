@@ -27,6 +27,10 @@ class Sizer {
         position: new THREE.Vector3(pos, pos, pos)
     };
   }
+
+  maxDimension() {
+    return Math.max(this.dim.x, this.dim.y, this.dim.z);
+  }
 }
 
 module.exports = Sizer;
