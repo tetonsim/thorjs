@@ -1,8 +1,8 @@
 {
-  "name": "thorjs",
+  "name": "teton-thorjs",
   "version": "19.0.10",
   "description": "Thor API JS Library",
-  "private": true,
+  "private": false,
   "directories": {
     "test": "test"
   },

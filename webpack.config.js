@@ -9,7 +9,8 @@ if (process.env.BUILD_NUMBER) {
 }
 
 let externals = {
-  xmlhttprequest: 'XMLHttpRequest'
+  xmlhttprequest: 'XMLHttpRequest',
+  three: 'THREE'
 };
 
 externals['node-localstorage'] = 'localStorage';
