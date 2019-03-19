@@ -18,7 +18,9 @@ class Model {
   meshGeometry(initVertexColor=null) {
     let geom = new THREE.Geometry();
 
+    // TODO place maps into a single class, and place under geom.userData
     geom.nodeMap = new Map();
+    geom.elemMap = new Map();
 
     for (let node of this.mesh.nodes) {
       let pos = new THREE.Vector3(node[1], node[2], node[3]);
@@ -41,6 +43,8 @@ class Model {
 
       if (faceIndices !== null) {
         for (let conn of egroup.connectivity) {
+          let elemFaces = [];
+
           for (let ijk of faceIndices) {
             let face = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
             if (initVertexColor !== null) {
@@ -51,6 +55,8 @@ class Model {
               ];
             }
             geom.faces.push(face);
+
+            elemFaces.push(geom.faces.length - 1);
 
             for (let faceVertexIndex in ijk) {
               let globalNodeId = conn[ijk[faceVertexIndex]];
@@ -65,6 +71,8 @@ class Model {
               nmap.addFace(geom.faces.length - 1, faceVertexIndex);
             }
           }
+
+          geom.elemMap.set(conn[0], elemFaces);
         }
       }
     }

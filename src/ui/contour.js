@@ -1,20 +1,13 @@
 const THREE = require('three');
 
-class Node {
+class Contour {
   constructor(result, component=0) {
     this.name = result.name;
-    this.min = Infinity;
-    this.max = -Infinity;
+    this.min = result.meta.min[component];
+    this.max = result.meta.max[component];
     this.ncolors = 12;
     this.hues = [];
     this.colors = [];
-
-    for (let val of result.values) {
-        //let magn = Math.hypot(...(val.data));
-        let magn = val.data[component];
-        this.min = Math.min(this.min, magn);
-        this.max = Math.max(this.max, magn)
-    }
 
     let hue_min = 0.;
     let hue_max = 2. / 3.;
@@ -26,12 +19,6 @@ class Node {
         this.hues.push(hue);
         hue = hue + dhue;
     }
-
-    /*for (var v in result.values) {
-        this.colors.push(
-            this.color(result.values[v].data)
-        );
-    }*/
   }
 
   color(data) {
@@ -58,9 +45,5 @@ class Node {
       return this.min + (this.max - this.min) * (i / this.ncolors);
   }
 }
-
-const Contour = {
-  Node: Node
-};
 
 module.exports = Contour;

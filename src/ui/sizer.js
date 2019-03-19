@@ -22,8 +22,8 @@ class Sizer {
     const pos = zoom * maxdim;
 
     this.camera = {
-        near: 0.01 * maxdim,
-        far: 100 * maxdim,
+        near: 0.15 * maxdim,
+        far: 50 * maxdim,
         position: new THREE.Vector3(pos, pos, pos)
     };
   }

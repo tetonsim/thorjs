@@ -1,6 +1,31 @@
 const THREE = require('three');
 const Contour = require('./contour');
 
+function computeMetaInfo(result) {
+  meta = {
+    min: Array(result.size).fill(Infinity),
+    max: Array(result.size).fill(-Infinity)
+  };
+
+  for (let val of result.values) {
+    if ('data' in val) {
+      for (let i = 0; i < result.size; i++) {
+        meta.min[i] = Math.min(meta.min[i], val.data[i]);
+        meta.max[i] = Math.max(meta.max[i], val.data[i]);
+      }
+    } else {
+      for (let sval of val.values) {
+        for (let i = 0; i < result.size; i++) {
+          meta.min[i] = Math.min(meta.min[i], sval.data[i]);
+          meta.max[i] = Math.max(meta.max[i], sval.data[i]);
+        }
+      }
+    }
+  }
+
+  result.meta = meta;
+}
+
 class Results {
   constructor(results) {
     Object.assign(this, results);
@@ -18,11 +43,6 @@ class Results {
     return this.steps.find( step => step.name === stepName );
   }
 
-  getNodeResult(stepName, resultVar) {
-    let step = this.getStep(stepName);
-    return step.increments[0].node_results.find( rslt => rslt.name === resultVar );
-  }
-
   nodeResults(stepName) {
     let step = this.getStep(stepName);
     let results = {};
@@ -31,7 +51,40 @@ class Results {
         size: r.size
       };
     }
-    return rsltNames;
+    return results;
+  }
+
+  getNodeResult(stepName, resultVar) {
+    let step = this.getStep(stepName);
+    let result = step.increments[0].node_results.find( rslt => rslt.name === resultVar );
+
+    if (!('meta' in result)) {
+      computeMetaInfo(result);
+    }
+
+    return result;
+  }
+
+  gaussPointResults(stepName) {
+    let step = this.getStep(stepName);
+    let results = {};
+    for (let r of step.increments[0].gauss_point_results) {
+      results[r.name] = {
+        size: r.size
+      };
+    }
+    return results;
+  }
+
+  getGaussPointResult(stepName, resultVar) {
+    let step = this.getStep(stepName);
+    let result = step.increments[0].gauss_point_results.find( rslt => rslt.name === resultVar );
+
+    if (!('meta' in result)) {
+      computeMetaInfo(result);
+    }
+
+    return result;
   }
 
   deform(nodes, geom, stepName, scaleFactor=1.0, deformationVar='displacement') {
@@ -70,9 +123,9 @@ class Results {
     geom.verticesNeedUpdate = true;
   }
 
-  contour(geom, stepName, nodeRsltName, component=0) {
-    let result = this.getNodeResult(stepName, nodeRsltName);
-    let contour = new Contour.Node(result, component);
+  nodeContour(geom, stepName, nodeResultName, component=0) {
+    let result = this.getNodeResult(stepName, nodeResultName);
+    let contour = new Contour(result, component);
 
     for (let val of result.values) {
       let nmap = geom.nodeMap.get(val.id);
@@ -86,6 +139,35 @@ class Results {
         face.vertexColors[faceIndex[1]].set(
           contour.color(val.data[component])
         );
+      }
+    }
+
+    geom.colorsNeedUpdate = true;
+  }
+
+  gaussPointContour(geom, stepName, gpResultName, gaussPoint, component=0) {
+    let result = this.getGaussPointResult(stepName, gpResultName);
+    let contour = new Contour(result, component);
+
+    for (let val of result.values) {
+      let faceIndices = geom.elemMap.get(val.id);
+
+      if (faceIndices === undefined) {
+        continue;
+      }
+
+      for (let faceIndex of faceIndices) {
+        let face = geom.faces[faceIndex];
+        let faceColor = new THREE.Color(0xffffff); // default in case this element doesn't have the request gp
+        
+        if (val.values.length > gaussPoint) {
+          let sval = val.values[gaussPoint];
+          faceColor = contour.color(sval.data[component]);
+        }
+
+        for (let vcolor of face.vertexColors) {
+          vcolor.set(faceColor);
+        }
       }
     }
 

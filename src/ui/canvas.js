@@ -116,7 +116,14 @@ class Canvas {
   }
 
   nodeContour(stepName, nodeResultName, component) {
-    this.results.contour(this.contour.geometry, stepName, nodeResultName, component);
+    this.results.nodeContour(this.contour.geometry, stepName, nodeResultName, component);
+
+    this.surface.visible = false;
+    this.contour.visible = true;
+  }
+
+  gaussPointContour(stepName, gaussPointResultName, gaussPoint, component) {
+    this.results.gaussPointContour(this.contour.geometry, stepName, gaussPointResultName, gaussPoint, component);
 
     this.surface.visible = false;
     this.contour.visible = true;
