@@ -29,17 +29,13 @@ class Model {
     }
 
     for (let egroup of this.mesh.elements) {
-      let faceIndices = null;
+      let etype = Mesh.elementTypeFromString(egroup.type);
 
-      if (egroup.type === 'HEXL8') {
-        faceIndices = Mesh.HEXL8.FACE_INDICES;
-      } else if (egroup.type === 'WEDL6') {
-        faceIndices = Mesh.WEDL6.FACE_INDICES;
-      } else if (egroup.type === 'TETL4') {
-        faceIndices = Mesh.TETL4.FACE_INDICES;
-      } else {
+      if (etype === null) {
         throw 'Unsupported element type ' + egroup.type;
       }
+
+      let faceIndices = etype.FACE_INDICES;
 
       if (faceIndices !== null) {
         for (let conn of egroup.connectivity) {
@@ -160,17 +156,13 @@ class MeshEdges {
     }
 
     for (let egroup of mesh.elements) {
-      let edgeIndices = null;
+      let etype = Mesh.elementTypeFromString(egroup.type);
 
-      if (egroup.type === 'HEXL8') {
-        edgeIndices = Mesh.HEXL8.EDGE_INDICES;
-      } else if (egroup.type === 'WEDL6') {
-        edgeIndices = Mesh.WEDL6.EDGE_INDICES;
-      } else if (egroup.type === 'TETL4') {
-        edgeIndices = Mesh.TETL4.EDGE_INDICES;
-      } else {
+      if (etype === null) {
         throw 'Unsupported element type ' + egroup.type;
       }
+
+      let edgeIndices = etype.EDGE_INDICES;
 
       if (edgeIndices !== null) {
         for (let conn of egroup.connectivity) {

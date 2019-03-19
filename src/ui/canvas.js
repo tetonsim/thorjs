@@ -151,6 +151,7 @@ class Canvas {
     this.headlamp.target = this.meshes;
 
     let axesScale = this.sizer.axesHelper / this.axesHelper.userData.size;
+    this.axesHelper.userData.size = this.sizer.axesHelper;
     this.axesHelper.geometry.scale(axesScale, axesScale, axesScale);
   }
 
