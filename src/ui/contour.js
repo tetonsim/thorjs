@@ -44,6 +44,10 @@ class Contour {
 
       return this.min + (this.max - this.min) * (i / this.ncolors);
   }
+
+  legend() {
+    
+  }
 }
 
 module.exports = Contour;

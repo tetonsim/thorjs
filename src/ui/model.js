@@ -24,7 +24,7 @@ class Model {
    * Creates and returns an undeformed Geometry of the model mesh
    * @returns {THREE.Geometry}
    */
-  meshGeometry(initVertexColor=null) {
+  meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
     let geom = new THREE.Geometry();
 
     // TODO place maps into a single class, and place under geom.userData
@@ -37,6 +37,8 @@ class Model {
       geom.vertices.push(pos);
     }
 
+    let faceCounter = new Map();
+
     for (let egroup of this.mesh.elements) {
       let etype = Mesh.elementTypeFromString(egroup.type);
 
@@ -44,36 +46,44 @@ class Model {
         throw 'Unsupported element type ' + egroup.type;
       }
 
-      let faceIndices = etype.FACE_INDICES;
+      let faces = etype.FACES;
 
-      if (faceIndices !== null) {
+      if (faces !== null) {
         for (let conn of egroup.connectivity) {
           let elemFaces = [];
 
-          for (let ijk of faceIndices) {
-            let face = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
-            if (initVertexColor !== null) {
-              face.vertexColors = [
-                new THREE.Color(initVertexColor),
-                new THREE.Color(initVertexColor),
-                new THREE.Color(initVertexColor)
-              ];
-            }
-            geom.faces.push(face);
+          for (let face of faces) {
+            let trifaces = face.triangulate(conn);
 
-            elemFaces.push(geom.faces.length - 1);
+            for (let ijk of trifaces) {
+              //let tface = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
+              let tface = new THREE.Face3(ijk[0] - 1, ijk[1] - 1, ijk[2] - 1);
 
-            for (let faceVertexIndex in ijk) {
-              let globalNodeId = conn[ijk[faceVertexIndex]];
-
-              let nmap = geom.nodeMap.get(globalNodeId);
-        
-              if (nmap === undefined) {
-                nmap = new NodeTracker();
-                geom.nodeMap.set(globalNodeId, nmap);
+              if (initVertexColor !== null) {
+                tface.vertexColors = [
+                  new THREE.Color(initVertexColor),
+                  new THREE.Color(initVertexColor),
+                  new THREE.Color(initVertexColor)
+                ];
               }
 
-              nmap.addFace(geom.faces.length - 1, faceVertexIndex);
+              geom.faces.push(tface);
+
+              elemFaces.push(geom.faces.length - 1);
+
+              for (let faceVertexIndex in ijk) {
+                //let globalNodeId = conn[ijk[faceVertexIndex]];
+                let globalNodeId = ijk[faceVertexIndex];
+
+                let nmap = geom.nodeMap.get(globalNodeId);
+          
+                if (nmap === undefined) {
+                  nmap = new NodeTracker();
+                  geom.nodeMap.set(globalNodeId, nmap);
+                }
+
+                nmap.addFace(geom.faces.length - 1, faceVertexIndex);
+              }
             }
           }
 
@@ -200,5 +210,15 @@ class NodeTracker {
     this.faceIndices.push([faceIndex, faceVertex]);
   }
 };
+
+class FaceCounter {
+  constructor() {
+    this.faces = [];
+  }
+
+  get count() {
+    return this.faces;
+  }
+}
 
 module.exports = Model;

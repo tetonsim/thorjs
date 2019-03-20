@@ -58,14 +58,16 @@ class Canvas {
 
     this.meshes = new THREE.Group();
     this.surface = new THREE.Mesh();
-    this.wireframe = new THREE.LineSegments();
     this.contour = new THREE.Mesh();
+    this.wireframe = new THREE.LineSegments();
+    this.outline = new THREE.LineSegments();
 
     this.surface.visible = false;
-    this.wireframe.visible = false;
     this.contour.visible = false;
+    this.wireframe.visible = false;
+    this.outline.visible = false;
 
-    this.meshes.add(this.surface, this.wireframe, this.contour);
+    this.meshes.add(this.surface, this.contour, this.wireframe, this.outline);
 
     this.scene.add(this.meshes);
 
@@ -93,20 +95,25 @@ class Canvas {
     this.model = new Model(model);
     this.results = null;
 
-    this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0));
+    this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
     this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false});
 
-    this.wireframe.geometry = this.model.wireframeGeometry(1);
+    this.wireframe.geometry = this.model.wireframeGeometry();
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
       depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
 
     this.contour.geometry = this.model.meshGeometry(new THREE.Color(0x0000ff));
     this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.FrontSide});
 
+    this.outline.geometry = new THREE.EdgesGeometry(this.surface.geometry, 10);
+    this.outline.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
+      depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true})
+
     //this.meshes.add(mesh);
 
     this.surface.visible = true;
     this.wireframe.visible = true;
+    this.outline.visible = false;
 
     this.resize(this.surface.geometry);
   }
