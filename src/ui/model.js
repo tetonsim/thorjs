@@ -1,6 +1,14 @@
 const THREE = require('three');
 const Mesh = require('./mesh');
 
+class Group {
+  constructor(name) {
+    this.name = name;
+    this.wireframe = new THREE.WireframeGeometry();
+    this.surface = new THREE.Geometry();
+  }
+};
+
 class Model {
   /**
    * 
@@ -9,6 +17,7 @@ class Model {
   constructor(model) {
     Object.assign(this, model);
     this.edges = new MeshEdges(this.mesh);
+    this.groups = [];
   }
 
   /**

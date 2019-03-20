@@ -13,7 +13,16 @@ class Canvas {
 
     this.model = null;
     this.results = null;
+    this.step = null;
     this.sizer = null;
+
+    this.state = {
+      deformation: {
+        deformed: false,
+        scaleFactor: 0.0
+      },
+      contour: null
+    };
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true });
 
@@ -87,7 +96,7 @@ class Canvas {
     this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0));
     this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false});
 
-    this.wireframe.geometry = this.model.wireframeGeometry();
+    this.wireframe.geometry = this.model.wireframeGeometry(1);
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
       depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
 
@@ -104,29 +113,74 @@ class Canvas {
   
   setResults(results) {
     this.results = new Results(results);
+    this.step = this.results.steps[0].name;
   }
 
-  deform(stepName, scaleFactor=1.0) {
-    for (let m of [this.surface, this.wireframe, this.contour]) {
-      if (m.visible) {
-        this.results.deform(this.model.mesh.nodes, m.geometry, stepName, scaleFactor);
-      }
+  setStep(stepName) {
+    let s = this.results.getStep(stepName);
+    if (s === undefined) {
+      throw 'Invalid step ' + stepName;
     }
-    //this.resize(this.surface.geometry);
+    this.step = stepName;
+
+    // deform the geometry under the new step, if we're in a deformed state
+    if (this.state.deformation.deformed) {
+      this.deform(this.state.deformation.scaleFactor);
+    }
+
+    if (this.state.contour !== null) {
+      this.state.contour();
+    }
   }
 
-  nodeContour(stepName, nodeResultName, component) {
-    this.results.nodeContour(this.contour.geometry, stepName, nodeResultName, component);
+  deform(scaleFactor=1.0) {
+    for (let m of [this.surface, this.wireframe, this.contour]) {
+      this.results.deform(this.model.mesh.nodes, m.geometry, this.step, scaleFactor);
+    }
+    
+    this.state.deformation.deformed = true;
+    this.state.deformation.scaleFactor = scaleFactor;
+  }
+
+  undeform() {
+    for (let m of [this.surface, this.wireframe, this.contour]) {
+        this.results.undeform(this.model.mesh.nodes, m.geometry);
+    }
+
+    this.state.deformation.deformed = false;
+    this.state.deformation.scaleFactor = 0.0;
+  }
+
+  nodeContour(nodeResultName, component) {
+    let that = this;
+    
+    this.state.contour = function() {
+      that.results.nodeContour(that.contour.geometry, that.step, nodeResultName, component);
+    }
+
+    this.state.contour();
 
     this.surface.visible = false;
     this.contour.visible = true;
   }
 
-  gaussPointContour(stepName, gaussPointResultName, gaussPoint, component) {
-    this.results.gaussPointContour(this.contour.geometry, stepName, gaussPointResultName, gaussPoint, component);
+  gaussPointContour(gaussPointResultName, gaussPoint, component) {
+    let that = this;
+    
+    this.state.contour = function() {
+      that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, gaussPoint, component);
+    };
+
+    this.state.contour();
 
     this.surface.visible = false;
     this.contour.visible = true;
+  }
+
+  uncontour() {
+    this.state.contour = null;
+    this.surface.visible = true;
+    this.contour.visible = false;
   }
 
   resize(box) {

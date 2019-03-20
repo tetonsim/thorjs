@@ -123,6 +123,38 @@ class Results {
     geom.verticesNeedUpdate = true;
   }
 
+  /**
+   * Return geometry to undeformed state
+   * @param {*} nodes 
+   * @param {*} geom 
+   */
+  undeform(nodes, geom) {
+    for (let node of nodes) {
+      function revertVertex(vertex) {
+        vertex.x = node[1];
+        vertex.y = node[2];
+        vertex.z = node[3];
+      }
+
+      if (geom.nodeMap === undefined) {
+        revertVertex(geom.vertices[node[0] - 1]);
+      } else {
+        let nodeTracker = geom.nodeMap.get(node[0]);
+        if (nodeTracker !== undefined) {
+          if (nodeTracker.vertexIndices.length > 0) {
+            for (let vIndex of nodeTracker.vertexIndices) {
+              revertVertex(geom.vertices[vIndex]);
+            }
+          } else {
+            revertVertex(geom.vertices[node[0] - 1]);
+          }
+        }
+      }
+    }
+
+    geom.verticesNeedUpdate = true;
+  }
+
   nodeContour(geom, stepName, nodeResultName, component=0) {
     let result = this.getNodeResult(stepName, nodeResultName);
     let contour = new Contour(result, component);
