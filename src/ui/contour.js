@@ -9,6 +9,11 @@ class Contour {
     this.hues = [];
     this.colors = [];
 
+    if (typeof component === 'string' && component.toUpperCase() === 'MAGNITUDE') {
+      this.min = result.meta.magnitude.min;
+      this.max = result.meta.magnitude.max;
+    }
+
     let hue_min = 0.;
     let hue_max = 2. / 3.;
 
@@ -46,7 +51,7 @@ class Contour {
   }
 
   legend() {
-    
+
   }
 }
 

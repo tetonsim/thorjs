@@ -4,8 +4,31 @@ const Contour = require('./contour');
 function computeMetaInfo(result) {
   meta = {
     min: Array(result.size).fill(Infinity),
-    max: Array(result.size).fill(-Infinity)
+    max: Array(result.size).fill(-Infinity),
+    magnitude: {
+      available: false,
+      min: Infinity,
+      max: -Infinity
+    }
   };
+
+  let magnitudeCalculator = null;
+  if (result.name === 'displacement' || result.name === 'force') {
+    magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[2]**2);
+  } else if (result.name === 'stress') {
+    // von mises
+    if (result.size === 3) {
+      magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[0] * d[1] + 3 * d[2]**2);
+    } else if (result.size === 6) {
+      magnitudeCalculator = d => Math.sqrt(
+        d[0]**2 + d[1]**2 + d[2]**2 - 
+        (d[0] * d[1] + d[1] * d[2] + d[0] * d[2]) + 
+        3 * (d[3]**2 + d[4]**2 + d[5]**2)
+      );
+    }
+  }
+
+  meta.magnitude.available = (magnitudeCalculator !== null);
 
   for (let val of result.values) {
     if ('data' in val) {
@@ -13,11 +36,24 @@ function computeMetaInfo(result) {
         meta.min[i] = Math.min(meta.min[i], val.data[i]);
         meta.max[i] = Math.max(meta.max[i], val.data[i]);
       }
+      if (magnitudeCalculator !== null) {
+        val.magnitude = magnitudeCalculator(val.data);
+        meta.magnitude.min = Math.min(meta.magnitude.min, val.magnitude);
+        meta.magnitude.max = Math.max(meta.magnitude.max, val.magnitude);
+      }
     } else {
       for (let sval of val.values) {
         for (let i = 0; i < result.size; i++) {
           meta.min[i] = Math.min(meta.min[i], sval.data[i]);
           meta.max[i] = Math.max(meta.max[i], sval.data[i]);
+        }
+        if (magnitudeCalculator !== null) {
+          sval.magnitude = magnitudeCalculator(sval.data);
+          if (isNaN(sval.magnitude)) {
+            console.error('NaN mises from: ', sval);
+          }
+          meta.magnitude.min = Math.min(meta.magnitude.min, sval.magnitude);
+          meta.magnitude.max = Math.max(meta.magnitude.max, sval.magnitude);
         }
       }
     }
@@ -159,6 +195,19 @@ class Results {
     let result = this.getNodeResult(stepName, nodeResultName);
     let contour = new Contour(result, component);
 
+    let defaultColor = new THREE.Color(0xffffff);
+
+    if (typeof component === 'string') {
+      component = component.toUpperCase();
+      if (component === 'MAGNITUDE') {
+        if (!result.meta.magnitude.available) {
+          throw 'Magnitude not available for node result ' + result.name;
+        }
+      } else {
+        throw 'Invalid node result component: ' + component;
+      }
+    }    
+
     for (let val of result.values) {
       let nmap = geom.nodeMap.get(val.id);
 
@@ -166,11 +215,17 @@ class Results {
         continue;
       }
 
+      let vertexColor = defaultColor;
+
+      if (component === 'MAGNITUDE') {
+        vertexColor = contour.color(val.magnitude);
+      } else {
+        vertexColor = contour.color(val.data[component]);
+      }
+
       for (let faceIndex of nmap.faceIndices) {
         let face = geom.faces[faceIndex[0]];
-        face.vertexColors[faceIndex[1]].set(
-          contour.color(val.data[component])
-        );
+        face.vertexColors[faceIndex[1]].set(vertexColor);
       }
     }
 
@@ -181,12 +236,26 @@ class Results {
     let result = this.getGaussPointResult(stepName, gpResultName);
     let contour = new Contour(result, component);
 
+    let componentRetriever = v => v.data[component];
+
+    if (typeof component === 'string') {
+      component = component.toUpperCase();
+      if (component === 'MAGNITUDE') {
+        componentRetriever = v => v.magnitude;
+        if (!result.meta.magnitude.available) {
+          throw 'Magnitude not available for gauss point result ' + result.name;
+        }
+      } else {
+        throw 'Invalid gauss point result component: ' + component;
+      }
+    }
+
     // create the function that returns the value based off the requested "gaussPoint"
     let valueRetriever;
     if (typeof gaussPoint === 'number') {
       valueRetriever = function(values) {
         if (values.length > gaussPoint) {
-          return values[gaussPoint].data[component];
+          return componentRetriever(values[gaussPoint]);
         }
         return NaN;
       }
@@ -196,7 +265,7 @@ class Results {
         valueRetriever = function(values) {
           let maxval = -Infinity;
           for (let sval of values) {
-            maxval = Math.max(maxval, sval.data[component]);
+            maxval = Math.max(maxval, componentRetriever(sval));
           }
           return maxval;
         }
@@ -204,7 +273,7 @@ class Results {
         valueRetriever = function(values) {
           let minval = Infinity;
           for (let sval of values) {
-            minval = Math.min(minval, sval.data[component]);
+            minval = Math.min(minval, componentRetriever(sval));
           }
           return minval;
         }
@@ -212,7 +281,7 @@ class Results {
         valueRetriever = function(values) {
           let maxval = 0;
           for (let sval of values) {
-            let svalc = sval.data[component];
+            let svalc = componentRetriever(sval);
             if (Math.abs(svalc) > Math.abs(maxval)) {
               maxval = svalc;
             }
