@@ -181,6 +181,53 @@ class Results {
     let result = this.getGaussPointResult(stepName, gpResultName);
     let contour = new Contour(result, component);
 
+    // create the function that returns the value based off the requested "gaussPoint"
+    let valueRetriever;
+    if (typeof gaussPoint === 'number') {
+      valueRetriever = function(values) {
+        if (values.length > gaussPoint) {
+          return values[gaussPoint].data[component];
+        }
+        return NaN;
+      }
+    } else if (typeof gaussPoint === 'string') {
+      gaussPoint = gaussPoint.toUpperCase();
+      if (gaussPoint === 'MAX') {
+        valueRetriever = function(values) {
+          let maxval = -Infinity;
+          for (let sval of values) {
+            maxval = Math.max(maxval, sval.data[component]);
+          }
+          return maxval;
+        }
+      } else if (gaussPoint === 'MIN') {
+        valueRetriever = function(values) {
+          let minval = Infinity;
+          for (let sval of values) {
+            minval = Math.min(minval, sval.data[component]);
+          }
+          return minval;
+        }
+      } else if (gaussPoint === 'MAXABS') {
+        valueRetriever = function(values) {
+          let maxval = 0;
+          for (let sval of values) {
+            let svalc = sval.data[component];
+            if (Math.abs(svalc) > Math.abs(maxval)) {
+              maxval = svalc;
+            }
+          }
+          return maxval;
+        }
+      } else {
+        throw 'Invalid gaussPoint input: ' + gaussPoint;
+      }
+    } else {
+      throw 'Invalid gaussPoint input type: ' + gaussPoint;
+    }
+
+    let defaultColor = new THREE.Color(0xffffff);
+
     for (let val of result.values) {
       let faceIndices = geom.elemMap.get(val.id);
 
@@ -188,14 +235,15 @@ class Results {
         continue;
       }
 
+      let faceValue = valueRetriever(val.values);
+      let faceColor = defaultColor;
+
+      if (!isNaN(faceValue)) {
+        faceColor = contour.color(faceValue);
+      }
+
       for (let faceIndex of faceIndices) {
         let face = geom.faces[faceIndex];
-        let faceColor = new THREE.Color(0xffffff); // default in case this element doesn't have the request gp
-        
-        if (val.values.length > gaussPoint) {
-          let sval = val.values[gaussPoint];
-          faceColor = contour.color(sval.data[component]);
-        }
 
         for (let vcolor of face.vertexColors) {
           vcolor.set(faceColor);
