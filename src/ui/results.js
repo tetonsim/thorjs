@@ -123,9 +123,28 @@ class Results {
     return result;
   }
 
-  deform(nodes, geom, stepName, scaleFactor=1.0, deformationVar='displacement') {
+  deform(nodes, geom, stepName, params={}) {
+    let deformationVar = 'displacement';
+    if (params.deformationVar) {
+      deformationVar = params.deformationVar;
+    }
+
     // Get the step node result
     let result = this.getNodeResult(stepName, deformationVar);
+
+    let scaleFactor = 1.0;
+    if (params.scaleFactor) {
+      scaleFactor = params.scaleFactor;
+    } else if (params.boundingBox) {
+      const sizePercentTarget = 0.05;
+      let boxSize = new THREE.Vector3();
+      params.boundingBox.getSize(boxSize);
+      scaleFactor = Math.min(
+        sizePercentTarget * boxSize.x / Math.max(1.0E-12, Math.abs(result.meta.max[0])),
+        sizePercentTarget * boxSize.y / Math.max(1.0E-12, Math.abs(result.meta.max[1])),
+        sizePercentTarget * boxSize.z / Math.max(1.0E-12, Math.abs(result.meta.max[2]))
+      );
+    }
 
     for (let val of result.values) {
       let node = nodes[val.id - 1]; // original, undeformed coordinates
@@ -157,6 +176,8 @@ class Results {
     }
 
     geom.verticesNeedUpdate = true;
+
+    return scaleFactor;
   }
 
   /**

@@ -100,7 +100,7 @@ class Canvas {
     this.results = null;
 
     this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
-    this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false});
+    this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false, transparent: true, opacity: 1.0});
 
     this.wireframe.geometry = this.model.wireframeGeometry();
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
@@ -136,7 +136,7 @@ class Canvas {
 
     // deform the geometry under the new step, if we're in a deformed state
     if (this.state.deformation.active) {
-      this.deform(this.state.deformation.scaleFactor);
+      this.deform();
     }
 
     if (this.state.contour.active) {
@@ -144,13 +144,14 @@ class Canvas {
     }
   }
 
-  deform(scaleFactor=1.0) {
+  deform(scaleFactor=undefined) {
     for (let m of [this.surface, this.wireframe, this.contour]) {
-      this.results.deform(this.model.mesh.nodes, m.geometry, this.step, scaleFactor);
+      var usedScaleFactor = 
+        this.results.deform(this.model.mesh.nodes, m.geometry, this.step, {scaleFactor: scaleFactor, boundingBox: this.sizer.box});
     }
     
     this.state.deformation.active = true;
-    this.state.deformation.scaleFactor = scaleFactor;
+    this.state.deformation.scaleFactor = usedScaleFactor;
   }
 
   undeform() {
