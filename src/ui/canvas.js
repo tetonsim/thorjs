@@ -18,10 +18,14 @@ class Canvas {
 
     this.state = {
       deformation: {
-        deformed: false,
+        active: false,
         scaleFactor: 0.0
       },
-      contour: null
+      contour: {
+        active: false,
+        legend: null,
+        _update: null
+      }
     };
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true });
@@ -131,12 +135,12 @@ class Canvas {
     this.step = stepName;
 
     // deform the geometry under the new step, if we're in a deformed state
-    if (this.state.deformation.deformed) {
+    if (this.state.deformation.active) {
       this.deform(this.state.deformation.scaleFactor);
     }
 
-    if (this.state.contour !== null) {
-      this.state.contour();
+    if (this.state.contour.active) {
+      this.state.contour._update();
     }
   }
 
@@ -145,7 +149,7 @@ class Canvas {
       this.results.deform(this.model.mesh.nodes, m.geometry, this.step, scaleFactor);
     }
     
-    this.state.deformation.deformed = true;
+    this.state.deformation.active = true;
     this.state.deformation.scaleFactor = scaleFactor;
   }
 
@@ -154,38 +158,48 @@ class Canvas {
         this.results.undeform(this.model.mesh.nodes, m.geometry);
     }
 
-    this.state.deformation.deformed = false;
+    this.state.deformation.active = false;
     this.state.deformation.scaleFactor = 0.0;
   }
 
   nodeContour(nodeResultName, component) {
     let that = this;
     
-    this.state.contour = function() {
-      that.results.nodeContour(that.contour.geometry, that.step, nodeResultName, component);
+    this.state.contour._update = function() {
+      that.state.contour.legend =
+        that.results.nodeContour(that.contour.geometry, that.step, nodeResultName, component);
     }
 
-    this.state.contour();
+    this.state.contour._update();
+
+    this.state.contour.active = true;
 
     this.surface.visible = false;
     this.contour.visible = true;
+    
+    return this.state.contour.legend;
   }
 
   gaussPointContour(gaussPointResultName, gaussPoint, component) {
     let that = this;
     
-    this.state.contour = function() {
-      that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, gaussPoint, component);
+    this.state.contour._update = function() {
+      that.state.contour.legend =
+        that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, gaussPoint, component);
     };
 
-    this.state.contour();
+    this.state.contour._update();
+
+    this.state.contour.active = true;
 
     this.surface.visible = false;
     this.contour.visible = true;
+
+    return this.state.contour.legend;
   }
 
   uncontour() {
-    this.state.contour = null;
+    this.state.contour.active = false;
     this.surface.visible = true;
     this.contour.visible = false;
   }

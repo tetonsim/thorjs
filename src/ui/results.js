@@ -230,6 +230,8 @@ class Results {
     }
 
     geom.colorsNeedUpdate = true;
+
+    return contour;
   }
 
   gaussPointContour(geom, stepName, gpResultName, gaussPoint, component=0) {
@@ -321,6 +323,8 @@ class Results {
     }
 
     geom.colorsNeedUpdate = true;
+
+    return contour;
   }
 }
 

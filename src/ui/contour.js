@@ -41,17 +41,17 @@ class Contour {
   }
 
   value(i) {
-      if (i <= 0) {
-          return this.min;
-      } else if (i >= this.ncolors) {
-          return this.max;
-      }
-
-      return this.min + (this.max - this.min) * (i / this.ncolors);
+    return this.valueNormalized(i / (this.ncolors - 1));
   }
 
-  legend() {
+  valueNormalized(n) {
+    if (n <= 0) {
+      return this.min;
+    } else if (n >= this.ncolors) {
+      return this.max;
+    }
 
+    return this.min + (this.max - this.min) * n;
   }
 }
 
