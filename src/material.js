@@ -35,11 +35,20 @@ class FEA {
 
 
 /**
+ * Supplier material reference
+ * @typedef SupplierMaterialReference
+ * @memberof Material
+ * @property {string} id
+ * @property {string} name
+ */
+
+/**
 * Material supplier
 * @typedef Supplier
 * @memberof Material
 * @property {string} id
 * @property {string} name
+* @property {Material.SupplierMaterialReference[]} materials
 */
 
 /**

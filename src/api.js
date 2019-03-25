@@ -347,6 +347,36 @@ class API {
 
   /**
    * 
+   * @callback API~supplierSearch-success
+   * @this {Material.Supplier[]}
+   */
+  
+  /**
+   * Retrieves all Material.Supplier definitions
+   * @param {API~supplierSearch-success} success 
+   * @param {API~error} error 
+   */
+  supplierSearch(success, error) {
+    this._request('GET', '/material/supplier/search', success, error);
+  }
+
+  /**
+   * 
+   * @callback API~supplierGet-success
+   * @this {Material.Supplier}
+   */
+  
+  /**
+   * Retrieves the Material.Supplier definition for the given id
+   * @param {API~supplierGet-success} success 
+   * @param {API~error} error 
+   */
+  supplierGet(id, success, error) {
+    this._request('GET', '/material/supplier/' + id, success, error);
+  }
+
+  /**
+   * 
    * @callback API~machineSearch-success
    * @this {Hardware.Machine[]}
    */
@@ -357,7 +387,7 @@ class API {
    * @param {API~error} error 
    */
   machineSearch(success, error) {
-    this._request('GET', '/machine/search', success, error);
+    this._request('GET', '/hardware/machine/search', success, error);
   }
   /**
    * 
@@ -371,7 +401,36 @@ class API {
    * @param {API~error} error 
    */
   machineGet(id, success, error) {
-    this._request('GET', '/machine/' + id, success, error);
+    this._request('GET', '/hardware/machine/' + id, success, error);
+  }
+
+  /**
+   * 
+   * @callback API~vendorSearch-success
+   * @this {Hardware.Vendor[]}
+   */
+  
+  /**
+   * Retrieves all Hardware.Vendor definitions
+   * @param {API~vendorSearch-success} success 
+   * @param {API~error} error 
+   */
+  vendorSearch(success, error) {
+    this._request('GET', '/hardware/vendor/search', success, error);
+  }
+  /**
+   * 
+   * @callback API~vendorGet-success
+   * @this {Hardware.Vendor}
+   */
+  
+  /**
+   * Retrieves the Vendor definition for the given id
+   * @param {API~vendorGet-success} success 
+   * @param {API~error} error 
+   */
+  vendorGet(id, success, error) {
+    this._request('GET', '/hardware/vendor/' + id, success, error);
   }
 
   /**

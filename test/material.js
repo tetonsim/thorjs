@@ -49,3 +49,50 @@ describe('Material', function() {
 
   });
 });
+
+describe('Supplier', function() {
+  this.timeout(timeout);
+
+  describe('Search', function() {
+    it('default',
+      function(done) {
+
+        thor.supplierSearch(
+          function() {
+            assert.ok(this.length > 0);
+            done();
+          },
+          function() {
+            throw this;
+          }
+        )
+
+      }
+    );
+
+  });
+
+  describe('Get', function() {
+    it('default',
+      function(done) {
+
+        let supplierId = '7944f369f67e4ea58d9d27ef9a1e0434';
+
+        thor.supplierGet(
+          supplierId,
+          function() {
+            assert.strictEqual(this.id, supplierId);
+            assert.strictEqual(this.name, "Stratasys");
+            assert.ok(this.materials.length > 0);
+            done();
+          },
+          function() {
+            done(this);
+          }
+        )
+
+      }
+    );
+
+  });
+});

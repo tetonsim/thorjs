@@ -30,17 +30,20 @@ class Config {
 }
 
 /**
- * Additive manufacturing machine vendor
+ * @typedef MachineReference
  * @memberof Hardware
- * @property {string} id Unique id
+ * @property {string} id
  * @property {string} name
  */
-class Vendor {
-  constructor(name) {
-    this.id = null;
-    this.name = name;
-  }
-}
+
+/**
+ * Additive manufacturing machine vendor
+ * @typedef Vendor
+ * @memberof Hardware
+ * @property {string} id
+ * @property {string} name
+ * @property {Hardware.MachineReference[]} machines
+ */
 
 /**
  * @typedef MachineMaterial
@@ -74,7 +77,6 @@ class Machine {
  * @namespace Hardware
  */
 const Hardware = {
-  Vendor: Vendor,
   Machine: Machine,
   Config: Config
 }
