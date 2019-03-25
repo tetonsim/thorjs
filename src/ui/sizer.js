@@ -16,7 +16,9 @@ class Sizer {
     this.cone = 0.025 * maxdim;
     this.arrow = 0.025 * maxdim;
     this.axesHelper = 0.5 * maxdim;
-    this.center = this.box.getCenter();
+    this.center = new THREE.Vector3();
+
+    this.box.getCenter(this.center);
 
     const zoom = 3;
     const pos = zoom * maxdim;
