@@ -1,5 +1,6 @@
 const THREE = require('three');
 const TrackballControls = require('./TrackballControls');
+const ModelGroup = require('./modelgroup');
 const Model = require('./model');
 const Results = require('./results');
 const Sizer = require('./sizer');
@@ -11,22 +12,7 @@ class Canvas {
   init(container) {
     this.container = container;
 
-    this.model = null;
-    this.results = null;
-    this.step = null;
     this.sizer = null;
-
-    this.state = {
-      deformation: {
-        active: false,
-        scaleFactor: 0.0
-      },
-      contour: {
-        active: false,
-        legend: null,
-        _update: null
-      }
-    };
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true });
 
@@ -60,31 +46,20 @@ class Canvas {
     this.controls.zoomSpeed = 2.0;
     this.controls.panSpeed = 0.4;
 
-    this.meshes = new THREE.Group();
-    this.surface = new THREE.Mesh();
-    this.contour = new THREE.Mesh();
-    this.wireframe = new THREE.LineSegments();
-    this.outline = new THREE.LineSegments();
-
-    this.surface.visible = false;
-    this.contour.visible = false;
-    this.wireframe.visible = false;
-    this.outline.visible = false;
-
-    this.meshes.add(this.surface, this.contour, this.wireframe, this.outline);
-
-    this.scene.add(this.meshes);
+    this.groups = [];
 
     this.update();
   }
 
   reset() {
-    /*var objs = [this.meshes];
-    for (var obj of objs) {
-        while (obj.children.length) {
-            obj.children.pop();
-        } 
-    }*/
+    let scene = this.scene;
+    this.groups.forEach(
+      function(g) {
+        scene.remove(g.group);
+        g.reset();
+      }
+    );
+    this.groups = [];
   }
 
   update() {
@@ -93,120 +68,20 @@ class Canvas {
     this.controls.update();
   }
 
-  setModel(model) {
-    this.reset();
-
-    this.model = new Model(model);
-    this.results = null;
-
-    this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
-    this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false, transparent: true, opacity: 1.0});
-
-    this.wireframe.geometry = this.model.wireframeGeometry();
-    this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
-      depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
-
-    this.contour.geometry = this.model.meshGeometry(new THREE.Color(0x0000ff));
-    this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.FrontSide});
-
-    this.outline.geometry = new THREE.EdgesGeometry(this.surface.geometry, 10);
-    this.outline.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
-      depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true})
-
-    //this.meshes.add(mesh);
-
-    this.surface.visible = true;
-    this.wireframe.visible = true;
-    this.outline.visible = false;
-
-    this.resize(this.surface.geometry);
-  }
-  
-  setResults(results) {
-    this.results = new Results(results);
-    this.step = this.results.steps[0].name;
-  }
-
-  setStep(stepName) {
-    let s = this.results.getStep(stepName);
-    if (s === undefined) {
-      throw 'Invalid step ' + stepName;
-    }
-    this.step = stepName;
-
-    // deform the geometry under the new step, if we're in a deformed state
-    if (this.state.deformation.active) {
-      this.deform();
-    }
-
-    if (this.state.contour.active) {
-      this.state.contour._update();
-    }
-  }
-
-  deform(scaleFactor=undefined) {
-    for (let m of [this.surface, this.wireframe, this.contour]) {
-      var usedScaleFactor = 
-        this.results.deform(this.model.mesh.nodes, m.geometry, this.step, {scaleFactor: scaleFactor, boundingBox: this.sizer.box});
-    }
+  newModelGroup(name, model, results=undefined) {
+    let g = new ModelGroup(name, model, results);
     
-    this.state.deformation.active = true;
-    this.state.deformation.scaleFactor = usedScaleFactor;
+    this.groups.push(g);
+    this.scene.add(g.group);
+
+    this.resize(g.surface.geometry);
+
+    return g;
   }
 
-  undeform() {
-    for (let m of [this.surface, this.wireframe, this.contour]) {
-        this.results.undeform(this.model.mesh.nodes, m.geometry);
-    }
-
-    this.state.deformation.active = false;
-    this.state.deformation.scaleFactor = 0.0;
-  }
-
-  nodeContour(nodeResultName, component) {
-    let that = this;
-    
-    this.state.contour._update = function() {
-      that.state.contour.legend =
-        that.results.nodeContour(that.contour.geometry, that.step, nodeResultName, component);
-    }
-
-    this.state.contour._update();
-
-    this.state.contour.active = true;
-
-    this.surface.visible = false;
-    this.contour.visible = true;
-    
-    return this.state.contour.legend;
-  }
-
-  gaussPointContour(gaussPointResultName, gaussPoint, component) {
-    let that = this;
-    
-    this.state.contour._update = function() {
-      that.state.contour.legend =
-        that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, gaussPoint, component);
-    };
-
-    this.state.contour._update();
-
-    this.state.contour.active = true;
-
-    this.surface.visible = false;
-    this.contour.visible = true;
-
-    return this.state.contour.legend;
-  }
-
-  uncontour() {
-    this.state.contour.active = false;
-    this.surface.visible = true;
-    this.contour.visible = false;
-  }
-
-  resize(box) {
-    this.sizer = new Sizer(box);
+  // TODO - how to handle sizing with multiple ModelGroups?
+  resize(geom) {
+    this.sizer = new Sizer(geom);
 
     this.camera.near = this.sizer.camera.near;
     this.camera.far = this.sizer.camera.far;
@@ -224,23 +99,11 @@ class Canvas {
       this.sizer.center.z,
     );
 
-    this.headlamp.target = this.meshes;
+    this.headlamp.target = this.groups[0].group;
 
     let axesScale = this.sizer.axesHelper / this.axesHelper.userData.size;
     this.axesHelper.userData.size = this.sizer.axesHelper;
     this.axesHelper.geometry.scale(axesScale, axesScale, axesScale);
-  }
-
-  toggleSurface() {
-    this.surface.visible = !this.surface.visible;
-  }
-
-  toggleWireframe() {
-    this.wireframe.visible = !this.wireframe.visible;
-  }
-
-  toggleContour() {
-    this.contour.visible = !this.contour.visible;
   }
 
   center() {

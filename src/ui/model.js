@@ -1,14 +1,6 @@
 const THREE = require('three');
 const Mesh = require('./mesh');
 
-class Group {
-  constructor(name) {
-    this.name = name;
-    this.wireframe = new THREE.WireframeGeometry();
-    this.surface = new THREE.Geometry();
-  }
-};
-
 class Model {
   /**
    * 
@@ -27,9 +19,13 @@ class Model {
   meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
     let geom = new THREE.Geometry();
 
-    // TODO place maps into a single class, and place under geom.userData
-    geom.nodeMap = new Map();
-    geom.elemMap = new Map();
+    let nodeMap = new Map();
+    let elemMap = new Map();
+
+    geom.userData = {
+      nodeMap: nodeMap,
+      elemMap: elemMap
+    };
 
     for (let node of this.mesh.nodes) {
       let pos = new THREE.Vector3(node[1], node[2], node[3]);
@@ -50,12 +46,21 @@ class Model {
 
       if (faces !== null) {
         for (let conn of egroup.connectivity) {
-          let elemFaces = [];
+          //let elemFaces = [];
 
           for (let face of faces) {
-            let trifaces = face.triangulate(conn);
+            //let trifaces = face.triangulate(conn);
 
-            for (let ijk of trifaces) {
+            let nodeKey = face.nodeKey(conn);
+            let facesToCreate = faceCounter.get(nodeKey);
+            if (facesToCreate === undefined) {
+              facesToCreate = [ [conn[0], face.triangulate(conn)] ];
+              faceCounter.set(nodeKey, facesToCreate);
+            } else {
+              faceCounter.set(nodeKey, []);; // this face is shared (internal) so make it empty so we ignore it
+            }
+
+            /*for (let ijk of trifaces) {
               //let tface = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
               let tface = new THREE.Face3(ijk[0] - 1, ijk[1] - 1, ijk[2] - 1);
 
@@ -75,22 +80,71 @@ class Model {
                 //let globalNodeId = conn[ijk[faceVertexIndex]];
                 let globalNodeId = ijk[faceVertexIndex];
 
-                let nmap = geom.nodeMap.get(globalNodeId);
+                let nmap = nodeMap.get(globalNodeId);
           
                 if (nmap === undefined) {
                   nmap = new NodeTracker();
-                  geom.nodeMap.set(globalNodeId, nmap);
+                  nodeMap.set(globalNodeId, nmap);
                 }
 
                 nmap.addFace(geom.faces.length - 1, faceVertexIndex);
               }
-            }
+            }*/
           }
 
-          geom.elemMap.set(conn[0], elemFaces);
+          //elemMap.set(conn[0], elemFaces);
         }
       }
     }
+
+    faceCounter.forEach(
+      function(elements, nodeKey) {
+
+        for (let elem of elements) {
+          let elem_id = elem[0];
+          let trifaces = elem[1];
+          let elemFaces = [];          
+
+          for (let ijk of trifaces) {
+            //let tface = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
+            let tface = new THREE.Face3(ijk[0] - 1, ijk[1] - 1, ijk[2] - 1);
+
+            if (initVertexColor !== null) {
+              tface.vertexColors = [
+                new THREE.Color(initVertexColor),
+                new THREE.Color(initVertexColor),
+                new THREE.Color(initVertexColor)
+              ];
+            }
+
+            geom.faces.push(tface);
+
+            elemFaces.push(geom.faces.length - 1);
+
+            for (let faceVertexIndex in ijk) {
+              //let globalNodeId = conn[ijk[faceVertexIndex]];
+              let globalNodeId = ijk[faceVertexIndex];
+
+              let nmap = nodeMap.get(globalNodeId);
+        
+              if (nmap === undefined) {
+                nmap = new NodeTracker();
+                nodeMap.set(globalNodeId, nmap);
+              }
+
+              nmap.addFace(geom.faces.length - 1, faceVertexIndex);
+            }
+          }
+
+          if (elemMap.has(elem_id)) {
+            elemMap.get(elem_id).push(...elemFaces);
+          } else {
+            elemMap.set(elem_id, elemFaces);
+          }
+        }
+
+      }
+    )
 
     geom.computeFaceNormals();
     //geom.computeVertexNormals();
@@ -102,7 +156,13 @@ class Model {
   wireframeGeometry(maxShare = 2) {
     let lgeom = new THREE.Geometry();
 
-    lgeom.nodeMap = new Map();
+    let nodeMap = new Map();
+    let elemMap = new Map();
+
+    lgeom.userData = {
+      nodeMap: nodeMap,
+      //elemMap: elemMap
+    };
 
     for (let [key, edge] of this.edges.edges) {
       if (edge.count > maxShare) {
@@ -117,17 +177,17 @@ class Model {
 
       lgeom.vertices.push(v1, v2);
 
-      let n1map = lgeom.nodeMap.get(n1[0]);
-      let n2map = lgeom.nodeMap.get(n2[0]);
+      let n1map = nodeMap.get(n1[0]);
+      let n2map = nodeMap.get(n2[0]);
 
       if (n1map === undefined) {
         n1map = new NodeTracker();
-        lgeom.nodeMap.set(n1[0], n1map);
+        nodeMap.set(n1[0], n1map);
       }
 
       if (n2map === undefined) {
         n2map = new NodeTracker();
-        lgeom.nodeMap.set(n2[0], n2map);
+        nodeMap.set(n2[0], n2map);
       }
 
       n1map.addVertex(lgeom.vertices.length  - 2);

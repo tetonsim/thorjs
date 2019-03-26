@@ -146,6 +146,8 @@ class Results {
       );
     }
 
+    let nodeMap = geom.userData.nodeMap;
+
     for (let val of result.values) {
       let node = nodes[val.id - 1]; // original, undeformed coordinates
       
@@ -159,10 +161,10 @@ class Results {
         vertex.z = node[3] + scaleFactor * val.data[2];
       }
 
-      if (geom.nodeMap === undefined) {
+      if (nodeMap === undefined) {
         deformVertex(geom.vertices[val.id - 1]);
       } else {
-        let nodeTracker = geom.nodeMap.get(node[0]);
+        let nodeTracker = nodeMap.get(node[0]);
         if (nodeTracker !== undefined) {
           if (nodeTracker.vertexIndices.length > 0) {
             for (let vIndex of nodeTracker.vertexIndices) {
@@ -186,6 +188,8 @@ class Results {
    * @param {*} geom 
    */
   undeform(nodes, geom) {
+    let nodeMap = geom.userData.nodeMap;
+
     for (let node of nodes) {
       function revertVertex(vertex) {
         vertex.x = node[1];
@@ -193,10 +197,10 @@ class Results {
         vertex.z = node[3];
       }
 
-      if (geom.nodeMap === undefined) {
+      if (nodeMap === undefined) {
         revertVertex(geom.vertices[node[0] - 1]);
       } else {
-        let nodeTracker = geom.nodeMap.get(node[0]);
+        let nodeTracker = nodeMap.get(node[0]);
         if (nodeTracker !== undefined) {
           if (nodeTracker.vertexIndices.length > 0) {
             for (let vIndex of nodeTracker.vertexIndices) {
@@ -230,7 +234,7 @@ class Results {
     }    
 
     for (let val of result.values) {
-      let nmap = geom.nodeMap.get(val.id);
+      let nmap = geom.userData.nodeMap.get(val.id);
 
       if (nmap === undefined) {
         continue;
@@ -320,8 +324,10 @@ class Results {
 
     let defaultColor = new THREE.Color(0xffffff);
 
+    let elemMap = geom.userData.elemMap;
+
     for (let val of result.values) {
-      let faceIndices = geom.elemMap.get(val.id);
+      let faceIndices = elemMap.get(val.id);
 
       if (faceIndices === undefined) {
         continue;
