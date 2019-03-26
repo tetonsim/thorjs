@@ -3,13 +3,13 @@ const Hardware = require('./hardware');
 const Material = require('./material');
 const Micro = require('./micro');
 const API = require('./api');
-const THREE = require('three');
-const Canvas = require('./ui/canvas');
 
-const UI = {
-  THREE: THREE,
-  Canvas: Canvas
-};
+let THREE;
+try {
+  THREE = require('three');
+} catch (err) {
+  THREE = undefined;
+}
 
 const thor = {
   FEA: FEA,
@@ -17,7 +17,14 @@ const thor = {
   Micro: Micro,
   Hardware: Hardware,
   API: API,
-  UI: UI
+  UI: null
 };
+
+if (typeof THREE !== 'undefined') {
+  const Canvas = require('./ui/canvas');
+  thor.UI = {
+    Canvas: Canvas
+  }
+}
 
 module.exports = thor;
