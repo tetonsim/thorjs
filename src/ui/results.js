@@ -1,5 +1,5 @@
 const THREE = require('three');
-const Contour = require('./contour');
+const { Contour, FaceContour, VertexContour } = require('./contour');
 
 function computeMetaInfo(result) {
   meta = {
@@ -218,9 +218,7 @@ class Results {
 
   nodeContour(geom, stepName, nodeResultName, component=0) {
     let result = this.getNodeResult(stepName, nodeResultName);
-    let contour = new Contour(result, component);
-
-    let defaultColor = new THREE.Color(0xffffff);
+    let contour = new VertexContour(geom, Contour.paramsFromResult(result, component));
 
     if (typeof component === 'string') {
       component = component.toUpperCase();
@@ -234,34 +232,24 @@ class Results {
     }    
 
     for (let val of result.values) {
-      let nmap = geom.userData.nodeMap.get(val.id);
-
-      if (nmap === undefined) {
-        continue;
-      }
-
-      let vertexColor = defaultColor;
-
+      let resultValue = 0.0;
       if (component === 'MAGNITUDE') {
-        vertexColor = contour.color(val.magnitude);
+        resultValue = val.magnitude;
       } else {
-        vertexColor = contour.color(val.data[component]);
+        resultValue = val.data[component];
       }
 
-      for (let faceIndex of nmap.faceIndices) {
-        let face = geom.faces[faceIndex[0]];
-        face.vertexColors[faceIndex[1]].set(vertexColor);
-      }
+      geom.vertices[val.id - 1].resultValue = resultValue;
     }
 
-    geom.colorsNeedUpdate = true;
+    contour.updateVertexColors();
 
     return contour;
   }
 
   gaussPointContour(geom, stepName, gpResultName, gaussPoint, component=0) {
     let result = this.getGaussPointResult(stepName, gpResultName);
-    let contour = new Contour(result, component);
+    let contour = new FaceContour(geom, Contour.paramsFromResult(result, component));
 
     let componentRetriever = v => v.data[component];
 
@@ -322,8 +310,6 @@ class Results {
       throw 'Invalid gaussPoint input type: ' + gaussPoint;
     }
 
-    let defaultColor = new THREE.Color(0xffffff);
-
     let elemMap = geom.userData.elemMap;
 
     for (let val of result.values) {
@@ -334,7 +320,6 @@ class Results {
       }
 
       let faceValue = valueRetriever(val.values);
-      let faceColor = defaultColor;
 
       if (!isNaN(faceValue)) {
         faceColor = contour.color(faceValue);
@@ -343,13 +328,11 @@ class Results {
       for (let faceIndex of faceIndices) {
         let face = geom.faces[faceIndex];
 
-        for (let vcolor of face.vertexColors) {
-          vcolor.set(faceColor);
-        }
+        face.resultValue = faceValue;
       }
     }
 
-    geom.colorsNeedUpdate = true;
+    contour.updateVertexColors();
 
     return contour;
   }

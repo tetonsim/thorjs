@@ -174,8 +174,6 @@ class ModelGroup {
 
     this.surface.visible = false;
     this.contour.visible = true;
-    
-    return this.state.contour.legend;
   }
 
   gaussPointContour(gaussPointResultName, gaussPoint, component) {
@@ -192,8 +190,6 @@ class ModelGroup {
 
     this.surface.visible = false;
     this.contour.visible = true;
-
-    return this.state.contour.legend;
   }
 
   uncontour() {

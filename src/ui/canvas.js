@@ -1,8 +1,6 @@
 const THREE = require('three');
 const TrackballControls = require('./TrackballControls');
 const ModelGroup = require('./modelgroup');
-const Model = require('./model');
-const Results = require('./results');
 const Sizer = require('./sizer');
 
 class Canvas {
