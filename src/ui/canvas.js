@@ -15,6 +15,7 @@ class Canvas {
     this.sizer = null;
 
     this.renderer = new THREE.WebGLRenderer( { antialias: true });
+    this.renderer.localClippingEnabled = true;
 
     let W = this.container.clientWidth;
     let H = this.container.clientHeight;

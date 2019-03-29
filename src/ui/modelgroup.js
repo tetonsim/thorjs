@@ -20,6 +20,14 @@ class ModelGroup {
     this.results = null;
     this.step = null;
     this.boundingBox = null;
+
+    this.defaultCutPlanes = {
+      x: new THREE.Plane( new THREE.Vector3(-1, 0, 0), 0 ),
+      y: new THREE.Plane( new THREE.Vector3(0, -1, 0), 0 ),
+      z: new THREE.Plane( new THREE.Vector3(0, 0, -1), 0 ),
+    }
+
+    this.activeCutPlane = this.defaultCutPlanes.x.clone();
     
     this.group = new THREE.Group();
     
@@ -83,14 +91,14 @@ class ModelGroup {
 
   setGeometry() {
     this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
-    this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.FrontSide, wireframe: false, transparent: true, opacity: 1.0});
+    this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.DoubleSide, wireframe: false, transparent: true, opacity: 1.0});
 
-    this.wireframe.geometry = this.model.wireframeGeometry();
+    this.wireframe.geometry = this.model.wireframeGeometry(10);
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
       depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
 
     this.contour.geometry = this.model.meshGeometry(new THREE.Color(0x0000ff));
-    this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.FrontSide});
+    this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.DoubleSide});
 
     this.outline.geometry = new THREE.EdgesGeometry(this.surface.geometry, this.outline_threshold);
     this.outline.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
@@ -98,6 +106,17 @@ class ModelGroup {
 
     this.surface.geometry.computeBoundingBox();
     this.boundingBox = this.surface.geometry.boundingBox;
+
+    // Set the position of the default cut planes based off the
+    // center of the geometry bounding box
+    let boxCenter = new THREE.Vector3();
+    this.boundingBox.getCenter(boxCenter);
+
+    this.defaultCutPlanes.x.constant = boxCenter.x;
+    this.defaultCutPlanes.y.constant = boxCenter.y;
+    this.defaultCutPlanes.z.constant = boxCenter.z;
+
+    this.activeCutPlane = this.defaultCutPlanes.x.clone();
   }
 
   setStep(stepName) {
@@ -182,6 +201,19 @@ class ModelGroup {
     this.surface.visible = true;
     this.contour.visible = false;
   }
+
+  activateContourCutPlane(plane) {
+    if (plane !== undefined) {
+      this.activeCutPlane = plane;
+    }
+    this.contour.material.clippingPlanes = [this.activeCutPlane];
+    return this.activeCutPlane;
+  }
+
+  deactivateContourCutPlane() {
+    this.contour.material.clippingPlanes = [];
+  }
+
 };
 
 module.exports = ModelGroup;
