@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 'use strict';
 
 const version = typeof VERSION === 'undefined' ? 'dev' : VERSION;
