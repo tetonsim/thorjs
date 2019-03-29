@@ -56,43 +56,12 @@ class Model {
             if (facesToCreate === undefined) {
               facesToCreate = [ [conn[0], face.triangulate(conn)] ];
               faceCounter.set(nodeKey, facesToCreate);
-            } else {
+            } else if (excludeSharedFaces) {
               faceCounter.set(nodeKey, []);; // this face is shared (internal) so make it empty so we ignore it
+            } else {
+              faceCounter.get(nodeKey).push( [conn[0], face.triangulate(conn)] );
             }
-
-            /*for (let ijk of trifaces) {
-              //let tface = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);
-              let tface = new THREE.Face3(ijk[0] - 1, ijk[1] - 1, ijk[2] - 1);
-
-              if (initVertexColor !== null) {
-                tface.vertexColors = [
-                  new THREE.Color(initVertexColor),
-                  new THREE.Color(initVertexColor),
-                  new THREE.Color(initVertexColor)
-                ];
-              }
-
-              geom.faces.push(tface);
-
-              elemFaces.push(geom.faces.length - 1);
-
-              for (let faceVertexIndex in ijk) {
-                //let globalNodeId = conn[ijk[faceVertexIndex]];
-                let globalNodeId = ijk[faceVertexIndex];
-
-                let nmap = nodeMap.get(globalNodeId);
-          
-                if (nmap === undefined) {
-                  nmap = new NodeTracker();
-                  nodeMap.set(globalNodeId, nmap);
-                }
-
-                nmap.addFace(geom.faces.length - 1, faceVertexIndex);
-              }
-            }*/
           }
-
-          //elemMap.set(conn[0], elemFaces);
         }
       }
     }
@@ -103,7 +72,7 @@ class Model {
         for (let elem of elements) {
           let elem_id = elem[0];
           let trifaces = elem[1];
-          let elemFaces = [];          
+          let elemFaces = [];
 
           for (let ijk of trifaces) {
             //let tface = new THREE.Face3(conn[ijk[0]] - 1, conn[ijk[1]] - 1, conn[ijk[2]] - 1);

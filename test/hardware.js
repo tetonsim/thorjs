@@ -11,17 +11,36 @@ describe('Hardware', function() {
     describe('Search', function() {
       this.timeout(timeout);
 
-      it('default',
+      it('NoMaterials',
         function(done) {
 
           thor.machineSearch(
             function() {
               assert.ok(this.length > 0);
+              assert.ok(this[0].suppliers === undefined);
               done();
             },
             function() {
               throw this;
             }
+          )
+
+        }
+      );
+
+      it('Materials',
+        function(done) {
+
+          thor.machineSearch(
+            function() {
+              assert.ok(this.length > 0);
+              assert.ok(this[0].suppliers.length > 0);
+              done();
+            },
+            function() {
+              throw this;
+            },
+            true
           )
 
         }
@@ -43,7 +62,7 @@ describe('Hardware', function() {
             function() {
               assert.strictEqual(this.id, machId);
               assert.strictEqual(this.process, "FDM");
-              assert.ok(this.materials.length > 0);
+              assert.ok(this.suppliers.length > 0);
               done();
             },
             function() {

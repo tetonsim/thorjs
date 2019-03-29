@@ -385,9 +385,14 @@ class API {
    * Retrieves all Machine definitions
    * @param {API~machineSearch-success} success 
    * @param {API~error} error 
+   * @param {boolean} [materials] Include materials (grouped by supplier) in each Machine definition
    */
-  machineSearch(success, error) {
-    this._request('GET', '/hardware/machine/search', success, error);
+  machineSearch(success, error, materials=false) {
+    let url = '/hardware/machine/search';
+    if (materials) {
+      url = url + '?materials=1';
+    }
+    this._request('GET', url, success, error);
   }
   /**
    * 
