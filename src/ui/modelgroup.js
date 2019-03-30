@@ -93,7 +93,7 @@ class ModelGroup {
     this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
     this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.DoubleSide, wireframe: false, transparent: true, opacity: 1.0});
 
-    this.wireframe.geometry = this.model.wireframeGeometry(10);
+    this.wireframe.geometry = this.model.wireframeGeometry();
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
       depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
 
