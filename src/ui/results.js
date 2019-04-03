@@ -321,10 +321,6 @@ class Results {
 
       let faceValue = valueRetriever(val.values);
 
-      if (!isNaN(faceValue)) {
-        faceColor = contour.color(faceValue);
-      }
-
       for (let faceIndex of faceIndices) {
         let face = geom.faces[faceIndex];
 
