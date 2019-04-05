@@ -19,18 +19,26 @@ class Model {
   meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
     let geom = new THREE.Geometry();
 
-    let nodeMap = new Map();
-    let elemMap = new Map();
+    let nodeMap = new Map();    // key: node Id, value: NodeTracker object
+    let elemMap = new Map();    // key: elem Id, value: list of indices in geom.faces that construct the element
+    let nodeElems = new Map();  // key: node Id, value: list of element Ids node is connected to
 
     geom.userData = {
       nodeMap: nodeMap,
-      elemMap: elemMap
+      elemMap: elemMap,
+      nodeElems: nodeElems
     };
 
     for (let node of this.mesh.nodes) {
       let pos = new THREE.Vector3(node[1], node[2], node[3]);
 
       geom.vertices.push(pos);
+
+      let nt = new NodeTracker();
+      nt.addVertex(geom.vertices.length - 1);
+
+      nodeMap.set(node[0], nt);
+      nodeElems.set(node[0], []);
     }
 
     let faceCounter = new Map();
@@ -48,18 +56,29 @@ class Model {
         for (let conn of egroup.connectivity) {
           //let elemFaces = [];
 
+          let nodeIter = conn.entries();
+          let iconn = nodeIter.next();
+
+          let elemId = iconn.value[1];
+          
+          // add this element to the map tracking which elements a node is connected to
+          while (!iconn.done) {
+            nodeElems.get(iconn.value[1]).push(elemId);
+            iconn = nodeIter.next();
+          }
+
           for (let face of faces) {
             //let trifaces = face.triangulate(conn);
 
             let nodeKey = face.nodeKey(conn);
             let facesToCreate = faceCounter.get(nodeKey);
             if (facesToCreate === undefined) {
-              facesToCreate = [ [conn[0], face.triangulate(conn)] ];
+              facesToCreate = [ [elemId, face.triangulate(conn)] ];
               faceCounter.set(nodeKey, facesToCreate);
             } else if (excludeSharedFaces) {
               faceCounter.set(nodeKey, []);; // this face is shared (internal) so make it empty so we ignore it
             } else {
-              faceCounter.get(nodeKey).push( [conn[0], face.triangulate(conn)] );
+              faceCounter.get(nodeKey).push( [elemId, face.triangulate(conn)] );
             }
           }
         }
@@ -70,7 +89,7 @@ class Model {
       function(elements, nodeKey) {
 
         for (let elem of elements) {
-          let elem_id = elem[0];
+          let elemId = elem[0];
           let trifaces = elem[1];
           let elemFaces = [];
 
@@ -96,19 +115,19 @@ class Model {
 
               let nmap = nodeMap.get(globalNodeId);
         
-              if (nmap === undefined) {
+              /*if (nmap === undefined) {
                 nmap = new NodeTracker();
                 nodeMap.set(globalNodeId, nmap);
-              }
+              }*/
 
               nmap.addFace(geom.faces.length - 1, faceVertexIndex);
             }
           }
 
-          if (elemMap.has(elem_id)) {
-            elemMap.get(elem_id).push(...elemFaces);
+          if (elemMap.has(elemId)) {
+            elemMap.get(elemId).push(...elemFaces);
           } else {
-            elemMap.set(elem_id, elemFaces);
+            elemMap.set(elemId, elemFaces);
           }
         }
 

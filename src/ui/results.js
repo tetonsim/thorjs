@@ -359,6 +359,55 @@ class Results {
     return contour;
   }
 
+  gaussPointToNodeContour(geom, stepName, gpResultName, filterParams) {
+    let result = this.getGaussPointResult(stepName, gpResultName);
+    let contour = new VertexContour(geom, Contour.paramsFromResult(result, filterParams.component || 0));
+    let filter = new ResultFilter(result, filterParams);
+
+    let elemVals = new Map();
+
+    for (let val of result.values) {
+      // Grab the element value based off the ResultFilter which
+      // just finds a particular gauss point and returns its value.
+      // If we want to extrapolate multiple gauss pt values to the nodes
+      // we would need to replace this call with something that would extrapolate
+      // and return a value for each node in the element connectivity.
+      elemVals.set(val.id, filter.get(val.values));
+
+      //geom.vertices[val.id - 1].resultValue = resultValue;
+    }
+
+    let nodeToVertexIter = geom.userData.nodeMap.entries();
+    let nodeToVertex = nodeToVertexIter.next();
+
+    contour.resetMinMax();
+
+    while (!nodeToVertex.done) {
+      let nodeId = nodeToVertex.value[0];
+      let nodeTracker = nodeToVertex.value[1];
+      let nodeElems = geom.userData.nodeElems.get(nodeId);
+
+      let vertexValue = 0.0;
+      for (let elemId of nodeElems) {
+        vertexValue += elemVals.get(elemId);
+      }
+      
+      vertexValue /= nodeElems.length;
+
+      for (let i of nodeTracker.vertexIndices) {
+        geom.vertices[i].resultValue = vertexValue;
+      }
+
+      contour.updateMinMax(vertexValue);
+
+      nodeToVertex = nodeToVertexIter.next();
+    }
+
+    contour.updateVertexColors();
+
+    return contour;
+  }
+
   gaussPointContour(geom, stepName, gpResultName, filterParams) {
     let result = this.getGaussPointResult(stepName, gpResultName);
     let contour = new FaceContour(geom, Contour.paramsFromResult(result, filterParams.component || 0));
