@@ -176,12 +176,12 @@ class ModelGroup {
     this.contour.visible = true;
   }
 
-  gaussPointContour(gaussPointResultName, gaussPoint, component) {
+  gaussPointContour(gaussPointResultName, filterParams) {
     let that = this;
     
     this.state.contour._update = function() {
       that.state.contour.legend =
-        that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, gaussPoint, component)
+        that.results.gaussPointContour(that.contour.geometry, that.step, gaussPointResultName, filterParams)
     };
 
     this.state.contour._update();

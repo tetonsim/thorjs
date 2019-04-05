@@ -38,29 +38,56 @@ class Contour {
     };
   }
 
+  /**
+   * Reset the minimum value and update the vertex colors
+   * @param {Number} min 
+   */
   setMin(min) {
     this.min = min;
     this.updateVertexColors();
   }
 
+  /**
+   * Reset the maximum value and update the vertex colors
+   * @param {Number} max 
+   */
   setMax(max) {
     this.max = max;
     this.updateVertexColors();
   }
 
-  color(data) {
-    if (data < this.min || data > this.max) {
+  resetMinMax() {
+    this.min = Infinity;
+    this.max = -Infinity;
+  }
+
+  /**
+   * This is a simple helper for updating the min/max as values
+   * are processed. This does not update vertex colors.
+   * @param {Number} value 
+   */
+  updateMinMax(value) {
+    if (!isNaN(value)) {
+      this.min = Math.min(this.min, value);
+      this.max = Math.max(this.max, value);
+    }
+  }
+
+  color(value) {
+    if (value < this.min || value > this.max) {
       return this.limitColor;
     }
 
-    if (isNaN(data)) {
+    if (isNaN(value)) {
       return this.NaNColor;
     }
 
-    //let value = Math.hypot(...data);
-    let value = data;
-    let ihue = (this.ncolors - 1) * (value - this.max) / (this.min - this.max);
-    ihue = Math.round(ihue);
+    let ihue = this.ncolors - 1;
+
+    if (Math.abs(this.max - this.min) > Number.EPSILON) {
+      ihue = (this.ncolors - 1) * (value - this.max) / (this.min - this.max);
+      ihue = Math.round(ihue);
+    }
 
     let lightness = 0.5;
 
