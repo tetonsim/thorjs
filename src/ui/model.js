@@ -18,6 +18,7 @@ class Model {
    */
   meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
     let geom = new THREE.Geometry();
+    //let geom = new THREE.BufferGeometry();
 
     let nodeMap = new Map();    // key: node Id, value: NodeTracker object
     let elemMap = new Map();    // key: elem Id, value: list of indices in geom.faces that construct the element
@@ -62,6 +63,7 @@ class Model {
           let elemId = iconn.value[1];
           
           // add this element to the map tracking which elements a node is connected to
+          iconn = nodeIter.next();
           while (!iconn.done) {
             nodeElems.get(iconn.value[1]).push(elemId);
             iconn = nodeIter.next();
