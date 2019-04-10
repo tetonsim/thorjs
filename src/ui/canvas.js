@@ -3,8 +3,12 @@ const TrackballControls = require('./TrackballControls');
 const ModelGroup = require('./modelgroup');
 const Sizer = require('./sizer');
 
+/**
+ * @memberof UI
+ */
 class Canvas {
   constructor() {
+    this._init = false;
   }
 
   init(container) {
@@ -56,10 +60,20 @@ class Canvas {
 
     this.groups = [];
 
+    this._init = true;
+
     this.update();
   }
 
+  _throwIfNotInitialized() {
+    if (!this._init) {
+      throw 'Canvas must be initialized'
+    }
+  }
+
   reset() {
+    this._throwIfNotInitialized();
+
     let scene = this.scene;
     this.groups.forEach(
       function(g) {
@@ -70,13 +84,27 @@ class Canvas {
     this.groups = [];
   }
 
+  /**
+   * Needs to be called in render loop
+   */
   update() {
+    this._throwIfNotInitialized();
+
     this.headlamp.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z);
     this.renderer.render(this.scene, this.camera);
     this.controls.update();
   }
 
+  /**
+   * 
+   * @param {string} name 
+   * @param {UI.Model} model 
+   * @param {UI.Results} [results]
+   * @returns {Promise<UI.ModelGroup>}
+   */
   newModelGroup(name, model, results=undefined) {
+    this._throwIfNotInitialized();
+
     return new Promise(
       (resolve, reject) => {
         let g = new ModelGroup(name, model, results);
@@ -93,6 +121,8 @@ class Canvas {
 
   // TODO - how to handle sizing with multiple ModelGroups?
   resize(geom) {
+    this._throwIfNotInitialized();
+
     this.sizer = new Sizer(geom);
 
     this.camera.near = this.sizer.camera.near;
@@ -118,13 +148,22 @@ class Canvas {
     this.axesHelper.geometry.scale(axesScale, axesScale, axesScale);
   }
 
+  /**
+   * Centers the contents of the canvas within view
+   */
   center() {
+    this._throwIfNotInitialized();
+
     this.controls.target.copy(
       this.sizer.center
     );
   }
   
-  zoomToFit(zoomOutFactor=1.1, dz=0) {
+  /**
+   * Re-positions the camera to center and fit the contents of the canvas within view
+   * @param {number} [zoomOutFactor=1.1] The factor to zoom out. Larger numbers will zoom out further.
+   */
+  zoomToFit(zoomOutFactor=1.1) {
     this.center();
 
     // vdist is the distance vector from the current camera position to the center
@@ -177,17 +216,52 @@ class Canvas {
     )
   }
 
+  /**
+   * Set the camera view directly from vectors. Zooms to fit after the
+   * camera is re-positioned.
+   * @param {THREE.Vector3} position Camera position
+   * @param {THREE.Vector3} up Camera "up" axis
+   */
   setViewFromVectors(position, up) {
+    this._throwIfNotInitialized();
+
     this.camera.position.copy(position);
     this.camera.up.copy(up);
     this.zoomToFit();
   }
 
+  /**
+   * @typedef {Object} View
+   * @property {THREE.Vector3} position
+   * @property {THREE.Vector3} up
+   */
+
+  /**
+   * Set the camera to a pre-determined view. See Canvas.views for
+   * a set of default views.
+   * @param {View} view
+   */
   setView(view) {
     this.setViewFromVectors(view.position, view.up);
   }
 
+  /**
+   * @typedef {Object} PresetViews
+   * @property {View} XY Sets the x-y plane in the plane of the canvas
+   * @property {View} XZ Sets the x-z plane in the plane of the canvas
+   * @property {View} YZ Sets the y-z plane in the plane of the canvas
+   * @property {View} isometric Isometric view
+   */
+
+  /**
+   * Preset views. Note these are based off the size of the loaded
+   * models. Do not store these views, always access them at the time of calling
+   * setView.
+   * @type {PresetViews}
+   */
   get views() {
+    this._throwIfNotInitialized();
+
     let s = this.sizer;
     return {
       XY: {

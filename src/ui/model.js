@@ -1,6 +1,9 @@
 const THREE = require('three');
 const Mesh = require('./mesh');
 
+/**
+ * @memberof UI
+ */
 class Model {
   /**
    * 

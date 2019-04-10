@@ -65,6 +65,8 @@ const Builders = {
               let layerMat = mats[0].result.materials[0];
               let infillMat = mats[1].result.materials[0];
 
+              // TODO where to get strengths from?
+
               let replaceOrAddMaterial = function(mat) {
                 let i = newModel.materials.findIndex(m => m.name === mat.name);
                 if (i >= 0) {

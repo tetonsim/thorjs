@@ -21,15 +21,9 @@ const thor = {
 };
 
 if (typeof THREE !== 'undefined') {
-  const Canvas = require('./ui/canvas');
-  const Model = require('./ui/model');
-  const Results = require('./ui/results');
+  const UI = require('./ui/ui');
 
-  thor.UI = {
-    Canvas: Canvas,
-    Model: Model,
-    Results: Results
-  }
+  thor.UI = UI;
 }
 
 module.exports = thor;

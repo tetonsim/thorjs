@@ -1,5 +1,8 @@
 const THREE = require('three');
 
+/**
+ * @memberof UI
+ */
 class ModelGroup {
   constructor(name, model, results) {
     this.name = name;
