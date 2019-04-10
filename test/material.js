@@ -37,6 +37,12 @@ describe('Material', function() {
           function() {
             assert.strictEqual(this.id, matId);
             assert.ok('structural' in this.properties);
+
+            let fea = this.fea;
+
+            assert.ok(fea.name === this.name);
+            assert.ok(fea.elastic.type === 'isotropic');
+
             done();
           },
           function() {

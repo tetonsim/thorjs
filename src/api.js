@@ -11,6 +11,8 @@ if (typeof window === 'undefined') {
   localStorage = new LocalStorage(location);
 }
 
+const Material = require('./material');
+
 const _HelperCallbacks = {
   getToken: function(api, success, error) {
     return function() {
@@ -109,16 +111,20 @@ class API {
         } else {
           let message = null;
           
-          if ('error' in response) {
-            message = response.error;
-          }
-
-          if ('exception' in response) {
-            message = message + ' :: ' + response.exception;
-          }
-
-          if (message === null) {
+          if (typeof response === 'string') {
             message = response;
+          } else {
+            if ('error' in response) {
+              message = response.error;
+            }
+
+            if ('exception' in response) {
+              message = message + ' :: ' + response.exception;
+            }
+
+            if (message === null) {
+              message = response;
+            }
           }
 
           err = new Error(message, xhttp.status);
@@ -198,8 +204,8 @@ class API {
    /**
     * Checks if a token is already in use and
     * returns the user information if available, otherwise null
-    * @returns {Object}
-    * @todo Implement token retrieval
+    * @param {API~getToken-success} success
+    * @param {API~error} error
     */
    whoAmI(success, error) {
     let getUserInfoFromServer = false;
@@ -327,7 +333,16 @@ class API {
    * @param {API~error} error 
    */
   materialSearch(success, error) {
-    this._request('GET', '/material/search', success, error);
+    this._request('GET', '/material/search',
+      function() {
+        let mats = [];
+        this.forEach((m, i) => {
+          mats.push(Material.Material.fromObject(m));
+        });
+        success.bind(mats)();
+      },
+      error
+    );
   }
 
   /**
@@ -342,7 +357,12 @@ class API {
    * @param {API~error} error 
    */
   materialGet(id, success, error) {
-    this._request('GET', '/material/' + id, success, error);
+    this._request('GET', '/material/' + id, 
+      function() {
+        success.bind( Material.Material.fromObject(this) )();
+      },
+      error
+    );
   }
 
   /**
@@ -501,6 +521,34 @@ class API {
     getStatus();
   }
 
+  microRunPromise(run) {
+    let api = this;
+    return new Promise(
+      (resolve, reject) => {
+        api.microNewRun(
+          run,
+          function() {
+            api.microRunStatusWait(
+              this.id,
+              function() {
+                resolve(this);
+              },
+              function() {
+                reject(this);
+              },
+              function() {
+                reject(this);
+              }
+            );
+          },
+          function() {
+            reject(this);
+          }
+        );
+      }
+    );
+  }
+
   /**
    * 
    * @callback API~feaTemplateList
@@ -628,6 +676,71 @@ class API {
    */
   feaRunSubmit(id, success, error, force=false) {
     this._request('POST', '/fea/run/submit', success, error, { id: id, force: force });
+  }
+
+  feaQuickRun(model) {
+    let api = this;
+
+    return new Promise(
+      (resolve, reject) => {
+        let apiError = function() { reject(this); }
+
+        function deleteModel(modelId) {
+          // delete the model and run on the server
+          api.feaModelDelete(
+            modelId,
+            function() { /* do nothing */ },
+            function() { /* do nothing */ },
+            true
+          );
+        }
+
+        function waitForRunToComplete(modelId, run) {
+          api.feaRun(
+            run.id,
+            function() {
+              if (this.status === 'finished') {
+                deleteModel(modelId);
+                resolve(this.result);
+              } else if (this.status === 'aborted' || this.status === 'failed' || this.status === 'crashed') {
+                deleteModel(modelId);
+                reject(new Error(this.error));
+              } else {
+                setTimeout(waitForRunToComplete, 1000, modelId, run);
+              }
+            },
+            apiError
+          )
+        }
+
+        api.feaModelCreate(
+          model.name,
+          model,
+          function() {
+
+            let modelId = this.id;
+
+            api.feaRunCreate(
+              modelId,
+              function() {
+
+                api.feaRunSubmit(
+                  this.run.id,
+                  function() {
+                    waitForRunToComplete(modelId, this);
+                  },
+                  apiError
+                );
+
+              },
+              apiError
+            );
+
+          },
+          apiError
+        )
+      }
+    );
   }
 }
 

@@ -38,6 +38,15 @@ class Canvas {
     this.axesHelper.userData.size = 1;
     this.scene.add(this.axesHelper);
 
+    /*
+    this.printBed = new THREE.Mesh(
+      new THREE.BoxGeometry(100, 100, 1, 8, 8, 2),
+      new THREE.MeshLambertMaterial( {color: 0xbebebe, side: THREE.DoubleSide, transparent: true, opacity: 0.5})
+    );
+    this.printBed.position.set(50, 50, 0);
+    this.scene.add(this.printBed);
+    */
+
     this.controls = new THREE.TrackballControls(this.camera, this.container);
     this.controls.staticMoving = true;
     this.controls.dynamicDampingFactor = 0.25; // only applicable if staticMoving is false
@@ -68,14 +77,18 @@ class Canvas {
   }
 
   newModelGroup(name, model, results=undefined) {
-    let g = new ModelGroup(name, model, results);
-    
-    this.groups.push(g);
-    this.scene.add(g.group);
+    return new Promise(
+      (resolve, reject) => {
+        let g = new ModelGroup(name, model, results);
+        
+        this.groups.push(g);
+        this.scene.add(g.group);
 
-    this.resize(g.surface.geometry);
+        this.resize(g.surface.geometry);
 
-    return g;
+        resolve(g);
+      }
+    )
   }
 
   // TODO - how to handle sizing with multiple ModelGroups?

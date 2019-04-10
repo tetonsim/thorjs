@@ -18,6 +18,22 @@ class Elastic {
     );
     return elas;
   }
+
+  static TransverseIsotropic(Ea, Et, nuat, nutt, Gat) {
+    var elas = new Elastic();
+    elas.type = 'transverse_isotropic';
+    elas.iso_plane = 23;
+    Object.assign(elas,
+      {
+        Ea: Ea,
+        Et: Et,
+        nuat: nuat,
+        nutt: nutt,
+        Gat: Gat
+      }
+    );
+    return elas;
+  }
 }
 
 /**
@@ -96,8 +112,15 @@ class _Material {
     this.id = null;
     this.name = name;
     this.family = null;
-    this.vendor = null;
+    this.supplier = null;
+    this.reinforcement = null;
     this.properties = {};
+  }
+
+  static fromObject(object) {
+    let mat = new _Material(object.name);
+    Object.assign(mat, object);
+    return mat;
   }
 
   /**
@@ -107,15 +130,19 @@ class _Material {
     let struc = this.properties.structural;
     let stiff = struc.stiffness;
     if (struc.isotropy == 'isotropic') {
-      return Elastic.Isotropic(s.E.value, s.nu.value);
+      return Elastic.Isotropic(stiff.Et.value, stiff.nu.value);
     } else if (struc.isotropy == 'transverse_isotropic') {
-      // TODO
+      return Elastic.TransverseIsotropic(
+        stiff.Eta.value, stiff.Ett.value,
+        stiff.nuat.value, stiff.nutt.value,
+        stiff.Gat.value
+      );
     } else if (struc.isotropy == 'orthotropic') {
-      // TODO
+      throw 'Orthotropic materials not supported';
     } else if (struc.isotropy == 'anisotropic') {
-      // TODO
+      throw 'Anisotropic materials not supported';
     }
-    return null;
+    throw 'Unrecognized isotropy';
   }
 
   /**

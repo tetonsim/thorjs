@@ -16,7 +16,8 @@ class Config {
     };
     this.infill = {
       pattern: 'grid',
-      density: 50
+      density: 50,
+      orientation: 0.0
     };
   }
 
