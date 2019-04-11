@@ -127,11 +127,8 @@ class Canvas {
 
     this.camera.near = this.sizer.camera.near;
     this.camera.far = this.sizer.camera.far;
-    this.camera.position.set(
-      this.sizer.camera.position.x,
-      this.sizer.camera.position.y,
-      this.sizer.camera.position.z
-    );
+
+    this.setView(this.views.Isometric);
 
     this.camera.updateProjectionMatrix();
 
@@ -170,23 +167,6 @@ class Canvas {
     let vdist = this.sizer.center.clone();
     vdist.negate();
     vdist.add(this.camera.position);
-
-    /*
-    // Get the bounding box in the camera view's frame of reference
-    let rbox = this.sizer.box.clone();
-    let rotM = new THREE.Matrix4();
-
-    rotM.makeRotationFromEuler(this.camera.rotation);
-
-    let rotMInv = new THREE.Matrix4();
-    rotMInv.getInverse(rotM);
-
-    rbox.applyMatrix4(rotMInv);
-
-    let hx = Math.abs(rbox.max.x - rbox.min.x);
-    let hy = Math.abs(rbox.max.y - rbox.min.y);
-    let cz = Math.abs(rbox.max.z + rbox.min.z) / 2;
-    */
 
     // For now we're just using the bounding sphere radius. This will
     // result in a conservative zoom factor
@@ -299,7 +279,7 @@ class Canvas {
 
       Isometric: {
         position: s.camera.position.clone(),
-        up: new THREE.Vector3(0, 1, 0)
+        up: new THREE.Vector3(0, 0, 1)
       }
     }
   }
