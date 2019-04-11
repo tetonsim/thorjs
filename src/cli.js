@@ -49,6 +49,8 @@ app
 app
   .command('fea')
   .option('-i, --input [file]')
+  .option('-p, --print [file]')
+  .option('-m, --modified [new job name]')
   .action(fea);
 
 app.parse(process.argv);
@@ -244,15 +246,54 @@ function micro(req, opt) {
 function fea(req, opt) {
   let that = this;
   let lastStatus = '';
+  let feaInput = that.input;
 
-  whoAmI(makeModel);
+  if (that.print) {
+    whoAmI(configureAndMakeModel);
+  } else {
+    whoAmI(makeModel);
+  }
 
-  function makeModel() {
-    if (!fs.existsSync(that.input)) {
-      throw that.input + ' does not exist';
+  function configureAndMakeModel() {
+    if (!that.modified) {
+      throw 'If a print configuration is supplied a new output file name must also be given (--modified)';
     }
 
-    let content = fs.readFileSync(that.input);
+    let modelContent = fs.readFileSync(feaInput);
+    let model = JSON.parse(modelContent);
+
+    let printConfigContent = fs.readFileSync(that.print);
+    let printConfig = JSON.parse(printConfigContent);
+
+    let material = new thor.Material.FEA(printConfig.material.name, printConfig.material.elastic);
+
+    let p = thor.FEA.Builders.Model(
+      api,
+      {
+        model: model
+      },
+      material,
+      printConfig.config
+    );
+
+    feaInput = that.modified + '.json';
+
+    p.then(
+      function(modifiedModel) {
+        fs.writeFileSync(feaInput, JSON.stringify(modifiedModel, null, 1));
+        makeModel();
+      }
+    ).catch(
+      e => console.error(e)
+    );
+  }
+
+  function makeModel() {
+    if (!fs.existsSync(feaInput)) {
+      throw feaInput + ' does not exist';
+    }
+
+    let content = fs.readFileSync(feaInput);
     let input = JSON.parse(content);
     let target = that.target;
 
@@ -307,7 +348,7 @@ function fea(req, opt) {
     api.feaRun(id,
       function() {
         if (this.status === 'finished') {
-          let inpfile = path.parse(that.input);
+          let inpfile = path.parse(feaInput);
           let rstfile = path.join(inpfile.dir, inpfile.base + '.rst');
 
           console.log('Writing results to ' + rstfile);
