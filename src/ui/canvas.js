@@ -247,10 +247,13 @@ class Canvas {
 
   /**
    * @typedef {Object} PresetViews
-   * @property {View} XY Sets the x-y plane in the plane of the canvas
-   * @property {View} XZ Sets the x-z plane in the plane of the canvas
-   * @property {View} YZ Sets the y-z plane in the plane of the canvas
-   * @property {View} isometric Isometric view
+   * @property {View} Top Sets the XY plane in the plane of the canvas, positions the camera such that is looking in the negative Z direction
+   * @property {View} Bottom Sets the XY plane in the plane of the canvas, positions the camera such that is looking in the positive Z direction
+   * @property {View} Front Sets the XZ plane in the plane of the canvas, positions the camera such that is looking in the negative Y direction
+   * @property {View} Back Sets the XZ plane in the plane of the canvas, positions the camera such that is looking in the positive Y direction
+   * @property {View} Right Sets the YZ plane in the plane of the canvas, positions the camera such that is looking in the negative X direction
+   * @property {View} Left Sets the YZ plane in the plane of the canvas, positions the camera such that is looking in the positive X direction
+   * @property {View} Isometric Isometric view
    */
 
   /**
@@ -264,22 +267,37 @@ class Canvas {
 
     let s = this.sizer;
     return {
-      XY: {
+      Top: {
         position: new THREE.Vector3(s.center.x, s.center.y, s.dim.z),
         up: new THREE.Vector3(0, 1, 0)
       },
 
-      XZ: {
+      Bottom: {
+        position: new THREE.Vector3(s.center.x, s.center.y, -s.dim.z),
+        up: new THREE.Vector3(0, 1, 0)
+      },
+
+      Front: {
+        position: new THREE.Vector3(s.center.x, s.dim.y, s.center.z),
+        up: new THREE.Vector3(0, 0, 1)
+      },
+
+      Back: {
         position: new THREE.Vector3(s.center.x, -s.dim.y, s.center.z),
         up: new THREE.Vector3(0, 0, 1)
       },
 
-      YZ: {
+      Right: {
         position: new THREE.Vector3(s.dim.x, s.center.y, s.center.z),
         up: new THREE.Vector3(0, 0, 1)
       },
 
-      isometric: {
+      Left: {
+        position: new THREE.Vector3(-s.dim.x, s.center.y, s.center.z),
+        up: new THREE.Vector3(0, 0, 1)
+      },
+
+      Isometric: {
         position: s.camera.position.clone(),
         up: new THREE.Vector3(0, 1, 0)
       }
