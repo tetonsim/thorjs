@@ -11,6 +11,12 @@ class Canvas {
     this._init = false;
   }
 
+  /**
+   * Initializes the Canvas and appends an HTML canvas element
+   * to the given container element. This MUST be called before
+   * any other Canvas method can be called.
+   * @param {HTMLElement} container 
+   */
   init(container) {
     this.container = container;
 
@@ -71,6 +77,11 @@ class Canvas {
     }
   }
 
+  /**
+   * Resets the Canvas and removes all ModelGroup objects.
+   * Note, the Canvas remains initialized and Canvas.init does
+   * not need to be called after a reset.
+   */
   reset() {
     this._throwIfNotInitialized();
 

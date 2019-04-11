@@ -2,13 +2,11 @@ const THREE = require('three');
 const Mesh = require('./mesh');
 
 /**
+ * Exposes methods for handling an FEA model in a UI.Canvas
  * @memberof UI
+ * @param {FEA.Model} model
  */
 class Model {
-  /**
-   * 
-   * @param {FEA.Model} model FEA model definition
-   */
   constructor(model) {
     Object.assign(this, model);
     this.edges = new MeshEdges(this.mesh);
@@ -17,6 +15,9 @@ class Model {
 
   /**
    * Creates and returns an undeformed Geometry of the model mesh
+   * @param {THREE.Color} [initVertexColor] If supplied face vertex colors will be initialized to the given color
+   * @param {boolean} [excludeSharedFaces=false] If true, FEA mesh faces that are shared (internal) will be
+   *  ignored, resulting in a geometry that only contains the external faces.
    * @returns {THREE.Geometry}
    */
   meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
@@ -146,6 +147,13 @@ class Model {
     return geom;
   }
 
+  /**
+   * Creates a geometry for use with THREE.LineBasicMaterial to create a 
+   * wireframe geometry of the FEA mesh.
+   * @param {number} [maxShare=2] FEA mesh edges that are shared by more elements
+   *  than maxShare will be excluded from the returned geometry. The default, of 2,
+   *  will restrict included edges to external edges only.
+   */
   wireframeGeometry(maxShare = 2) {
     let lgeom = new THREE.Geometry();
 

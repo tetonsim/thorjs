@@ -6,6 +6,11 @@ const Micro = require('./micro');
  */
 
 /**
+ * @typedef {Object} Results
+ * @memberof FEA
+ */
+
+/**
  * @typedef {Object} Template
  * @memberof FEA
  * @property {string} id

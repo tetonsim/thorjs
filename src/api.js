@@ -678,6 +678,14 @@ class API {
     this._request('POST', '/fea/run/submit', success, error, { id: id, force: force });
   }
 
+  /**
+   * A helper function that uploads the given model to the server, creates a new run,
+   * submits the runs, and returns a Promise which resolves with the FEA.Results object
+   * from the run, after it completes. This function will delete the model and run on 
+   * the server after the run completes.
+   * @param {FEA.Model} model
+   * @returns {Promise<FEA.Results>}
+   */
   feaQuickRun(model) {
     let api = this;
 

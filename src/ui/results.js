@@ -174,17 +174,26 @@ class ResultFilter {
   }
 }
 
+/**
+ * Exposes methods for handling FEA results in a UI.Canvas
+ * @memberof UI
+ * @param {FEA.Results} results
+ */
 class Results {
   constructor(results) {
     Object.assign(this, results);
   }
 
-  steps() {
-    let stepNames = [];
+  /**
+   * Returns an array of step names in the results
+   * @returns {Array<string>}
+   */
+  stepNames() {
+    let names = [];
     for (let s of this.steps) {
-      stepNames.push(s.name);
+      names.push(s.name);
     }
-    return stepNames;
+    return names;
   }
 
   getStep(stepName) {
@@ -294,11 +303,6 @@ class Results {
     return scaleFactor;
   }
 
-  /**
-   * Return geometry to undeformed state
-   * @param {*} nodes 
-   * @param {*} geom 
-   */
   undeform(nodes, geom) {
     let nodeMap = geom.userData.nodeMap;
 
