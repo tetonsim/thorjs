@@ -117,7 +117,7 @@ const Builders = {
                 section.layers = [];
 
                 for (let i = 0; i < layerConfig.layers.length; i++) {
-                  section.layers.push( [layerMat.name, layerConfig.layers[i], 1.0] );
+                  section.layers.push( [layerMat.name, layerConfig.layers[i].orientation, 1.0] );
                 }
 
                 if (section.layers.length > 1) {
