@@ -69,7 +69,7 @@ class InfillTriangle extends UnitCell {
     super("infill_triangle");
     this.volume_fraction = volume_fraction;
     this.layer_width = layer_width;
-    this.mesh_seed = 0.5;
+    this.mesh_seed = 0.1;
   }
 }
 
