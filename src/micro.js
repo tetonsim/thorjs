@@ -51,7 +51,7 @@ class ExtrudedLayer extends UnitCell {
     this.layer_width = print.layer_width;
     this.layer_height = print.layer_height;
     this.overlap = print.overlap;
-    this.mesh_seed = 0.025; // TODO how can we get a good default based on print config?
+    this.mesh_seed = 0.1;
   }
 }
 
