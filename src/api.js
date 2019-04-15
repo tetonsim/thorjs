@@ -70,7 +70,7 @@ class API {
   }
 
   static get version() {
-    return '19.0';
+    return (typeof THOR_VERSION === 'undefined' ? '19.0' : THOR_VERSION);
   }
 
   /**

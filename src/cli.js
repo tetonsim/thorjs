@@ -1,6 +1,6 @@
 'use strict';
 
-const version = typeof VERSION === 'undefined' ? 'dev' : VERSION;
+const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
 
 const app = require('commander');
 const fs = require('fs');
