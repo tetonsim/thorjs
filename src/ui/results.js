@@ -1,66 +1,172 @@
 const THREE = require('three');
 const { Contour, FaceContour, VertexContour } = require('./contour');
 
-function computeMetaInfo(result) {
-  meta = {
-    min: Array(result.size).fill(Infinity),
-    max: Array(result.size).fill(-Infinity),
-    magnitude: {
+class ResultMeta {
+  constructor(result) {
+    this.min = Array(result.size).fill(Infinity),
+    this.max = Array(result.size).fill(-Infinity),
+    this.magnitude = {
       available: false,
       min: Infinity,
       max: -Infinity
-    }
-  };
+    };
 
-  let magnitudeCalculator = null;
-  if (result.name === 'displacement' || result.name === 'force') {
-    magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[2]**2);
-  } else if (result.name === 'stress') {
-    // von mises
-    if (result.size === 3) {
-      magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[0] * d[1] + 3 * d[2]**2);
-    } else if (result.size === 6) {
-      magnitudeCalculator = d => Math.sqrt(
-        d[0]**2 + d[1]**2 + d[2]**2 - 
-        (d[0] * d[1] + d[1] * d[2] + d[0] * d[2]) + 
-        3 * (d[3]**2 + d[4]**2 + d[5]**2)
+    let magnitudeCalculator = null;
+    if (result.name === 'displacement' || result.name === 'force') {
+      magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[2]**2);
+    } else if (result.name === 'stress') {
+      // von mises
+      if (result.size === 3) {
+        magnitudeCalculator = d => Math.sqrt(d[0]**2 + d[1]**2 + d[0] * d[1] + 3 * d[2]**2);
+      } else if (result.size === 6) {
+        magnitudeCalculator = d => Math.sqrt(
+          d[0]**2 + d[1]**2 + d[2]**2 - 
+          (d[0] * d[1] + d[1] * d[2] + d[0] * d[2]) + 
+          3 * (d[3]**2 + d[4]**2 + d[5]**2)
+        );
+      }
+    }
+
+    this.magnitude.available = (magnitudeCalculator !== null);
+
+    for (let val of result.values) {
+      if ('data' in val) {
+        for (let i = 0; i < result.size; i++) {
+          this.min[i] = Math.min(this.min[i], val.data[i]);
+          this.max[i] = Math.max(this.max[i], val.data[i]);
+        }
+        if (magnitudeCalculator !== null) {
+          val.magnitude = magnitudeCalculator(val.data);
+          this.magnitude.min = Math.min(this.magnitude.min, val.magnitude);
+          this.magnitude.max = Math.max(this.magnitude.max, val.magnitude);
+        }
+      } else {
+        for (let sval of val.values) {
+          for (let i = 0; i < result.size; i++) {
+            this.min[i] = Math.min(this.min[i], sval.data[i]);
+            this.max[i] = Math.max(this.max[i], sval.data[i]);
+          }
+          if (magnitudeCalculator !== null) {
+            sval.magnitude = magnitudeCalculator(sval.data);
+            if (isNaN(sval.magnitude)) {
+              console.error('NaN mises from: ', sval);
+            }
+            this.magnitude.min = Math.min(this.magnitude.min, sval.magnitude);
+            this.magnitude.max = Math.max(this.magnitude.max, sval.magnitude);
+          }
+        }
+      }
+    }
+  }
+}
+
+class StepMeta {
+  constructor(step) {
+    let inc = step.increments[0];
+
+    inc.node_results.forEach(
+      r => r.meta = new ResultMeta(r)
+    );
+
+    inc.gauss_point_results.forEach(
+      r => r.meta = new ResultMeta(r)
+    );
+
+    this.results = [];
+
+    if (inc.node_results.find(r => r.name === 'displacement') !== undefined) {
+      this.results.push(
+        {
+          name: 'Displacement',
+          location: 'node',
+          key: 'displacement',
+          components: [
+            {
+              name: 'Magnitude',
+              component: 'magnitude'
+            },
+            {
+              name: 'X',
+              component: 0
+            },
+            {
+              name: 'Y',
+              component: 1
+            },
+            {
+              name: 'Z',
+              component: 2
+            }
+          ]
+        }
+      );
+    }
+
+    if (inc.gauss_point_results.find(r => r.name === 'stress') !== undefined) {
+      this.results.push(
+        {
+          name: 'Stress',
+          location: 'gauss_point',
+          key: 'stress',
+          components: [
+            {
+              name: 'von Mises',
+              component: 'magnitude'
+            },
+            {
+              name: 'XX',
+              component: 0
+            },
+            {
+              name: 'YY',
+              component: 1
+            },
+            {
+              name: 'ZZ',
+              component: 2
+            },
+            {
+              name: 'XY',
+              component: 3
+            },
+            {
+              name: 'XZ',
+              component: 4
+            },
+            {
+              name: 'YZ',
+              component: 5
+            }
+          ]
+        }
+      );
+    }
+
+    if (inc.gauss_point_results.find(r => r.name === 'safety_factor') !== undefined) {
+      this.results.push(
+        {
+          name: 'Factor of Safety',
+          location: 'gauss_point',
+          key: 'safety_factor',
+          components: [
+            {
+              name: 'Homogenized',
+              component: 0
+            },
+            {
+              name: 'Layered',
+              component: 1
+            },
+            {
+              name: 'Delamination',
+              component: 2
+            }
+          ]
+        }
       );
     }
   }
-
-  meta.magnitude.available = (magnitudeCalculator !== null);
-
-  for (let val of result.values) {
-    if ('data' in val) {
-      for (let i = 0; i < result.size; i++) {
-        meta.min[i] = Math.min(meta.min[i], val.data[i]);
-        meta.max[i] = Math.max(meta.max[i], val.data[i]);
-      }
-      if (magnitudeCalculator !== null) {
-        val.magnitude = magnitudeCalculator(val.data);
-        meta.magnitude.min = Math.min(meta.magnitude.min, val.magnitude);
-        meta.magnitude.max = Math.max(meta.magnitude.max, val.magnitude);
-      }
-    } else {
-      for (let sval of val.values) {
-        for (let i = 0; i < result.size; i++) {
-          meta.min[i] = Math.min(meta.min[i], sval.data[i]);
-          meta.max[i] = Math.max(meta.max[i], sval.data[i]);
-        }
-        if (magnitudeCalculator !== null) {
-          sval.magnitude = magnitudeCalculator(sval.data);
-          if (isNaN(sval.magnitude)) {
-            console.error('NaN mises from: ', sval);
-          }
-          meta.magnitude.min = Math.min(meta.magnitude.min, sval.magnitude);
-          meta.magnitude.max = Math.max(meta.magnitude.max, sval.magnitude);
-        }
-      }
-    }
-  }
-
-  result.meta = meta;
-}
+};
 
 class ResultFilter {
   constructor(result, params) {
@@ -88,7 +194,13 @@ class ResultFilter {
           throw 'Magnitude not available for gauss point result ' + result.name;
         }
       } else {
-        throw 'Invalid gauss point result component: ' + component;
+        // try to parse int
+        let temp = Number.parseInt(component);
+        if (!isNaN(temp)) {
+          component = temp;
+        } else {
+          throw 'Invalid gauss point result component: ' + component;
+        }
       }
     } else if (typeof component === 'function') {
       this.componentRetriever = component;
@@ -182,6 +294,11 @@ class ResultFilter {
 class Results {
   constructor(results) {
     Object.assign(this, results);
+
+    // Setup some meta information for users of this API
+    this.steps.forEach(
+      s => s.meta = new StepMeta(s)
+    );
   }
 
   /**
@@ -202,11 +319,14 @@ class Results {
 
   nodeResults(stepName) {
     let step = this.getStep(stepName);
-    let results = {};
+    let results = [];
     for (let r of step.increments[0].node_results) {
-      results[r.name] = {
-        size: r.size
-      };
+      results.push(
+        {
+          name: r.name,
+          size: r.size
+        }
+      );
     }
     return results;
   }
@@ -214,21 +334,19 @@ class Results {
   getNodeResult(stepName, resultVar) {
     let step = this.getStep(stepName);
     let result = step.increments[0].node_results.find( rslt => rslt.name === resultVar );
-
-    if (!('meta' in result)) {
-      computeMetaInfo(result);
-    }
-
     return result;
   }
 
   gaussPointResults(stepName) {
     let step = this.getStep(stepName);
-    let results = {};
+    let results = [];
     for (let r of step.increments[0].gauss_point_results) {
-      results[r.name] = {
-        size: r.size
-      };
+      results.push(
+        {
+          name: r.name,
+          size: r.size
+        }
+      );
     }
     return results;
   }
@@ -236,11 +354,6 @@ class Results {
   getGaussPointResult(stepName, resultVar) {
     let step = this.getStep(stepName);
     let result = step.increments[0].gauss_point_results.find( rslt => rslt.name === resultVar );
-
-    if (!('meta' in result)) {
-      computeMetaInfo(result);
-    }
-
     return result;
   }
 
@@ -343,7 +456,13 @@ class Results {
           throw 'Magnitude not available for node result ' + result.name;
         }
       } else {
-        throw 'Invalid node result component: ' + component;
+        // try to parse int
+        let temp = Number.parseInt(component);
+        if (!isNaN(temp)) {
+          component = temp;
+        } else {
+          throw 'Invalid node result component: ' + component;
+        }
       }
     }    
 
