@@ -77,24 +77,24 @@ class StepMeta {
     if (inc.node_results.find(r => r.name === 'displacement') !== undefined) {
       this.results.push(
         {
-          name: 'Displacement',
+          displayName: 'Displacement',
           location: 'node',
-          key: 'displacement',
+          name: 'displacement',
           components: [
             {
-              name: 'Magnitude',
+              displayName: 'Magnitude',
               component: 'magnitude'
             },
             {
-              name: 'X',
+              displayName: 'X',
               component: 0
             },
             {
-              name: 'Y',
+              displayName: 'Y',
               component: 1
             },
             {
-              name: 'Z',
+              displayName: 'Z',
               component: 2
             }
           ]
@@ -105,36 +105,36 @@ class StepMeta {
     if (inc.gauss_point_results.find(r => r.name === 'stress') !== undefined) {
       this.results.push(
         {
-          name: 'Stress',
+          displayName: 'Stress',
           location: 'gauss_point',
-          key: 'stress',
+          name: 'stress',
           components: [
             {
-              name: 'von Mises',
+              displayName: 'von Mises',
               component: 'magnitude'
             },
             {
-              name: 'XX',
+              displayName: 'XX',
               component: 0
             },
             {
-              name: 'YY',
+              displayName: 'YY',
               component: 1
             },
             {
-              name: 'ZZ',
+              displayName: 'ZZ',
               component: 2
             },
             {
-              name: 'XY',
+              displayName: 'XY',
               component: 3
             },
             {
-              name: 'XZ',
+              displayName: 'XZ',
               component: 4
             },
             {
-              name: 'YZ',
+              displayName: 'YZ',
               component: 5
             }
           ]
@@ -145,20 +145,20 @@ class StepMeta {
     if (inc.gauss_point_results.find(r => r.name === 'safety_factor') !== undefined) {
       this.results.push(
         {
-          name: 'Factor of Safety',
+          displayName: 'Factor of Safety',
           location: 'gauss_point',
-          key: 'safety_factor',
+          name: 'safety_factor',
           components: [
             {
-              name: 'Homogenized',
+              displayName: 'Homogenized',
               component: 0
             },
             {
-              name: 'Layered',
+              displayName: 'Layered',
               component: 1
             },
             {
-              name: 'Delamination',
+              displayName: 'Delamination',
               component: 2
             }
           ]
