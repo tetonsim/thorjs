@@ -1,6 +1,38 @@
 const THREE = require('three');
 
 /**
+ * A cut plane
+ */
+class CutPlane {
+  constructor(name, plane) {
+    this.name = name;
+    this.plane = plane;
+    this.setSize(-1, 1);
+  }
+
+  setSize(minConstant, maxConstant, sign=1) {
+    this.sign = sign;
+    this.minConstant = minConstant;
+    this.maxConstant = maxConstant;
+    this.setPosition(0.5);
+  }
+
+  setPosition(n) {
+    this.plane.constant = this.sign * (this.minConstant + n * (this.maxConstant - this.minConstant));
+  }
+
+  getPosition() {
+    return (this.sign * this.plane.constant - this.minConstant) / (this.maxConstant - this.minConstant);
+  }
+
+  clone() {
+    let cut = new CutPlane(this.name, this.plane.clone());
+    cut.setSize(this.minConstant, this.maxConstant, this.sign);
+    return cut;
+  }
+}
+
+/**
  * Manages the THREE objects for a given UI.Model and optional UI.Results.
  * All meshes are handled through a THREE.Group object.
  * @memberof UI
@@ -29,13 +61,16 @@ class ModelGroup {
     this.step = null;
     this.boundingBox = null;
 
-    this.defaultCutPlanes = {
-      x: new THREE.Plane( new THREE.Vector3(-1, 0, 0), 0 ),
-      y: new THREE.Plane( new THREE.Vector3(0, -1, 0), 0 ),
-      z: new THREE.Plane( new THREE.Vector3(0, 0, -1), 0 ),
-    }
+    this.defaultCutPlanes = [
+      new CutPlane('X+', new THREE.Plane( new THREE.Vector3(-1, 0, 0), 0 )),
+      new CutPlane('X-', new THREE.Plane( new THREE.Vector3(1, 0, 0), 0 )),
+      new CutPlane('Y+', new THREE.Plane( new THREE.Vector3(0, -1, 0), 0 )),
+      new CutPlane('Y-', new THREE.Plane( new THREE.Vector3(0, 1, 0), 0 )),
+      new CutPlane('Z+', new THREE.Plane( new THREE.Vector3(0, 0, -1), 0 )),
+      new CutPlane('Z-', new THREE.Plane( new THREE.Vector3(0, 0, 1), 0 ))
+    ];
 
-    this.activeCutPlane = this.defaultCutPlanes.x.clone();
+    this.activeCutPlane = this.defaultCutPlanes[0].plane.clone();
     
     this.group = new THREE.Group();
     
@@ -121,16 +156,15 @@ class ModelGroup {
     this.surface.geometry.computeBoundingBox();
     this.boundingBox = this.surface.geometry.boundingBox;
 
-    // Set the position of the default cut planes based off the
-    // center of the geometry bounding box
-    let boxCenter = new THREE.Vector3();
-    this.boundingBox.getCenter(boxCenter);
+    // Set the position of the default cut planes
+    this.defaultCutPlanes.find(p => p.name === 'X+').setSize(this.boundingBox.min.x, this.boundingBox.max.x);
+    this.defaultCutPlanes.find(p => p.name === 'X-').setSize(this.boundingBox.min.x, this.boundingBox.max.x, -1);
+    this.defaultCutPlanes.find(p => p.name === 'Y+').setSize(this.boundingBox.min.y, this.boundingBox.max.y);
+    this.defaultCutPlanes.find(p => p.name === 'Y-').setSize(this.boundingBox.min.y, this.boundingBox.max.y, -1);
+    this.defaultCutPlanes.find(p => p.name === 'Z+').setSize(this.boundingBox.min.z, this.boundingBox.max.z);
+    this.defaultCutPlanes.find(p => p.name === 'Z-').setSize(this.boundingBox.min.z, this.boundingBox.max.z, -1);
 
-    this.defaultCutPlanes.x.constant = boxCenter.x;
-    this.defaultCutPlanes.y.constant = boxCenter.y;
-    this.defaultCutPlanes.z.constant = boxCenter.z;
-
-    this.activeCutPlane = this.defaultCutPlanes.x.clone();
+    this.activeCutPlane = this.defaultCutPlanes[0].clone();
   }
 
   /**
@@ -254,14 +288,14 @@ class ModelGroup {
   /**
    * Enable a cut plane on the contour geometry. See ModelGroup.defaultCutPlanes for an array
    * of default cut planes.
-   * @param {THREE.Plane} [plane] Cut plane. If not specified, the previous active cut plane
+   * @param {CutPlane} [plane] Cut plane. If not specified, the previous active cut plane
    *  is used. The active cut plane is initialized to a default plane if one was never activated.
    */
   activateContourCutPlane(plane) {
     if (plane !== undefined) {
       this.activeCutPlane = plane;
     }
-    this.contour.material.clippingPlanes = [this.activeCutPlane];
+    this.contour.material.clippingPlanes = [this.activeCutPlane.plane];
     return this.activeCutPlane;
   }
 
