@@ -9,10 +9,24 @@ class Config {
     this.overlap = 0.0;
     this.walls = 2;
     this.bottom_layer = {
-      layers: [45, -45]
+      layers: [
+        {
+          orientation: 45.0
+        },
+        {
+          orientation: -45.0
+        }
+      ]
     };
     this.top_layer = {
-      layers: [45, -45]
+      layers: [
+        {
+          orientation: 45.0
+        },
+        {
+          orientation: -45.0
+        }
+      ]
     };
     this.infill = {
       pattern: 'grid',

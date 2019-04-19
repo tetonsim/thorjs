@@ -36,6 +36,12 @@ const Builders = {
         // create a deep copy of the template model
         let newModel = JSON.parse(JSON.stringify(template.model));
 
+        // if the print coordinate system was defined set it up in the model
+        if (printConfig.orientation !== undefined) {
+          // TODO
+          //newModel.process = 
+        }
+
         // the model must have sections named infill, wall, bottom_layer, and top_layer
         let sections = newModel.sections;
 
@@ -84,45 +90,29 @@ const Builders = {
               replaceOrAddMaterial(layerMat);
               replaceOrAddMaterial(infillMat);
 
+              infillSection.type = 'fdm_infill';
               infillSection.material = infillMat.name;
-              wallSection.material = layerMat.name
-              bottomLayerSection.material = layerMat.name
-              topLayerSection.material = layerMat.name;
+              infillSection.angle = printConfig.infill.orientation;
 
-              // create a new coordinate system for the infill, if it is rotated
-              if (printConfig.infill.orientation != 0.0) {
-                let infillCsys = {
-                  name: '_infill',
-                  type: 'single_rotation',
-                  axis: 3,
-                  angle: printConfig.infill.orientation
-                }
+              wallSection.type = 'fdm_wall';
+              wallSection.material = layerMat.name;
+              wallSection.wall_count = 1; //printConfig.walls;
 
-                newModel.coordinate_systems.push(infillCsys);
-                infillSection.coordinate_system = infillCsys.name;
-              }
-
-              infillSection.type = 'homogeneous';
-
-              // setup the wall section
-              wallSection.type = 'layered';
-              wallSection.layers = Array(printConfig.walls).fill( [layerMat.name, 0, 1] );
-              if (printConfig.walls > 1) {
-                wallSection.section_points = 1;
-              }
+              wallSection.section_points = (wallSection.wall_count === 1) ? 3 : 1;
 
               // setup the bottom and top layer sections
               let setupLayeredSection = function(section, layerConfig) {
-                section.type = 'layered';
+                section.type = 'fdm_layer';
                 section.layers = [];
 
                 for (let i = 0; i < layerConfig.layers.length; i++) {
                   section.layers.push( [layerMat.name, layerConfig.layers[i].orientation, 1.0] );
                 }
 
-                if (section.layers.length > 1) {
-                  section.section_points = 1;
-                }
+                section.section_points = (section.layers.length === 1) ? 3 : 1;
+
+                // delete any homogeneous material if there was one
+                delete section.material;
               }
 
               setupLayeredSection(bottomLayerSection, printConfig.bottom_layer);
