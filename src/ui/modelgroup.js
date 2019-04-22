@@ -144,7 +144,7 @@ class ModelGroup {
 
     this.wireframe.geometry = this.model.wireframeGeometry();
     this.wireframe.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
-      depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: false});
+      depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true});
 
     this.contour.geometry = this.model.meshGeometry(new THREE.Color(0x0000ff));
     this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.DoubleSide});
