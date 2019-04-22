@@ -5,7 +5,7 @@ class Contour {
     this.geom = geom;
     this.min = params.min;
     this.max = params.max;
-    this.ncolors = 12;
+    this.ncolors = params.ncolors || 256;
     this.limitColor = new THREE.Color(0xffffff);
     this.NaNColor = new THREE.Color(0xffffff);
     this.hues = [];
