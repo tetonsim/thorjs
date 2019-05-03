@@ -149,6 +149,11 @@ class ModelGroup {
     this.contour.geometry = this.model.meshGeometry(new THREE.Color(0x0000ff));
     this.contour.material = new THREE.MeshLambertMaterial({vertexColors: THREE.VertexColors, side: THREE.DoubleSide});
 
+    // Create the custom HSL_COLOR_SPACE definition that is used to interpolate
+    // vertex colors in HSL space. See the shaders in customizeThree.patchLambertMaterial
+    this.contour.material.defines = this.contour.material.defines || {};
+    this.contour.material.defines['HSL_COLOR_SPACE'] = '';
+
     this.outline.geometry = new THREE.EdgesGeometry(this.surface.geometry, this.outline_threshold);
     this.outline.material = new THREE.LineBasicMaterial({color: 0x000000, linewidth: 1, lights: false, 
       depthTest: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: 4, polygonOffsetUnits: 0, transparent: true})

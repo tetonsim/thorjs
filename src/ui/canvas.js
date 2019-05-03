@@ -2,6 +2,7 @@ const THREE = require('three');
 const TrackballControls = require('./TrackballControls');
 const ModelGroup = require('./modelgroup');
 const Sizer = require('./sizer');
+const customizeThree = require('./customizeThree');
 
 /**
  * @memberof UI
@@ -9,6 +10,8 @@ const Sizer = require('./sizer');
 class Canvas {
   constructor() {
     this._init = false;
+
+    customizeThree.patchLambertMaterial();
   }
 
   /**
