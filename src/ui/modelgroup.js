@@ -139,7 +139,7 @@ class ModelGroup {
   }
 
   _setGeometry() {
-    this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0), true);
+    this.surface.geometry = this.model.meshGeometry(new THREE.Color(0x00fff0));
     this.surface.material = new THREE.MeshLambertMaterial({color: 0xacacac, side: THREE.DoubleSide, wireframe: false, transparent: false, opacity: 1.0});
 
     this.wireframe.geometry = this.model.wireframeGeometry();

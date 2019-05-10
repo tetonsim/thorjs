@@ -20,7 +20,7 @@ class Model {
    *  ignored, resulting in a geometry that only contains the external faces.
    * @returns {THREE.Geometry}
    */
-  meshGeometry(initVertexColor=null, excludeSharedFaces=false) {
+  meshGeometry(initVertexColor=null, excludeSharedFaces=true) {
     let geom = new THREE.Geometry();
     //let geom = new THREE.BufferGeometry();
 
