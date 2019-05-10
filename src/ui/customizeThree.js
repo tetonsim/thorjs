@@ -1,3 +1,4 @@
+const THREE = require('three');
 
 function patchLambertMaterial(contourColors=0) {
   THREE.ShaderLib.lambert = { // this is a cut-and-paste of the lambert shader -- modified to accommodate instancing for this app
