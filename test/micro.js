@@ -1,44 +1,44 @@
 const assert = require('assert');
 
-const { Micro, Builders } = require('../src/micro');
-const { Elastic, Material, Composite } = require('../src/material');
-const { PrintConfig } = require('../src/print');
+const Micro = require('../src/micro');
+const Material = require('../src/material');
+const Hardware = require('../src/hardware');
 
 const thor = require('./main');
 
 function runAndCheck(run, done, callback) {
   thor.microNewRun(run,
-    function(resp) {
-      thor.microRunStatusWait(resp.id, 
-        function(resp2) {
-          callback(resp2);
+    function() {
+      thor.microRunStatusWait(this.id, 
+        function() {
+          callback(this);
           done();
         },
-        function(resp2) {
-          callback(resp2);
+        function() {
+          callback(this);
           done();
         }, 
-        function(error) {
-          done(error);
+        function() {
+          done(this);
         });
     },
-    function(error) {
-      done(error);
+    function() {
+      done(this);
     }
   );
 }
 
 function defaultComposite(volume_fraction, L_over_D) {
 
-  let fiber = new Material(
-    'carbon', Elastic.Isotropic(200.0, 0.25)
+  let fiber = new Material.FEA(
+    'carbon', Material.Elastic.Isotropic(200.0, 0.25)
   );
   
-  let matrix = new Material(
-    'pla', Elastic.Isotropic(3.5, 0.34)
+  let matrix = new Material.FEA(
+    'pla', Material.Elastic.Isotropic(3.5, 0.34)
   );
   
-  return new Composite(matrix, fiber, volume_fraction, L_over_D);
+  return new Material.Composite(matrix, fiber, volume_fraction, L_over_D);
 }
 
 let timeout = 60 * 1000;
@@ -49,15 +49,15 @@ describe('Micro', function() {
 
     it('valid',
       function(done) {
-        let hexpack = Builders.Hexpack(defaultComposite(15));
+        let hexpack = Micro.Builders.Hexpack(defaultComposite(15));
 
         runAndCheck(hexpack, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.iso_plane, 23);
@@ -71,11 +71,11 @@ describe('Micro', function() {
     it('low_vf',
       function(done) {
         
-        let hexpack = Builders.Hexpack(defaultComposite(4));
+        let hexpack = Micro.Builders.Hexpack(defaultComposite(4));
 
         runAndCheck(hexpack, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'failed');
+          function(run) {
+            assert.strictEqual(run.status, 'failed');
           }
         );
 
@@ -91,15 +91,15 @@ describe('Micro', function() {
 
     it('L/D = 50',
       function(done) {        
-        let sf = Builders.ShortFiber(defaultComposite(15, 50));
+        let sf = Micro.Builders.ShortFiber(defaultComposite(15, 50));
 
         runAndCheck(sf, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.iso_plane, 23);
@@ -117,18 +117,18 @@ describe('Micro', function() {
 
     it('pla',
       function(done) {        
-        let layer = Builders.ExtrudedLayer(
-          new Material('pla', Elastic.Isotropic(3.5, 0.34)),
-          new PrintConfig()
+        let layer = Micro.Builders.ExtrudedLayer(
+          new Material.FEA('pla', Material.Elastic.Isotropic(3.5, 0.34)),
+          new Hardware.Config()
         );
 
         runAndCheck(layer, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.E11 > 0.0);
             assert.ok(elas.E22 > 0.0);
@@ -142,18 +142,18 @@ describe('Micro', function() {
 
     it('pla-cf',
       function(done) {        
-        let layer = Builders.ExtrudedLayer(
+        let layer = Micro.Builders.ExtrudedLayer(
           defaultComposite(15, 50),
-          new PrintConfig()
+          new Hardware.Config()
         );
 
         runAndCheck(layer, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.E11 > 0.0);
             assert.ok(elas.E22 > 0.0);
@@ -174,20 +174,22 @@ describe('Micro', function() {
 
     it('grid-pla',
       function(done) {
-        let print = new PrintConfig();
+        let print = new Hardware.Config();
 
         print.infill_type = 'grid';
         print.infill_volume_fraction = 50;
 
-        let infill = Builders.Infill( new Material('pla', Elastic.Isotropic(3.5, 0.34)), print );
+        let pla = new Material.FEA('pla', Material.Elastic.Isotropic(3.5, 0.34));
+
+        let infill = Micro.Builders.Infill(pla, print);
 
         runAndCheck(infill, done,
-          function(resp) {
-            assert.strictEqual(resp.status, 'completed');
+          function(run) {
+            assert.strictEqual(run.status, 'completed');
 
-            assert.ok(resp.hasOwnProperty('result'));
+            assert.ok(run.hasOwnProperty('result'));
 
-            let elas = resp.result.materials[0].elastic;
+            let elas = run.result.materials[0].elastic;
 
             assert.ok(elas.Ea > 0.0);
             assert.strictEqual(elas.type, 'transverse_isotropic');

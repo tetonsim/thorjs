@@ -1,3 +1,6 @@
+.vscode/
 build/
 node_modules/
 out/
+.thor/
+npm-debug.log

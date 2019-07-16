@@ -1,5 +1,5 @@
-const { Elastic, Material, Composite } = require('./material');
-const { PrintConfig } = require('./print');
+const Material = require('./material');
+const Hardware = require('./hardware');
 
 class JobMaterial {
   constructor(name, source, source_name) {
@@ -51,7 +51,7 @@ class ExtrudedLayer extends UnitCell {
     this.layer_width = print.layer_width;
     this.layer_height = print.layer_height;
     this.overlap = print.overlap;
-    this.mesh_seed = 0.1; // TODO how can we get a good default based on print config?
+    this.mesh_seed = 0.1;
   }
 }
 
@@ -69,7 +69,7 @@ class InfillTriangle extends UnitCell {
     super("infill_triangle");
     this.volume_fraction = volume_fraction;
     this.layer_width = layer_width;
-    this.mesh_seed = 0.5;
+    this.mesh_seed = 0.1;
   }
 }
 
@@ -81,7 +81,13 @@ class Job {
   }
 }
 
-class Micro {
+/**
+ * Input to a micromechanics run
+ * @memberof Micro
+ * @property {Material.FEA[]} materials
+ * @property {Micro.Job[]} jobs
+ */
+class Input {
   constructor() {
     this.materials = [];
     this.jobs = [];
@@ -90,13 +96,39 @@ class Micro {
 
 /**
  * Represents a micromechanics run
+ * @memberof Micro
+ * @property {string} id
+ * @property {string} error Error message, if applicable
+ * @property {Input} input Full micromechanics input definition
+ * @property {string} target The name of a job in micro that results will be calculated for
+ * @property {string} status Status of the run (waiting, running, completed, or failed)
+ * @property {Result} result Result of the run, if available 
  */
-class MicroRun {
-  constructor(micro, target) {
-    this.input = micro;
+class Run {
+  /**
+   * 
+   * @param {Input} input 
+   * @param {string} target The name of a job in micro that results will be calculated for
+   */
+  constructor(input, target) {
+    this.id = null;
+    this.error = null;
+    this.expires = null;
+    this.input = input;
     this.target = target;
+    this.status = null;
+    this.result = null;
   }
 }
+
+/**
+ * The results from a successful run of MicroRun
+ * @typedef {Object} Result
+ * @memberof Micro
+ * @property {Object} meta Meta information about the run
+ * @property {Material.Material[]} materials
+ */
+
 
 const JobBuilders = {
   Hexpack: function(composite) {
@@ -139,7 +171,7 @@ const JobBuilders = {
     let layer = new ExtrudedLayer(print);
     let jlayer = new Job('layer', layer);
 
-    if (source instanceof Material) {
+    if (source instanceof Material.FEA) {
       jlayer.materials.push(
         JobMaterial.FromMaterial('plastic', source.name)
       );
@@ -155,10 +187,10 @@ const JobBuilders = {
   },
 
   Infill: function(jlayer, print) {
-    if (print.infill_type === 'grid' || print.infill_type === 'square') {
-      var infill = new InfillSquare(print.infill_volume_fraction, print.layer_width);
-    } else if (print.infill_type === 'triangle') {
-      var infill = new InfillTriangle(print.infill_volume_fraction, print.layer_width);
+    if (print.infill.pattern === 'grid' || print.infill.pattern === 'square') {
+      var infill = new InfillSquare(print.infill.density, print.layer_width);
+    } else if (print.infill.pattern === 'triangle') {
+      var infill = new InfillTriangle(print.infill.density, print.layer_width);
     }
     
     let jinfill = new Job('infill', infill);
@@ -174,14 +206,15 @@ const JobBuilders = {
 /**
  * Helper functions to build up the Micro run for common use cases
  * @namespace
+ * @memberof Micro
  */
 const Builders = {
   /**
    * Builds a Micro run with a target Hexpack job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   Hexpack: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
     
     micro.materials.push(composite.matrix, composite.fiber);
 
@@ -189,35 +222,35 @@ const Builders = {
 
     micro.jobs.push(jhexpack);
 
-    var run = new MicroRun(micro, jhexpack.name);
+    var run = new Run(micro, jhexpack.name);
 
     return run;
   },
 
   /**
    * Builds a Micro run with a target Spherical Particulate BCC job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   Particulate: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
 
-    micro.materials.push(composite.matrix, compositefiber);
+    micro.materials.push(composite.matrix, composite.fiber);
 
     var jpart = JobBuilders.Particulate(composite);
 
     micro.jobs.push(jpart);
 
-    var run = new MicroRun(micro, jpart.name);
+    var run = new Run(micro, jpart.name);
 
     return run;
   },
 
   /**
    * Builds a Micro run with a target ShortFiber job
-   * @param {Composite} composite Composite , fiber and matrix must have Elastic definitions
+   * @param {Material.Composite} composite Composite, fiber and matrix must have Elastic definitions
    */
   ShortFiber: function(composite) {
-    var micro = new Micro();
+    var micro = new Input();
 
     micro.materials.push(composite.matrix, composite.fiber);
 
@@ -227,24 +260,24 @@ const Builders = {
 
     micro.jobs.push(jhexpack, jpart, jsf);
 
-    return new MicroRun(micro, jsf.name);
+    return new Run(micro, jsf.name);
   },
 
   /**
    * Builds a Micro run with a target Extruded Layer job
-   * @param {(Material|Composite)} material Print material
-   * @param {Print} print
+   * @param {Material.FEA|Material.Composite} material Print material
+   * @param {Hardware.Config} printConfig
    */
-  ExtrudedLayer: function(material, print) {
-    var micro = new Micro();
+  ExtrudedLayer: function(material, printConfig) {
+    var micro = new Input();
 
-    if (material instanceof Material) {
+    if (material instanceof Material.FEA) {
       micro.materials.push(material);
 
-      var jlayer = JobBuilders.ExtrudedLayer(material, print);
+      var jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       micro.jobs.push(jlayer);
-    } else if (material instanceof Composite) {
+    } else if (material instanceof Material.Composite) {
       micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
@@ -254,34 +287,34 @@ const Builders = {
       let jsf = JobBuilders.ShortFiber(jhexpack, jpart, material);
 
       // short fiber feeds into extruded layer model
-      var jlayer = JobBuilders.ExtrudedLayer(jsf, print);
+      var jlayer = JobBuilders.ExtrudedLayer(jsf, printConfig);
 
       micro.jobs.push(jhexpack, jpart, jsf, jlayer);
     }
 
-    return new MicroRun(micro, jlayer.name);
+    return new Run(micro, jlayer.name);
   },
 
   /**
    * Builds a Micro run with a target Infill job. Infill configuration is picked
    * up from the print configuration.
-   * @param {(Material|Composite)} material Print material
-   * @param {Print} print
+   * @param {Material.FEA|Material.Composite} material Print material
+   * @param {Hardware.Config} printConfig
    */
-  Infill: function(material, print) {
-    var micro = new Micro();
+  Infill: function(material, printConfig) {
+    var micro = new Input();
 
-    if (material instanceof Material) {
+    if (material instanceof Material.FEA) {
       micro.materials.push(material);
 
-      let jlayer = JobBuilders.ExtrudedLayer(material, print);
+      let jlayer = JobBuilders.ExtrudedLayer(material, printConfig);
 
       // extrusion layer feeds into infill unit cell
-      var jinfill = JobBuilders.Infill(jlayer, print);
+      var jinfill = JobBuilders.Infill(jlayer, printConfig);
 
       micro.jobs.push(jlayer, jinfill);
 
-    } else if (material instanceof Composite) {
+    } else if (material instanceof Material.Composite) {
       micro.materials.push(material.matrix, material.fiber);
 
       let jhexpack = JobBuilders.Hexpack(material);
@@ -291,16 +324,25 @@ const Builders = {
       let jsf = JobBuilders.ShortFiber(jhexpack, jpart, material);
 
       // short fiber feeds into extruded layer unit cell
-      let jlayer = JobBuilders.ExtrudedLayer(jsf, print);
+      let jlayer = JobBuilders.ExtrudedLayer(jsf, printConfig);
 
       // extrusion layer feeds into infill unit cell
-      var jinfill = JobBuilders.Infill(jlayer, print);
+      var jinfill = JobBuilders.Infill(jlayer, printConfig);
 
       micro.jobs.push(jhexpack, jpart, jsf, jlayer, jinfill);
     }
 
-    return new MicroRun(micro, jinfill.name);
+    return new Run(micro, jinfill.name);
   }
 };
 
-module.exports = { Micro, Builders };
+/**
+ * @namespace Micro
+ */
+const Micro = {
+  Input: Input,
+  Run: Run,
+  Builders: Builders
+};
+
+module.exports = Micro;
