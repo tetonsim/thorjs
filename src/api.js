@@ -95,9 +95,6 @@ class API {
 
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState === 4) {
-
-        console.log(xhttp.responseText);
-
         try {
           var response = JSON.parse(xhttp.responseText);
         } catch(err) {
@@ -122,10 +119,6 @@ class API {
           } else {
             if ('error' in response) {
               message = response.error;
-            }
-
-            if ('exception' in response) {
-              message = message + ' :: ' + response.exception;
             }
 
             if (message === null) {
@@ -251,13 +244,15 @@ class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, success, error) {
+  register(first_name, last_name, email, password, company, country, success, error) {
     this._request('POST', '/auth/register', success, error,
       {
         email: email,
         first_name: first_name,
         last_name: last_name,
-        password: password
+        password: password,
+        company: company,
+        country: country
       }
     );
   }
@@ -324,6 +319,21 @@ class API {
         }
       },
       error
+    );
+  }
+
+  /**
+   * Deletes the stored API token.
+   * @param {string} code
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  verifyEmail(code, success, error) {
+    this._request(
+      'POST', '/auth/verify',
+      success,
+      error,
+      { code: code }
     );
   }
 }

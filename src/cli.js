@@ -3,6 +3,7 @@
 const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
 
 const app = require('commander');
+const { count } = require('console');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -40,6 +41,12 @@ app
   .command('register')
   .action(register);
 
+app
+  .command('email')
+  .command('verify')
+  .option('-c, --code [code]')
+  .action(verifyEmail);
+
 app.parse(process.argv);
 
 function configure() {
@@ -70,7 +77,7 @@ function configure() {
     }
   );
 
-  api.releaseToken();
+  api.releaseToken(function() {}, function() {});
 }
 
 function _getCredentials(callback) {
@@ -148,6 +155,8 @@ function logout() {
 function register() {
   var first_name;
   var last_name;
+  var country;
+  var company;
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -155,7 +164,8 @@ function register() {
   });
 
   var registerWithCreds = function(email, pass) {
-    api.register(first_name, last_name, email, pass,
+    api.register(
+      first_name, last_name, email, pass, company, country,
       function() {
         console.log('Successful registration. Use login command to log in.');
       },
@@ -167,18 +177,50 @@ function register() {
     );
   }
 
-  rl.question('First Name: ',
-    function(first_name_ans) {
-      first_name = first_name_ans;
-      rl.question('Last Name: ',
-        function(last_name_ans) {
-          last_name = last_name_ans;
+  var countryAsk = function() {
+    rl.question(
+      'Country: ',
+      function(answer) {
+        country = answer;
+        rl.close();
+        _getCredentials(registerWithCreds);
+      }
+    );
+  };
 
-          rl.close();
+  var companyAsk = function() {
+    rl.question(
+      'Company: ',
+      function(answer) {
+        company = answer;
+        countryAsk();
+      }
+    );
+  };
 
-          _getCredentials(registerWithCreds);
-        }
-      );
+  var lastNameAsk = function() {
+    rl.question(
+      'Last Name: ',
+      function(answer) {
+        last_name = answer;
+        companyAsk();
+      }
+    );
+  };
+
+  rl.question(
+    'First Name: ',
+    function(answer) {
+      first_name = answer;
+      lastNameAsk();
     }
   );
+}
+
+function verifyEmail() {
+  api.verifyEmail(
+    this.code,
+    function() { console.log(this.message); },
+    function() { console.log(`${this.http_code} Error: ${this.error}`); }
+  )
 }
