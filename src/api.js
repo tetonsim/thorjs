@@ -98,7 +98,7 @@ class API {
         try {
           var response = JSON.parse(xhttp.responseText);
         } catch(err) {
-          var response = new Message(400, err.message);
+          var response = xhttp.responseText;
         }
 
         let err = null;
@@ -109,6 +109,8 @@ class API {
           }
         } else if (xhttp.status === 401) {
           err = new Message(xhttp.status, 'Unauthorized');
+        } else if (xhttp.status === 404) {
+          err = new Message(xhttp.status, 'Not Found');
         } else if (xhttp.status === 500) {
           err = new Message(xhttp.status, 'Internal server error');
         } else {
@@ -323,7 +325,7 @@ class API {
   }
 
   /**
-   * Deletes the stored API token.
+   * Verifies registered email using the given code which is sent in the post-registration email.
    * @param {string} code
    * @param {API~success} success
    * @param {API~error} error
@@ -334,6 +336,20 @@ class API {
       success,
       error,
       { code: code }
+    );
+  }
+
+  /**
+   * Requests a resend of the post-registration email.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  verifyEmailResend(email, success, error) {
+    this._request(
+      'POST', '/auth/verify/resend',
+      success,
+      error,
+      { email: email }
     );
   }
 }

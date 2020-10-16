@@ -44,8 +44,14 @@ app
 app
   .command('email')
   .command('verify')
-  .option('-c, --code [code]')
+  .option('-c, --code [code]', 'Verify email using code')
+  .option('-r, --resend [email]', 'Resend verification email to email')
   .action(verifyEmail);
+
+app
+  .command('email')
+  .command('verify')
+
 
 app.parse(process.argv);
 
@@ -218,9 +224,17 @@ function register() {
 }
 
 function verifyEmail() {
-  api.verifyEmail(
-    this.code,
-    function() { console.log(this.message); },
-    function() { console.log(`${this.http_code} Error: ${this.error}`); }
-  )
+  if (this.resend !== undefined) {
+    api.verifyEmailResend(
+      this.resend,
+      function() { console.log(this.message); },
+      function() { console.log(`${this.http_code} Error: ${this.error}`); }
+    );
+  } else {
+    api.verifyEmail(
+      this.code,
+      function() { console.log(this.message); },
+      function() { console.log(`${this.http_code} Error: ${this.error}`); }
+    );
+  }
 }
