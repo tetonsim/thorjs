@@ -132,6 +132,14 @@ function _getCredentials(callback) {
   );
 }
 
+function _basicSuccessCallback() {
+  console.log(this.message);
+}
+
+function _basicErrorCallback() {
+  console.error(`(${this.http_code}) ${this.error}`);
+}
+
 function login() {
   var loginWithCreds = function(email, pass) {
     api.getToken(email, pass,
@@ -139,10 +147,7 @@ function login() {
         console.log('Hi ' + this.first_name + ', you are logged in.');
         console.log('Use the logout command to log out.');
       },
-      function() {
-        console.error('Failed to login');
-        console.error(this.error);
-      }
+      _basicErrorCallback
     );
   }
 
@@ -161,12 +166,8 @@ function logout() {
   whoAmI(
     function() {
       api.releaseToken(
-        function() {
-          console.log('Logged out');
-        },
-        function() {
-          console.error('Failed to log out');
-        }
+        function() { console.log('Logged out'); },
+        _basicErrorCallback
       );
     }
   );
@@ -186,9 +187,7 @@ function register() {
   var registerWithCreds = function(email, pass) {
     api.register(
       first_name, last_name, email, pass, company, country,
-      function() {
-        console.log('Successful registration. Use login command to log in.');
-      },
+      _basicSuccessCallback,
       function() {
         console.error('Failed to register');
         console.error(this.message);
@@ -241,14 +240,14 @@ function verifyEmail() {
   if (this.resend !== undefined) {
     api.verifyEmailResend(
       this.resend,
-      function() { console.log(this.message); },
-      function() { console.error(`${this.http_code} Error: ${this.error}`); }
+      _basicSuccessCallback,
+      _basicErrorCallback
     );
   } else {
     api.verifyEmail(
       this.code,
-      function() { console.log(this.message); },
-      function() { console.error(`${this.http_code} Error: ${this.error}`); }
+      _basicSuccessCallback,
+      _basicErrorCallback
     );
   }
 }
@@ -280,7 +279,7 @@ function changePassword() {
                   console.log(this.message);
                   console.log('You will need to log back in.');
                 },
-                function() { console.error(this.error); }
+                _basicErrorCallback
               );
 
               rl.close();
@@ -295,8 +294,8 @@ function changePassword() {
 function forgotPassword() {
   api.forgotPassword(
     this.email,
-    function() { console.log(this.message); },
-    function() { console.error(this.error); }
+    _basicSuccessCallback,
+    _basicErrorCallback
   );
 }
 
@@ -309,8 +308,8 @@ function resetPassword() {
         code,
         email,
         password,
-        function() { console.log(this.message); },
-        function() { console.error(this.error); }
+        _basicSuccessCallback,
+        _basicErrorCallback
       )
     }
   );
