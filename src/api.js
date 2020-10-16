@@ -352,6 +352,63 @@ class API {
       { email: email }
     );
   }
+
+  /**
+   * Change password of logged in user
+   * @param {string} oldPassword
+   * @param {string} newPassword
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  changePassword(oldPassword, newPassword, success, error) {
+    this._request(
+      'POST', '/auth/password/change',
+      success,
+      error,
+      {
+        old_password: oldPassword,
+        password: newPassword,
+        confirm_password: newPassword
+      }
+    );
+  }
+
+  /**
+   * Begin the reset password process by requesting an email to reset your password.
+   * @param {string} email
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  forgotPassword(email, success, error) {
+    this._request(
+      'POST', '/auth/password/forgot',
+      success,
+      error,
+      { email: email }
+    );
+  }
+
+  /**
+   *
+   * @param {string} code
+   * @param {string} email
+   * @param {string} password
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  resetPassword(code, email, password, success, error) {
+    this._request(
+      'POST', '/auth/password/reset',
+      success,
+      error,
+      {
+        email: email,
+        code: code,
+        password: password,
+        confirm_password: password
+      }
+    )
+  }
 }
 
 module.exports = API;

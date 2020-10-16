@@ -24,6 +24,15 @@ if (jconfig !== null) {
 
 let api = new thor.API(config);
 
+const mutableStdout = new Writable({
+  write: function(chunk, encoding, callback) {
+    if (!this.muted) {
+      process.stdout.write(chunk, encoding);
+    }
+    callback();
+  }
+});
+
 app
   .version(version)
   .command('login')
@@ -48,10 +57,21 @@ app
   .option('-r, --resend [email]', 'Resend verification email to email')
   .action(verifyEmail);
 
-app
-  .command('email')
-  .command('verify')
+const password = app.command('password');
 
+password
+  .command('change')
+  .action(changePassword)
+
+password
+  .command('forgot')
+  .requiredOption('-e, --email [email]', 'Email of the account the password was forgotten for.')
+  .action(forgotPassword);
+
+password
+  .command('reset')
+  .requiredOption('-c, --code [code]', 'Password reset code')
+  .action(resetPassword);
 
 app.parse(process.argv);
 
@@ -87,20 +107,13 @@ function configure() {
 }
 
 function _getCredentials(callback) {
-  var mutableStdout = new Writable({
-    write: function(chunk, encoding, callback) {
-      if (!this.muted) {
-        process.stdout.write(chunk, encoding);
-      }
-      callback();
-    }
-  });
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: mutableStdout,
     terminal: true
   });
+
+  mutableStdout.muted = false;
 
   rl.question('Email: ',
     function(email) {
@@ -110,6 +123,7 @@ function _getCredentials(callback) {
 
       rl.question('',
         function(pass) {
+          console.log('');
           callback(email, pass);
           rl.close();
         }
@@ -228,13 +242,76 @@ function verifyEmail() {
     api.verifyEmailResend(
       this.resend,
       function() { console.log(this.message); },
-      function() { console.log(`${this.http_code} Error: ${this.error}`); }
+      function() { console.error(`${this.http_code} Error: ${this.error}`); }
     );
   } else {
     api.verifyEmail(
       this.code,
       function() { console.log(this.message); },
-      function() { console.log(`${this.http_code} Error: ${this.error}`); }
+      function() { console.error(`${this.http_code} Error: ${this.error}`); }
     );
   }
+}
+
+function changePassword() {
+  whoAmI(
+    function() {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: mutableStdout,
+        terminal: true
+      });
+
+      mutableStdout.muted = true;
+
+      process.stdout.write('Old Password: ');
+
+      rl.question('',
+        function(oldPassword) {
+          process.stdout.write('\nNew Password: ');
+
+          rl.question('',
+            function(newPassword) {
+              console.log('');
+              api.changePassword(
+                oldPassword,
+                newPassword,
+                function() {
+                  console.log(this.message);
+                  console.log('You will need to log back in.');
+                },
+                function() { console.error(this.error); }
+              );
+
+              rl.close();
+            }
+          );
+        }
+      );
+    }
+  );
+}
+
+function forgotPassword() {
+  api.forgotPassword(
+    this.email,
+    function() { console.log(this.message); },
+    function() { console.error(this.error); }
+  );
+}
+
+function resetPassword() {
+  let code = this.code;
+
+  _getCredentials(
+    function(email, password) {
+      api.resetPassword(
+        code,
+        email,
+        password,
+        function() { console.log(this.message); },
+        function() { console.error(this.error); }
+      )
+    }
+  );
 }
