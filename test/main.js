@@ -1,18 +1,14 @@
 const Thor = require('../src/thor');
-const { Micro, Builders } = require('../src/micro');
-const { Elastic, Material } = require('../src/material');
-//import { Thor } from '../src/thor';
 
 const assert = require('assert');
 
 const thor = new Thor.API({
-  //host: 'https://api.fea.cloud'
-  //host: 'http://127.0.0.1:8000'
+  //host: 'https://api.smartslice.xyz'
   host: 'http://127.0.0.1:5000'
 });
 
 before(function(done) {
-  
+
   thor.getToken('tom.brady@mailinator.com', 'ilovegiz',
     function() {
       console.log(this.first_name + ' ' + this.last_name + ' logged in (' + this.id + ')');
@@ -23,6 +19,7 @@ before(function(done) {
       done(this.message);
     }
   );
+
 });
 
 after(function() {
