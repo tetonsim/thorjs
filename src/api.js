@@ -389,7 +389,7 @@ class API {
   }
 
   /**
-   *
+   * Use the code retrieved from the /auth/password/forgot call to reset password.
    * @param {string} code
    * @param {string} email
    * @param {string} password
