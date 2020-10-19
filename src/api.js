@@ -95,13 +95,10 @@ class API {
 
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState === 4) {
-
-        console.log(xhttp.responseText);
-
         try {
           var response = JSON.parse(xhttp.responseText);
         } catch(err) {
-          var response = new Message(400, err.message);
+          var response = xhttp.responseText;
         }
 
         let err = null;
@@ -112,6 +109,8 @@ class API {
           }
         } else if (xhttp.status === 401) {
           err = new Message(xhttp.status, 'Unauthorized');
+        } else if (xhttp.status === 404) {
+          err = new Message(xhttp.status, 'Not Found');
         } else if (xhttp.status === 500) {
           err = new Message(xhttp.status, 'Internal server error');
         } else {
@@ -122,10 +121,6 @@ class API {
           } else {
             if ('error' in response) {
               message = response.error;
-            }
-
-            if ('exception' in response) {
-              message = message + ' :: ' + response.exception;
             }
 
             if (message === null) {
@@ -251,13 +246,15 @@ class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, success, error) {
+  register(first_name, last_name, email, password, company, country, success, error) {
     this._request('POST', '/auth/register', success, error,
       {
         email: email,
         first_name: first_name,
         last_name: last_name,
-        password: password
+        password: password,
+        company: company,
+        country: country
       }
     );
   }
@@ -325,6 +322,92 @@ class API {
       },
       error
     );
+  }
+
+  /**
+   * Verifies registered email using the given code which is sent in the post-registration email.
+   * @param {string} code
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  verifyEmail(code, success, error) {
+    this._request(
+      'POST', '/auth/verify',
+      success,
+      error,
+      { code: code }
+    );
+  }
+
+  /**
+   * Requests a resend of the post-registration email.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  verifyEmailResend(email, success, error) {
+    this._request(
+      'POST', '/auth/verify/resend',
+      success,
+      error,
+      { email: email }
+    );
+  }
+
+  /**
+   * Change password of logged in user
+   * @param {string} oldPassword
+   * @param {string} newPassword
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  changePassword(oldPassword, newPassword, success, error) {
+    this._request(
+      'POST', '/auth/password/change',
+      success,
+      error,
+      {
+        old_password: oldPassword,
+        password: newPassword,
+        confirm_password: newPassword
+      }
+    );
+  }
+
+  /**
+   * Begin the reset password process by requesting an email to reset your password.
+   * @param {string} email
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  forgotPassword(email, success, error) {
+    this._request(
+      'POST', '/auth/password/forgot',
+      success,
+      error,
+      { email: email }
+    );
+  }
+
+  /**
+   * Use the code retrieved from the /auth/password/forgot call to reset password.
+   * @param {string} code
+   * @param {string} email
+   * @param {string} password
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  resetPassword(code, email, password, success, error) {
+    this._request(
+      'POST', '/auth/password/reset',
+      success,
+      error,
+      {
+        email: email,
+        code: code,
+        password: password,
+        confirm_password: password
+      }
+    )
   }
 }
 
