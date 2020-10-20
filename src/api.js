@@ -435,9 +435,32 @@ class API {
     );
   }
 
+
+  /**
+   * @typedef Job
+   * @type {object}
+   * @property {string} this.id
+   * @property {string} this.status
+   * @property {number} this.progress
+   * @property {Object} this.result
+   */
+
   /**
    *
-   * @param {ArrayBuffer} tmf
+   * @callback API~job-callback
+   * @this {Job}
+   */
+
+  /**
+   *
+   * @callback API~job-poll-callback
+   * @this {Job}
+   * @returns {boolean} If true the job will be cancelled.
+   */
+
+  /**
+   * Submit and start a new job with the given 3MF specified as a buffer
+   * @param {Buffer} tmf
    * @param {API~job-callback} success
    * @param {API~error} error
    */
@@ -450,7 +473,14 @@ class API {
     );
   }
 
-  abortSmartSliceJob(jobId, success, error) {
+
+  /**
+   * Cancellation requestion of a running job
+   * @param {string} jobId
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  cancelSmartSliceJob(jobId, success, error) {
     this._request(
       'DELETE', `/smartslice/${jobId}`,
       success,
@@ -458,6 +488,14 @@ class API {
     );
   }
 
+
+  /**
+   * Retrieve a job by it's unique id
+   * @param {string} jobId
+   * @param {API~job-callback} success
+   * @param {API~error} error
+   * @param {boolean} withResults The job will include the result attribute if true
+   */
   getSmartSliceJob(jobId, success, error, withResults) {
     let route = `/smartslice/${jobId}`;
 
@@ -468,6 +506,15 @@ class API {
     this._request('GET', route, success, error);
   }
 
+
+  /**
+   * Polls a running job until it has completed or failed.
+   * @param {string} jobId
+   * @param {API~error} error
+   * @param {API~job-callback} finished
+   * @param {API~job-callback} failed
+   * @param {API~job-poll-callback} poll
+   */
   pollSmartSliceJob(jobId, error, finished, failed, poll) {
     let that = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
@@ -486,7 +533,7 @@ class API {
               let abort = poll.bind(this)();
 
               if (abort) {
-                that.abortSmartSliceJob(jobId, () => {}, () => {});
+                that.cancelSmartSliceJob(jobId, () => {}, () => {});
               }
             }
 
@@ -516,6 +563,16 @@ class API {
     pollJob(1000)();
   }
 
+
+  /**
+   * Submit and start a new job with the given 3MF specified as a buffer,
+   * and then poll it until it has completed or failed.
+   * @param {Buffer} tmf
+   * @param {API~error} error
+   * @param {API~job-callback} finished
+   * @param {API~job-callback} failed
+   * @param {API~job-poll-callback} poll
+   */
   submitSmartSliceJobAndPoll(tmf, error, finished, failed, poll) {
     let that = this;
     this.submitSmartSliceJob(

@@ -81,8 +81,8 @@ smartslice
   .action(submitSmartSliceJob);
 
 smartslice
-  .command('abort <id>')
-  .action(abortSmartSliceJob);
+  .command('cancel <id>')
+  .action(cancelSmartSliceJob);
 
 app.parse(process.argv);
 
@@ -344,6 +344,8 @@ function submitSmartSliceJob(threemf) {
 
             process.on('SIGINT', () => { abort = true; });
 
+            console.log('CTRL+C to cancel job');
+
             api.submitSmartSliceJobAndPoll(
               data,
               function() { console.error(this); },
@@ -371,10 +373,10 @@ function submitSmartSliceJob(threemf) {
   );
 }
 
-function abortSmartSliceJob(jobId) {
+function cancelSmartSliceJob(jobId) {
   whoAmI(
     function() {
-      api.abortSmartSliceJob(
+      api.cancelSmartSliceJob(
         jobId,
         function() { console.log(`Job status: ${this.status}`); },
         _basicErrorCallback

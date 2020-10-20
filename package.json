@@ -19,7 +19,7 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
-    "jsdoc": "^3.5.5",
+    "jsdoc": "^3.6.6",
     "mocha": "^5.2.0",
     "webpack-cli": "^3.2.3"
   },
