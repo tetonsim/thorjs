@@ -468,7 +468,7 @@ class API {
     this._request('GET', route, success, error);
   }
 
-  waitForSmartSliceJob(jobId, error, finished, failed, poll) {
+  pollSmartSliceJob(jobId, error, finished, failed, poll) {
     let that = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
@@ -514,6 +514,17 @@ class API {
     }
 
     pollJob(1000)();
+  }
+
+  submitSmartSliceJobAndPoll(tmf, error, finished, failed, poll) {
+    let that = this;
+    this.submitSmartSliceJob(
+      tmf,
+      function() {
+        that.pollSmartSliceJob(this.id, error, finished, failed, poll);
+      },
+      error
+    );
   }
 }
 

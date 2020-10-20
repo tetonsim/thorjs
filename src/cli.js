@@ -6,6 +6,7 @@ const app = require('commander');
 const { count } = require('console');
 const fs = require('fs');
 const path = require('path');
+const process = require('process');
 const readline = require('readline');
 const Writable = require('stream').Writable;
 const thor = require('./thor');
@@ -78,6 +79,10 @@ const smartslice = app.command('smartslice');
 smartslice
   .command('submit <threemf>')
   .action(submitSmartSliceJob);
+
+smartslice
+  .command('abort <id>')
+  .action(abortSmartSliceJob);
 
 app.parse(process.argv);
 
@@ -321,6 +326,59 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob() {
-  let tmf = this.threemf;
+function submitSmartSliceJob(threemf) {
+  whoAmI(
+    function() {
+      let outputFile = path.join(
+        path.dirname(threemf),
+        path.basename(threemf, '.3mf') + '.json'
+      );
+
+      let tmf = fs.readFile(
+        threemf,
+        (error, data) => {
+          if (error) {
+            console.error(error);
+          } else {
+            let abort = false;
+
+            process.on('SIGINT', () => { abort = true; });
+
+            api.submitSmartSliceJobAndPoll(
+              data,
+              function() { console.error(this); },
+              function() {
+                if (this.status === 'finished') {
+                  console.log(`Job finished, writing result to ${outputFile}`);
+                  fs.writeFileSync(outputFile, JSON.stringify(this.result));
+                } else {
+                  console.log(`Job ${this.status}`);
+                }
+              },
+              function() {
+                console.error('Job failed');
+                for (let e of this.errors) {
+                  console.error(e);
+                }
+              },
+              () => { return abort; }
+            )
+          }
+        }
+      );
+
+    }
+  );
+}
+
+function abortSmartSliceJob(jobId) {
+  whoAmI(
+    function() {
+      api.abortSmartSliceJob(
+        jobId,
+        function() { console.log(`Job status: ${this.status}`); },
+        _basicErrorCallback
+      )
+    }
+  );
 }
