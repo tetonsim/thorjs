@@ -73,6 +73,12 @@ password
   .requiredOption('-c, --code [code]', 'Password reset code')
   .action(resetPassword);
 
+const smartslice = app.command('smartslice');
+
+smartslice
+  .command('submit <threemf>')
+  .action(submitSmartSliceJob);
+
 app.parse(process.argv);
 
 function configure() {
@@ -313,4 +319,8 @@ function resetPassword() {
       )
     }
   );
+}
+
+function submitSmartSliceJob() {
+  let tmf = this.threemf;
 }
