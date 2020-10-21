@@ -516,10 +516,9 @@ class API {
    * @param {API~job-poll-callback} poll
    */
   pollSmartSliceJob(jobId, error, finished, failed, poll) {
-    let that = this;
+    let api = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
-    //const failedStatuses = ['failed', 'crashed'];
 
     const maxPeriod = 30000;
     const periodMultiplier = 1.25;
@@ -533,7 +532,7 @@ class API {
               let abort = poll.bind(this)();
 
               if (abort) {
-                that.cancelSmartSliceJob(jobId, () => {}, () => {});
+                api.cancelSmartSliceJob(jobId, () => {}, () => {});
               }
             }
 
@@ -556,7 +555,7 @@ class API {
           }
         }
 
-        that.getSmartSliceJob(jobId, handleJobStatus, errorHandler, true);
+        api.getSmartSliceJob(jobId, handleJobStatus, errorHandler, true);
       }
     }
 
