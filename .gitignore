@@ -1,6 +1,8 @@
 .vscode/
 build/
+doc/
 node_modules/
 out/
+sandbox/
 .thor/
 npm-debug.log

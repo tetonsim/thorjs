@@ -34,6 +34,7 @@ const _HelperCallbacks = {
  * An API error
  * @property {number} http_code The HTTP status code returned by the server
  * @property {string} message Generic message
+ * @property {string} error Error message
  * @property {boolean} success
  */
 class Message {
@@ -147,6 +148,9 @@ class API {
 
     if (method === 'GET' || data === undefined) {
       xhttp.send();
+    } else if (data instanceof Buffer) {
+      xhttp.setRequestHeader('Content-Type', 'model/3mf');
+      xhttp.send(data);
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
       xhttp.send(JSON.stringify(data));
@@ -236,11 +240,7 @@ class API {
 
       this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
-      success.bind({
-        success: true,
-        user: this.user,
-        token: this.token
-      })();
+      success.bind(this.user)();
     }
 
     return true;
@@ -407,7 +407,180 @@ class API {
         password: password,
         confirm_password: password
       }
-    )
+    );
+  }
+
+  /**
+   *
+   * @callback API~subscription-callback
+   * @this {Object}
+   * @param {string} this.status
+   * @param {string} this.start
+   * @param {string} this.end
+   * @param {string} this.trial_start
+   * @param {string} this.trial_end
+   * @param {Object[]} this.products
+   */
+
+  /**
+   * Retrieve the Smart Slice subscription the user has access to
+   * @param {API~subscription-callback} success
+   * @param {API~error} error
+   */
+  getSmartSliceSubscription(success, error) {
+    this._request(
+      'GET', '/smartslice/subscription',
+      success,
+      error
+    );
+  }
+
+
+  /**
+   * @typedef Job
+   * @type {object}
+   * @property {string} this.id
+   * @property {string} this.status
+   * @property {number} this.progress
+   * @property {Object} this.result
+   */
+
+  /**
+   *
+   * @callback API~job-callback
+   * @this {Job}
+   */
+
+  /**
+   *
+   * @callback API~job-poll-callback
+   * @this {Job}
+   * @returns {boolean} If true the job will be cancelled.
+   */
+
+  /**
+   * Submit and start a new job with the given 3MF specified as a buffer
+   * @param {Buffer} tmf
+   * @param {API~job-callback} success
+   * @param {API~error} error
+   */
+  submitSmartSliceJob(tmf, success, error) {
+    this._request(
+      'POST', '/smartslice',
+      success,
+      error,
+      tmf
+    );
+  }
+
+
+  /**
+   * Cancellation requestion of a running job
+   * @param {string} jobId
+   * @param {API~success} success
+   * @param {API~error} error
+   */
+  cancelSmartSliceJob(jobId, success, error) {
+    this._request(
+      'DELETE', `/smartslice/${jobId}`,
+      success,
+      error
+    );
+  }
+
+
+  /**
+   * Retrieve a job by it's unique id
+   * @param {string} jobId
+   * @param {API~job-callback} success
+   * @param {API~error} error
+   * @param {boolean} withResults The job will include the result attribute if true
+   */
+  getSmartSliceJob(jobId, success, error, withResults) {
+    let route = `/smartslice/${jobId}`;
+
+    if (withResults) {
+      route = `/smartslice/result/${jobId}`;
+    }
+
+    this._request('GET', route, success, error);
+  }
+
+
+  /**
+   * Polls a running job until it has completed or failed.
+   * @param {string} jobId
+   * @param {API~error} error
+   * @param {API~job-callback} finished
+   * @param {API~job-callback} failed
+   * @param {API~job-poll-callback} poll
+   */
+  pollSmartSliceJob(jobId, error, finished, failed, poll) {
+    let api = this;
+    const pollAgainStatuses = ['idle', 'queued', 'running'];
+    const finishedStatuses = ['finished', 'aborted'];
+
+    const maxPeriod = 30000;
+    const periodMultiplier = 1.25;
+
+    function pollJob(period) {
+      return function() {
+        let handleJobStatus = function() {
+          console.debug(`Job ${jobId}: ${this.status} (${this.progress})`);
+          if (pollAgainStatuses.includes(this.status)) {
+            if (poll !== undefined) {
+              let abort = poll.bind(this)();
+
+              if (abort) {
+                api.cancelSmartSliceJob(jobId, () => {}, () => {});
+              }
+            }
+
+            period = Math.min(maxPeriod, period * periodMultiplier);
+
+            setTimeout(pollJob(period), period);
+          } else if (finishedStatuses.includes(this.status)) {
+            finished.bind(this)();
+          } else {
+            failed.bind(this)();
+          }
+        };
+
+        let errorHandler = function() {
+          if (this.http_code == 429) {
+            // If the error is a rate limit, then just continue polling.
+            setTimeout(pollJob(period), period);
+          } else {
+            error.bind(this)();
+          }
+        }
+
+        api.getSmartSliceJob(jobId, handleJobStatus, errorHandler, true);
+      }
+    }
+
+    pollJob(1000)();
+  }
+
+
+  /**
+   * Submit and start a new job with the given 3MF specified as a buffer,
+   * and then poll it until it has completed or failed.
+   * @param {Buffer} tmf
+   * @param {API~error} error
+   * @param {API~job-callback} finished
+   * @param {API~job-callback} failed
+   * @param {API~job-poll-callback} poll
+   */
+  submitSmartSliceJobAndPoll(tmf, error, finished, failed, poll) {
+    let that = this;
+    this.submitSmartSliceJob(
+      tmf,
+      function() {
+        that.pollSmartSliceJob(this.id, error, finished, failed, poll);
+      },
+      error
+    );
   }
 }
 
