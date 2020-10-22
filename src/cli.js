@@ -3,7 +3,6 @@
 const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
 
 const app = require('commander');
-const { count } = require('console');
 const fs = require('fs');
 const path = require('path');
 const process = require('process');
@@ -78,11 +77,50 @@ const smartslice = app.command('smartslice');
 
 smartslice
   .command('submit <threemf>')
-  .action(submitSmartSliceJob);
+  .action(threemf => whoAmI(submitSmartSliceJob, threemf));
 
 smartslice
   .command('cancel <id>')
-  .action(cancelSmartSliceJob);
+  .action(jobId => whoAmI(cancelSmartSliceJob, jobId));
+
+const teams = app.command('teams');
+
+teams
+  .command('create')
+  .action(_ => whoAmI(createTeam));
+
+teams
+  .command('memberships')
+  .action(_ => whoAmI(listMemberships));
+
+teams
+  .command('members <team>')
+  .action(team => whoAmI(listTeamMembers, team));
+
+teams
+  .command('invite <team> <email>')
+  .option('-r, --revoke', 'Revoke an existing invitation')
+  .action(
+    function(team, email) {
+      whoAmI(manageTeamInvite, team, email, this.revoke);
+    }
+  );
+
+teams
+  .command('accept-invite <team>')
+  .action(team => whoAmI(acceptTeamInvite, team));
+
+teams
+  .command('remove-member <team> <email>')
+  .action((team, email) => whoAmI(removeTeamMember, team, email));
+
+teams
+  .command('add-member-role <team> <email> <role>')
+  .action((team, email, role) => whoAmI(addTeamMemberRole, team, email, role));
+
+teams
+  .command('revoke-member-role <team> <email> <role>')
+  .action((team, email, role) => whoAmI(revokeTeamMemberRole, team, email, role));
 
 app.parse(process.argv);
 
@@ -115,6 +153,32 @@ function configure() {
   );
 
   api.releaseToken(function() {}, function() {});
+}
+
+function _multipleQuestions(questions, callback) {
+  let answers = [];
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  function askQuestion(i) {
+    rl.question(
+      questions[i],
+      answer => {
+        answers.push(answer);
+        if (questions.length > (i + 1)) {
+          askQuestion(i + 1);
+        } else {
+          rl.close();
+          callback(...answers);
+        }
+      }
+    );
+  }
+
+  askQuestion(0);
 }
 
 function _getCredentials(callback) {
@@ -165,8 +229,9 @@ function login() {
   _getCredentials(loginWithCreds);
 }
 
-function whoAmI(callback) {
-  api.whoAmI(callback,
+function whoAmI(callback, ...args) {
+  api.whoAmI(
+    _ => callback(...args),
     function() {
       console.error('No user is currently logged in');
     }
@@ -327,60 +392,119 @@ function resetPassword() {
 }
 
 function submitSmartSliceJob(threemf) {
-  whoAmI(
-    function() {
-      let outputFile = path.join(
-        path.dirname(threemf),
-        path.basename(threemf, '.3mf') + '.json'
-      );
+  let outputFile = path.join(
+    path.dirname(threemf),
+    path.basename(threemf, '.3mf') + '.json'
+  );
 
-      let tmf = fs.readFile(
-        threemf,
-        (error, data) => {
-          if (error) {
-            console.error(error);
-          } else {
-            let abort = false;
+  fs.readFile(
+    threemf,
+    (error, data) => {
+      if (error) {
+        console.error(error);
+      } else {
+        let abort = false;
 
-            process.on('SIGINT', () => { abort = true; });
+        process.on('SIGINT', _ => { abort = true; });
 
-            console.log('CTRL+C to cancel job');
+        console.log('CTRL+C to cancel job');
 
-            api.submitSmartSliceJobAndPoll(
-              data,
-              function() { console.error(this); },
-              function() {
-                if (this.status === 'finished') {
-                  console.log(`Job finished, writing result to ${outputFile}`);
-                  fs.writeFileSync(outputFile, JSON.stringify(this.result));
-                } else {
-                  console.log(`Job ${this.status}`);
-                }
-              },
-              function() {
-                console.error('Job failed');
-                for (let e of this.errors) {
-                  console.error(e);
-                }
-              },
-              () => { return abort; }
-            )
-          }
-        }
-      );
-
+        api.submitSmartSliceJobAndPoll(
+          data,
+          function() { console.error(this); },
+          function() {
+            if (this.status === 'finished') {
+              console.log(`Job finished, writing result to ${outputFile}`);
+              fs.writeFileSync(outputFile, JSON.stringify(this.result));
+            } else {
+              console.log(`Job ${this.status}`);
+            }
+          },
+          function() {
+            console.error('Job failed');
+            for (let e of this.errors) {
+              console.error(e);
+            }
+          },
+          _ => { return abort; }
+        )
+      }
     }
   );
 }
 
 function cancelSmartSliceJob(jobId) {
-  whoAmI(
-    function() {
-      api.cancelSmartSliceJob(
-        jobId,
-        function() { console.log(`Job status: ${this.status}`); },
+  api.cancelSmartSliceJob(
+    jobId,
+    function() { console.log(`Job status: ${this.status}`); },
+    _basicErrorCallback
+  );
+}
+
+function createTeam() {
+  _multipleQuestions(
+    ['Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ', 'Full Team Name: '],
+    function(name, fullName) {
+      api.createTeam(
+        name,
+        fullName,
+        _basicSuccessCallback,
         _basicErrorCallback
-      )
+      );
     }
   );
+}
+
+function listMemberships() {
+  api.teamMemberships(
+    function() { console.log(this); },
+    _basicErrorCallback
+  );
+}
+
+function listTeamMembers(team) {
+  api.teamMembers(
+    team,
+    function() { console.log(this); },
+    _basicErrorCallback
+  );
+}
+
+function manageTeamInvite(team, email, revoke) {
+  if (revoke) {
+    api.revokeTeamInvite(team, email, _basicSuccessCallback, _basicErrorCallback);
+  } else {
+    api.inviteToTeam(team, email, _basicSuccessCallback, _basicErrorCallback);
+  }
+}
+
+function acceptTeamInvite(team) {
+  api.acceptTeamInvite(team, _basicSuccessCallback, _basicErrorCallback);
+}
+
+function removeTeamMember(team, email) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(
+    `Are you sure you want to remove ${email} from ${team} (y/N): `,
+    answer => {
+      if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
+        api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
+      } else {
+        console.log('Member removal action canceled');
+      }
+      rl.close();
+    }
+  );
+}
+
+function addTeamMemberRole(team, email, role) {
+  api.addTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
+}
+
+function revokeTeamMemberRole(team, email, role) {
+  api.revokeTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
 }
