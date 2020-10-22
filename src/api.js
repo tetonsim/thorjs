@@ -473,7 +473,6 @@ class API {
     );
   }
 
-
   /**
    * Cancellation requestion of a running job
    * @param {string} jobId
@@ -487,7 +486,6 @@ class API {
       error
     );
   }
-
 
   /**
    * Retrieve a job by it's unique id
@@ -505,7 +503,6 @@ class API {
 
     this._request('GET', route, success, error);
   }
-
 
   /**
    * Polls a running job until it has completed or failed.
@@ -562,7 +559,6 @@ class API {
     pollJob(1000)();
   }
 
-
   /**
    * Submit and start a new job with the given 3MF specified as a buffer,
    * and then poll it until it has completed or failed.
@@ -580,6 +576,66 @@ class API {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },
       error
+    );
+  }
+
+  createTeam(name, fullName, success, error) {
+    this._request(
+      'POST', '/teams',
+      success,
+      error,
+      {
+        name: name,
+        full_name: fullName
+      }
+    );
+  }
+
+  teamMemberships(success, error) {
+    this._request('GET', '/teams', success, error);
+  }
+
+  teamMembers(team, success, error) {
+    this._request('GET', `/teams/${team}/members`, success, error);
+  }
+
+  inviteToTeam(team, email, success, error) {
+    this._request('POST', `/teams/${team}/invite`, success, error, { email: email });
+  }
+
+  revokeTeamInvite(team, email, success, error) {
+    this._request('DELETE', `/teams/${team}/invite`, success, error, { email: email });
+  }
+
+  acceptTeamInvite(team, success, error) {
+    this._request('GET', `/teams/${team}/invite`, success, error);
+  }
+
+  removeTeamMember(team, email, success, error) {
+    this._request('DELETE', `/teams/${team}/member`, success, error, { email: email });
+  }
+
+  addTeamMemberRole(team, email, role, success, error) {
+    this._request(
+      'POST', `/teams/${team}/role`,
+      success,
+      error,
+      {
+        email: email,
+        role: role
+      }
+    );
+  }
+
+  revokeTeamMemberRole(team, email, role, success, error) {
+    this._request(
+      'DELETE', `/teams/${team}/role`,
+      success,
+      error,
+      {
+        email: email,
+        role: role
+      }
     );
   }
 }
