@@ -435,20 +435,19 @@ class API {
     );
   }
 
-
   /**
-   * @typedef Job
+   * @typedef API~Job
    * @type {object}
-   * @property {string} this.id
-   * @property {string} this.status
-   * @property {number} this.progress
-   * @property {Object} this.result
+   * @property {string} id
+   * @property {string} status
+   * @property {number} progress
+   * @property {Object} result
    */
 
   /**
    *
    * @callback API~job-callback
-   * @this {Job}
+   * @this {API~Job}
    */
 
   /**
@@ -579,6 +578,52 @@ class API {
     );
   }
 
+  /**
+   * @typedef API~Team
+   * @type {object}
+   * @property {string} id
+   * @property {string} name
+   * @property {string} full_name
+   * @property {string[]} roles
+   */
+
+  /**
+   * @typedef API~Membership
+   * @type {object}
+   * @property {string} email
+   * @property {string} first_name
+   * @property {string} last_name
+   * @property {string[]} roles
+   */
+
+  /**
+   * @typedef API~Invite
+   * @type {object}
+   * @property {string} email
+   */
+
+  /**
+   *
+   * @callback API~teams-callback
+   * @this {Object}
+   * @property {API~Team[]} this.memberships
+   */
+
+  /**
+   *
+   * @callback API~members-callback
+   * @this {Object}
+   * @property {API~Membership[]} this.members
+   * @property {API~Invite[]} this.invites
+   */
+
+  /**
+   * Create a new team.
+   * @param {string} name The short name of the team. Must be between 3-64 characters. Only lowercase a-z, 0-9, "_" and "-" are acceptable.
+   * @param {string} fullName The full name of the team.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   createTeam(name, fullName, success, error) {
     this._request(
       'POST', '/teams',
@@ -591,30 +636,76 @@ class API {
     );
   }
 
+  /**
+   * Get a list of the teams the logged in user is a member of
+   * @param {API~teams-callback} success
+   * @param {API~error} error
+   */
   teamMemberships(success, error) {
     this._request('GET', '/teams', success, error);
   }
 
+  /**
+   * Get a list of the members for the given team.
+   * @param {string} team Team name (short).
+   * @param {API~members-callback} success
+   * @param {API~error} error
+   */
   teamMembers(team, success, error) {
     this._request('GET', `/teams/${team}/members`, success, error);
   }
 
+  /**
+   * Invite a user to the given team, by email.
+   * @param {string} team Team name (short).
+   * @param {string} email Email of user to invite. This can be the email of an existing user or a user who has not registered yet.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   inviteToTeam(team, email, success, error) {
     this._request('POST', `/teams/${team}/invite`, success, error, { email: email });
   }
 
+  /**
+   * Revoke an existing invitation to a user, by email. If the user has already accepted the invite, this will not remove them from the team.
+   * @param {string} team Team name (short).
+   * @param {string} email Email of user to for which to revoke an existing invitation.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   revokeTeamInvite(team, email, success, error) {
     this._request('DELETE', `/teams/${team}/invite`, success, error, { email: email });
   }
 
+  /**
+   * Accept an invite to the given team.
+   * @param {string} team Team name (short).
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   acceptTeamInvite(team, success, error) {
     this._request('GET', `/teams/${team}/invite`, success, error);
   }
 
+  /**
+   * Remove a user from the team and all of their roles.
+   * @param {string} team Team name (short).
+   * @param {string} email Email of user to remove.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   removeTeamMember(team, email, success, error) {
     this._request('DELETE', `/teams/${team}/member`, success, error, { email: email });
   }
 
+  /**
+   * Add a role to a member of a given team.
+   * @param {string} team Team name (short).
+   * @param {string} email Email of user to add the given role to.
+   * @param {string} role The name of the role to add to the given user.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   addTeamMemberRole(team, email, role, success, error) {
     this._request(
       'POST', `/teams/${team}/role`,
@@ -627,6 +718,14 @@ class API {
     );
   }
 
+  /**
+   * Remove a role from a member of a given team.
+   * @param {string} team Team name (short).
+   * @param {string} email Email of user to add the given role to.
+   * @param {string} role The name of the role to add to the given user.
+   * @param {API~success} success
+   * @param {API~error} error
+   */
   revokeTeamMemberRole(team, email, role, success, error) {
     this._request(
       'DELETE', `/teams/${team}/role`,
