@@ -483,8 +483,22 @@ function acceptTeamInvite(team) {
 }
 
 function removeTeamMember(team, email) {
-  // TODO confirm
-  api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  rl.question(
+    `Are you sure you want to remove ${email} from ${team} (y/N): `,
+    answer => {
+      if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
+        api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
+      } else {
+        console.log('Member removal action canceled');
+      }
+      rl.close();
+    }
+  );
 }
 
 function addTeamMemberRole(team, email, role) {
