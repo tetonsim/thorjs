@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 'use strict';
 
 const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;

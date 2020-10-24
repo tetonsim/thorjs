@@ -522,7 +522,8 @@ class API {
     function pollJob(period) {
       return function() {
         let handleJobStatus = function() {
-          console.debug(`Job ${jobId}: ${this.status} (${this.progress})`);
+          let now = new Date();
+          console.debug(`${now.toLocaleTimeString()} - Job ${jobId}: ${this.status} (${this.progress})`);
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               let abort = poll.bind(this)();
