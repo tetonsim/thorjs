@@ -63,7 +63,7 @@ class API {
   constructor(config) {
     if (config === undefined) {
       config = {
-        host: 'https://api.smartslice.xyz',
+        host: 'https://api.smartslice.xyz'
       };
     }
 
