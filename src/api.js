@@ -59,11 +59,13 @@ class API {
    * API Constructor
    * @param {Object} [config] API configuration
    * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
+   * @param {string} config.token = user login token
    */
   constructor(config) {
     if (config === undefined) {
       config = {
-        host: 'https://api.smartslice.xyz'
+        host: 'https://api.smartslice.xyz',
+        token: null
       };
     }
 
@@ -71,7 +73,7 @@ class API {
     this.error = function() {};
 
     this.user = null;
-    this.token = null;
+    this.token = config.token;
   }
 
   static get version() {
