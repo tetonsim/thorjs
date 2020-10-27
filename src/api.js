@@ -71,7 +71,7 @@ class API {
     this.error = function() {};
 
     this.user = null;
-    this.token = null;
+    this.token = localStorage.getItem('token');
   }
 
   static get version() {
