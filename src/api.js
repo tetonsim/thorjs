@@ -71,7 +71,7 @@ class API {
     this.error = function() {};
 
     this.user = null;
-    this.token = localStorage.getItem('token');
+    this.token = null;
   }
 
   static get version() {
@@ -104,7 +104,7 @@ class API {
 
         let err = null;
 
-        if (xhttp.status === 200) {
+        if (xhttp.status === 200 || xhttp.status === 202) {
           if (success !== undefined) {
             success.bind(response)();
           }
