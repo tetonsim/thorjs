@@ -85,6 +85,15 @@ smartslice
   .command('cancel <id>')
   .action(jobId => whoAmI(cancelSmartSliceJob, jobId));
 
+smartslice
+  .command('jobs <page>')
+  .option('-l, --limit [limit]', 'Number of jobs to retrieve')
+  .action(
+    function(page) {
+      whoAmI(listSmartSliceJobs, page, this.limit);
+    }
+  );
+
 const teams = app.command('teams');
 
 teams
@@ -441,6 +450,25 @@ function cancelSmartSliceJob(jobId) {
     function() { console.log(`Job status: ${this.status}`); },
     _basicErrorCallback
   );
+}
+
+function listSmartSliceJobs(page, limit) {
+  if (limit === undefined) {
+    limit = 10;
+  }
+
+  page = Math.max(1, page);
+  limit = Math.max(1, limit);
+
+  let success = function() {
+    console.log(`Page ${this.page}/${this.total_pages}`);
+    for (let job of this.jobs) {
+      console.log(`${job.id} : ${job.status} (${job.progress})`);
+    }
+    console.log(`Page ${this.page}/${this.total_pages}`);
+  }
+
+  api.listSmartSliceJobs(limit, page, success, _basicErrorCallback);
 }
 
 function createTeam() {

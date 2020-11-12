@@ -579,6 +579,12 @@ class API {
     );
   }
 
+  listSmartSliceJobs(limit, page, success, error) {
+    let route = `/smartslice/jobs?limit=${limit}&page=${page}`;
+
+    this._request('GET', route, success, error);
+  }
+
   /**
    * @typedef API~Team
    * @type {object}
@@ -738,6 +744,8 @@ class API {
       }
     );
   }
+
+
 }
 
 module.exports = API;

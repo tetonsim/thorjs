@@ -1,6 +1,6 @@
 {
   "name": "teton-thor",
-  "version": "20.1.3",
+  "version": "20.2.1",
   "description": "Thor API JS Library",
   "private": false,
   "main": "src/thor.js",
