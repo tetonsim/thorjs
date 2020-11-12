@@ -453,8 +453,17 @@ class API {
   /**
    *
    * @callback API~job-poll-callback
-   * @this {Job}
+   * @this {API~Job}
    * @returns {boolean} If true the job will be cancelled.
+   */
+
+  /**
+   *
+   * @callback API~list-job-callback
+   * @this {Object}
+   * @property {API~Job[]} this.jobs
+   * @property {integer} this.page
+   * @property {integer} this.total_pages
    */
 
   /**
@@ -579,6 +588,13 @@ class API {
     );
   }
 
+  /**
+   *
+   * @param {integer} limit Number of jobs to retrieve
+   * @param {integer} page The page of jobs to retrieve (offset)
+   * @param {API~list-job-callback} success
+   * @param {API~error} error
+   */
   listSmartSliceJobs(limit, page, success, error) {
     let route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
