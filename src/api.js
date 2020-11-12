@@ -761,7 +761,38 @@ class API {
     );
   }
 
+  /**
+   *
+   * @callback API~support-issue-callback
+   * @this {Object}
+   * @property {string} this.message
+   * @property {Object} this.issue
+   * @property {integer} this.issue.id
+   * @property {string} this.issue.description
+   */
 
+  /**
+   * Creates a new customer support issue.
+   * @param {string} description Description of issue/request
+   * @param {API~support-issue-callback} success
+   * @param {API~error} error
+   * @param {string} jobId Id of job the issue is related to. Can be null if the issue is not related to a job.
+   */
+  createSupportIssue(description, success, error, jobId) {
+    if (jobId === undefined) {
+      jobId = null;
+    }
+
+    this._request(
+      'POST', '/support/issue',
+      success,
+      error,
+      {
+        description: description,
+        job: jobId
+      }
+    );
+  }
 }
 
 module.exports = API;
