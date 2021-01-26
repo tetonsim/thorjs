@@ -426,10 +426,17 @@ class API {
    * Retrieve the Smart Slice subscription the user has access to
    * @param {API~subscription-callback} success
    * @param {API~error} error
+   * @param {string} team Optional team name (short name) to retrieve subscription for
    */
-  getSmartSliceSubscription(success, error) {
+  getSmartSliceSubscription(success, error, team) {
+    let url = '/smartslice/subscription';
+
+    if (team) {
+      url += `?team=${team}`;
+    }
+
     this._request(
-      'GET', '/smartslice/subscription',
+      'GET', url,
       success,
       error
     );
