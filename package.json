@@ -1,9 +1,11 @@
 {
   "name": "teton-thor",
-  "version": "20.2.3",
+  "version": "20.2.4",
   "description": "Thor API JS Library",
+  "type": "module",
   "private": false,
-  "main": "src/thor.js",
+  "main": "./src/thor.js",
+  "exports": "./src/thor.js",
   "bin": {
     "thorcli": "./src/cli.js"
   },
@@ -20,7 +22,7 @@
   },
   "devDependencies": {
     "jsdoc": "^3.6.6",
-    "mocha": "^5.2.0",
+    "mocha": "^8.3.0",
     "webpack-cli": "^3.2.3"
   },
   "scripts": {
