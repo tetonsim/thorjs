@@ -437,7 +437,11 @@ function submitSmartSliceJob(threemf) {
               console.error(e);
             }
           },
-          _ => { return abort; }
+          function() {
+            let now = new Date();
+            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
+            return abort;
+          }
         )
       }
     }

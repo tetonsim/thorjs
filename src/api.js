@@ -75,7 +75,7 @@ class API {
   }
 
   static get version() {
-    return (typeof THOR_VERSION === 'undefined' ? '20.1' : THOR_VERSION);
+    return (typeof THOR_VERSION === 'undefined' ? '20.2' : THOR_VERSION);
   }
 
   /**
@@ -538,8 +538,6 @@ class API {
     function pollJob(period) {
       return function() {
         let handleJobStatus = function() {
-          let now = new Date();
-          console.debug(`${now.toLocaleTimeString()} - Job ${jobId}: ${this.status} (${this.progress})`);
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               let abort = poll.bind(this)();
