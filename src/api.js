@@ -75,7 +75,7 @@ class API {
   }
 
   static get version() {
-    return (typeof THOR_VERSION === 'undefined' ? '20.2' : THOR_VERSION);
+    return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
   /**
