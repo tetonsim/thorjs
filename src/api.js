@@ -149,8 +149,13 @@ class API {
     if (method === 'GET' || data === undefined) {
       xhttp.send();
     } else if (data instanceof Buffer) {
-      xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      xhttp.send(data);
+      if (data.smart) {
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        xhttp.send(data);
+      } else {
+        xhttp.setRequestHeader('Content-Type', 'model/3mf');
+        xhttp.send(data);
+      }
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
       xhttp.send(JSON.stringify(data));

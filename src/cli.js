@@ -411,6 +411,10 @@ function submitSmartSliceJob(threemf) {
   fs.readFile(
     threemf,
     (error, data) => {
+      if (threemf.includes('.smart')){
+        data.smart = true
+      }
+
       if (error) {
         console.error(error);
       } else {
