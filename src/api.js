@@ -149,13 +149,9 @@ class API {
     if (method === 'GET' || data === undefined) {
       xhttp.send();
     } else if (data instanceof Buffer) {
-      if (data.smart) {
-        xhttp.setRequestHeader('Content-Type', 'application/json');
-        xhttp.send(data);
-      } else {
-        xhttp.setRequestHeader('Content-Type', 'model/3mf');
-        xhttp.send(data);
-      }
+
+      xhttp.setRequestHeader('Content-Type', 'model/3mf');
+      xhttp.send(data);
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
       xhttp.send(JSON.stringify(data));
@@ -480,16 +476,16 @@ class API {
 
   /**
    * Submit and start a new job with the given 3MF specified as a buffer
-   * @param {Buffer} tmf
+   * @param {Buffer} job
    * @param {API~job-callback} success
    * @param {API~error} error
    */
-  submitSmartSliceJob(tmf, success, error) {
+  submitSmartSliceJob(job, success, error) {
     this._request(
       'POST', '/smartslice',
       success,
       error,
-      tmf
+      job
     );
   }
 
@@ -581,16 +577,16 @@ class API {
   /**
    * Submit and start a new job with the given 3MF specified as a buffer,
    * and then poll it until it has completed or failed.
-   * @param {Buffer} tmf
+   * @param {Buffer} job
    * @param {API~error} error
    * @param {API~job-callback} finished
    * @param {API~job-callback} failed
    * @param {API~job-poll-callback} poll
    */
-  submitSmartSliceJobAndPoll(tmf, error, finished, failed, poll) {
+  submitSmartSliceJobAndPoll(job, error, finished, failed, poll) {
     let that = this;
     this.submitSmartSliceJob(
-      tmf,
+      job,
       function() {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },

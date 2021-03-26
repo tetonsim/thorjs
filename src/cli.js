@@ -13,7 +13,7 @@ const Writable = require('stream').Writable;
 const thor = require('./thor');
 
 // default configuration
-const HOST = 'https://api.smartslice.xyz';
+const HOST = 'https://test.smartslice.xyz';
 let config = {
   host: HOST
 };
@@ -77,9 +77,16 @@ password
 
 const smartslice = app.command('smartslice');
 
+// smartslice
+//   .command('submit <job>')
+//   .action(file => whoAmI(submitSmartSliceJob, threemf));
+
 smartslice
-  .command('submit <threemf>')
-  .action(threemf => whoAmI(submitSmartSliceJob, threemf));
+    .command('submit <file> [type]')
+    .action(function(file, type=null) {
+        whoAmI(submitSmartSliceJob, file, type);
+
+    }) ;
 
 smartslice
   .command('cancel <id>')
@@ -402,51 +409,58 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob(threemf) {
+function submitAndPoll(data) {
+  let abort = false;
+
+  process.on('SIGINT', _ => {
+    abort = true;
+  });
+
+  api.submitSmartSliceJobAndPoll(
+    data,
+    function() { console.error(this); },
+    function() {
+      if (this.status === 'finished') {
+          console.log(`Job finished, writing result to ${outputFile}`);
+          fs.writeFileSync(outputFile, JSON.stringify(this.result));
+      } else {
+          console.log(`Job ${this.status}`);
+      }
+    },
+    function() {
+      console.error('Job failed');
+      for (let e of this.errors) {
+          console.error(e);
+      }
+    },
+    function() {
+      let now = new Date();
+      console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
+      return abort;
+    }
+  )
+}
+
+
+function submitSmartSliceJob(job, type) {
   let outputFile = path.join(
-    path.dirname(threemf),
-    path.basename(threemf, '.3mf') + '.json'
+    path.dirname(job),
+    path.basename(job, '.3mf') + '.json'
   );
 
   fs.readFile(
-    threemf,
+    job,
     (error, data) => {
-      if (threemf.includes('.smart')){
-        data.smart = true
-      }
-
       if (error) {
         console.error(error);
       } else {
-        let abort = false;
-
-        process.on('SIGINT', _ => { abort = true; });
+        if (type === 'json') {
+            data = JSON.parse(data)
+        }
 
         console.log('CTRL+C to cancel job');
 
-        api.submitSmartSliceJobAndPoll(
-          data,
-          function() { console.error(this); },
-          function() {
-            if (this.status === 'finished') {
-              console.log(`Job finished, writing result to ${outputFile}`);
-              fs.writeFileSync(outputFile, JSON.stringify(this.result));
-            } else {
-              console.log(`Job ${this.status}`);
-            }
-          },
-          function() {
-            console.error('Job failed');
-            for (let e of this.errors) {
-              console.error(e);
-            }
-          },
-          function() {
-            let now = new Date();
-            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
-            return abort;
-          }
-        )
+        submitAndPoll(data)
       }
     }
   );
