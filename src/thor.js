@@ -1,7 +1,7 @@
 const API = require('./api');
 
 const thor = {
-  API: API,
+  API: API
 };
 
 module.exports = thor;

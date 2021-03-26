@@ -13,7 +13,7 @@ const Writable = require('stream').Writable;
 const thor = require('./thor');
 
 // default configuration
-const HOST = 'https://test.smartslice.xyz';
+const HOST = 'https://api.smartslice.xyz';
 let config = {
   host: HOST
 };
@@ -77,14 +77,10 @@ password
 
 const smartslice = app.command('smartslice');
 
-// smartslice
-//   .command('submit <job>')
-//   .action(file => whoAmI(submitSmartSliceJob, threemf));
-
 smartslice
     .command('submit <file> [type]')
-    .action(function(file, type=null) {
-        whoAmI(submitSmartSliceJob, file, type);
+    .action(function(job, type=null) {
+        whoAmI(submitSmartSliceJob, job, type);
 
     }) ;
 
