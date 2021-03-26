@@ -15,14 +15,9 @@ const thor = require('./thor');
 // default configuration
 const HOST = 'https://api.smartslice.xyz';
 let config = {
-  host: HOST
+  host: HOST,
+  token: null
 };
-
-let jconfig = thor.API.localStorage.getItem('config');
-
-if (jconfig !== null) {
-  config = JSON.parse(jconfig);
-}
 
 let api = new thor.API(config);
 

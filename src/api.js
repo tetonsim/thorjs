@@ -6,9 +6,6 @@ if (typeof window === 'undefined') {
   var path = require('path');
 
   var location = path.join(os.homedir(), '.thor');
-
-  var LocalStorage = require('node-localstorage').LocalStorage;
-  localStorage = new LocalStorage(location);
 }
 
 const _HelperCallbacks = {
@@ -19,8 +16,6 @@ const _HelperCallbacks = {
       } else {
         api.token = this.token;
         api.user = this.user;
-
-        localStorage.setItem('token', JSON.stringify(api.token));
 
         if (success !== undefined) {
           success.bind(api.user)();
@@ -56,34 +51,37 @@ class Message {
  */
 class API {
   /**
+   * API Token
+   * @typedef Token
+   * @param {string} expires
+   * @param {string} id
+   */
+
+  /**
    * API Constructor
    * @param {Object} [config] API configuration
    * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
+   * @param {Token} config.token API token
    */
   constructor(config) {
     if (config === undefined) {
       config = {
-        host: 'https://api.smartslice.xyz'
+        host: 'https://api.smartslice.xyz',
+        token: null
       };
     }
 
     this.host = config.host;
+    this.token = config.token;
     this.error = function() {};
 
     this.user = null;
-    this.token = null;
   }
 
   static get version() {
     return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
-  /**
-   * @returns The LocalStorage object used by the API
-   */
-  static get localStorage() {
-    return localStorage;
-  }
 
   get config() {
     return {
@@ -213,23 +211,7 @@ class API {
     * @param {API~error} error
     */
    whoAmI(success, error) {
-    let getUserInfoFromServer = false;
-
-    if (this.token === null) {
-      // Check local storage for a token
-      let saved_token = localStorage.getItem('token');
-
-      if (saved_token === null || saved_token === undefined) {
-        error.bind(new Message(401, 'No token available'))();
-        return false;
-      }
-
-      this.token = JSON.parse(saved_token);
-
-      getUserInfoFromServer = true;
-    }
-
-    if (this.user === null || getUserInfoFromServer) {
+    if (this.user === null || !!this.token) {
       let api = this;
 
       let clearUser = function() {
@@ -279,6 +261,14 @@ class API {
   getToken(email, password, success, error) {
     this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
       error, { email: email, password: password });
+  }
+
+  /**
+   *
+   * @param {Token} token
+   */
+  setToken(token) {
+    this.token = token
   }
 
   /**
