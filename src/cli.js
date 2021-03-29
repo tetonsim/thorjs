@@ -78,15 +78,17 @@ password
 const smartslice = app.command('smartslice');
 
 smartslice
-    .command('submit <file>')
+    .command('submit3MF <file>')
+    .description('Submit 3MF file for validation/optimization')
     .action(job => {
-        whoAmI(submitSmartSliceJob, job, null);
+      whoAmI(submitSmartSliceJob, job, true);
     });
 
 smartslice
-  .command('submitJSON <file>' )
+  .command('submit <file>' )
+  .description('Submit JSON file for validation/optimization')
   .action( job => {
-    whoAmI(submitSmartSliceJob, job, 'json')
+    whoAmI(submitSmartSliceJob, job, false)
   })
 
 smartslice
@@ -410,10 +412,12 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob(job, type) {
-  let outputFile = path.join(
+function submitSmartSliceJob(job, is3mf) {
+  const replacementIndex = job.lastIndexOf('.')
+
+  const outputFile = path.join(
     path.dirname(job),
-    path.basename(job).replace('.', '') + '.json'
+    path.basename(job).slice(0, replacementIndex)+ '.out.json'
   );
 
   fs.readFile(
@@ -423,8 +427,8 @@ function submitSmartSliceJob(job, type) {
         console.error(error);
       } else {
 
-        if (type === 'json') {
-            data = JSON.parse(data)
+        if (!is3mf) {
+          data = JSON.parse(data)
         }
 
         console.log('CTRL+C to cancel job');
