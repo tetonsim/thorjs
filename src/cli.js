@@ -78,11 +78,16 @@ password
 const smartslice = app.command('smartslice');
 
 smartslice
-    .command('submit <file> [type]')
-    .action(function(job, type=null) {
-        whoAmI(submitSmartSliceJob, job, type);
+    .command('submit <file>')
+    .action(job => {
+        whoAmI(submitSmartSliceJob, job, null);
+    });
 
-    }) ;
+smartslice
+  .command('submitJSON <file>' )
+  .action( job => {
+    whoAmI(submitSmartSliceJob, job, 'json')
+  })
 
 smartslice
   .command('cancel <id>')
@@ -405,43 +410,10 @@ function resetPassword() {
   );
 }
 
-function submitAndPoll(data) {
-  let abort = false;
-
-  process.on('SIGINT', _ => {
-    abort = true;
-  });
-
-  api.submitSmartSliceJobAndPoll(
-    data,
-    function() { console.error(this); },
-    function() {
-      if (this.status === 'finished') {
-          console.log(`Job finished, writing result to ${outputFile}`);
-          fs.writeFileSync(outputFile, JSON.stringify(this.result));
-      } else {
-          console.log(`Job ${this.status}`);
-      }
-    },
-    function() {
-      console.error('Job failed');
-      for (let e of this.errors) {
-          console.error(e);
-      }
-    },
-    function() {
-      let now = new Date();
-      console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
-      return abort;
-    }
-  )
-}
-
-
 function submitSmartSliceJob(job, type) {
   let outputFile = path.join(
     path.dirname(job),
-    path.basename(job, '.3mf') + '.json'
+    path.basename(job).replace('.', '') + '.json'
   );
 
   fs.readFile(
@@ -450,13 +422,42 @@ function submitSmartSliceJob(job, type) {
       if (error) {
         console.error(error);
       } else {
+
         if (type === 'json') {
             data = JSON.parse(data)
         }
 
         console.log('CTRL+C to cancel job');
 
-        submitAndPoll(data)
+        let abort = false;
+
+        process.on('SIGINT', _ => {
+          abort = true;
+        });
+
+        api.submitSmartSliceJobAndPoll(
+          data,
+          function() { console.error(this); },
+          function() {
+            if (this.status === 'finished') {
+              console.log(`Job finished, writing result to ${outputFile}`);
+              fs.writeFileSync(outputFile, JSON.stringify(this.result));
+            } else {
+              console.log(`Job ${this.status}`);
+            }
+          },
+          function() {
+            console.error('Job failed');
+            for (let e of this.errors) {
+              console.error(e);
+            }
+          },
+          function() {
+            let now = new Date();
+            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
+            return abort;
+          }
+        )
       }
     }
   );
