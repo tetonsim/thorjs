@@ -413,11 +413,9 @@ function resetPassword() {
 }
 
 function submitSmartSliceJob(job, is3mf) {
-  const replacementIndex = job.lastIndexOf('.')
-
   const outputFile = path.join(
     path.dirname(job),
-    path.basename(job).slice(0, replacementIndex)+ '.out.json'
+    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
   );
 
   fs.readFile(
