@@ -24,13 +24,13 @@ let config = {
   token: null
 };
 
-let jconfig = storage.getItem('config');
+const jconfig = storage.getItem('config');
 
 if (jconfig !== null) {
   config = JSON.parse(jconfig);
 }
 
-let api = new thor.API(config);
+const api = new thor.API(config);
 
 const mutableStdout = new Writable({
   write: function(chunk, encoding, callback) {
@@ -152,7 +152,6 @@ teams
 app.parse(process.argv);
 
 function configure() {
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -162,29 +161,28 @@ function configure() {
   console.log('Leave inputs empty to use the default, specified in parentheses.');
   console.log('If you were previously logged in, this process will log you out.');
 
-  let new_config = {
+  const new_config = {
     host: HOST,
     token: null
   };
 
   rl.question('Host (' + HOST + '): ',
-    function(host) {
+      function(host) {
+        if (host.length > 0) {
+          new_config.host = host;
+        }
 
-      if (host.length > 0) {
-        new_config.host = host;
+        storage.setItem('config', JSON.stringify(new_config));
+
+        rl.close();
       }
-
-      storage.setItem('config', JSON.stringify(new_config));
-
-      rl.close();
-    }
   );
 
   api.releaseToken(function() {}, function() {});
 }
 
 function _multipleQuestions(questions, callback) {
-  let answers = [];
+  const answers = [];
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -193,16 +191,16 @@ function _multipleQuestions(questions, callback) {
 
   function askQuestion(i) {
     rl.question(
-      questions[i],
-      answer => {
-        answers.push(answer);
-        if (questions.length > (i + 1)) {
-          askQuestion(i + 1);
-        } else {
-          rl.close();
-          callback(...answers);
+        questions[i],
+        answer => {
+          answers.push(answer);
+          if (questions.length > (i + 1)) {
+            askQuestion(i + 1);
+          } else {
+            rl.close();
+            callback(...answers);
+          }
         }
-      }
     );
   }
 
@@ -219,19 +217,19 @@ function _getCredentials(callback) {
   mutableStdout.muted = false;
 
   rl.question('Email: ',
-    function(email) {
-      process.stdout.write('Password: ');
+      function(email) {
+        process.stdout.write('Password: ');
 
-      mutableStdout.muted = true;
+        mutableStdout.muted = true;
 
-      rl.question('',
-        function(pass) {
-          console.log('');
-          callback(email, pass);
-          rl.close();
-        }
-      );
-    }
+        rl.question('',
+            function(pass) {
+              console.log('');
+              callback(email, pass);
+              rl.close();
+            }
+        );
+      }
   );
 }
 
@@ -244,248 +242,247 @@ function _basicErrorCallback() {
 }
 
 function login() {
-  var loginWithCreds = function(email, pass) {
+  const loginWithCreds = function(email, pass) {
     api.getToken(email, pass,
-      function() {
-        const new_config = {
-          host: api.config.host,
-          token: api.token
-        }
-        storage.setItem('config', JSON.stringify(new_config));
-        console.log('Hi ' + this.first_name + ', you are logged in.');
-        console.log('Use the logout command to log out.');
-      },
-      _basicErrorCallback
+        function() {
+          const new_config = {
+            host: api.config.host,
+            token: api.token
+          };
+          storage.setItem('config', JSON.stringify(new_config));
+          console.log('Hi ' + this.first_name + ', you are logged in.');
+          console.log('Use the logout command to log out.');
+        },
+        _basicErrorCallback
     );
-  }
+  };
 
   _getCredentials(loginWithCreds);
 }
 
 function whoAmI(callback, ...args) {
   api.whoAmI(
-    _ => callback(...args),
-    function() {
-      console.error('No user is currently logged in');
-    }
+      _ => callback(...args),
+      function() {
+        console.error('No user is currently logged in');
+      }
   );
 }
 
 function logout() {
   whoAmI(
-    function() {
-      api.releaseToken(
-        function() { console.log('Logged out'); },
-        _basicErrorCallback
-      );
-    }
+      function() {
+        api.releaseToken(
+            function() { console.log('Logged out'); },
+            _basicErrorCallback
+        );
+      }
   );
 }
 
 function register() {
-  var first_name;
-  var last_name;
-  var country;
-  var company;
+  let first_name;
+  let last_name;
+  let country;
+  let company;
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
-  var registerWithCreds = function(email, pass) {
+  const registerWithCreds = function(email, pass) {
     api.register(
-      first_name, last_name, email, pass, company, country,
-      _basicSuccessCallback,
-      function() {
-        console.error('Failed to register');
-        console.error(this.message);
-        rl.close();
-      }
-    );
-  }
-
-  var countryAsk = function() {
-    rl.question(
-      'Country: ',
-      function(answer) {
-        country = answer;
-        rl.close();
-        _getCredentials(registerWithCreds);
-      }
+        first_name, last_name, email, pass, company, country,
+        _basicSuccessCallback,
+        function() {
+          console.error('Failed to register');
+          console.error(this.message);
+          rl.close();
+        }
     );
   };
 
-  var companyAsk = function() {
+  const countryAsk = function() {
     rl.question(
-      'Company: ',
-      function(answer) {
-        company = answer;
-        countryAsk();
-      }
+        'Country: ',
+        function(answer) {
+          country = answer;
+          rl.close();
+          _getCredentials(registerWithCreds);
+        }
     );
   };
 
-  var lastNameAsk = function() {
+  const companyAsk = function() {
     rl.question(
-      'Last Name: ',
-      function(answer) {
-        last_name = answer;
-        companyAsk();
-      }
+        'Company: ',
+        function(answer) {
+          company = answer;
+          countryAsk();
+        }
+    );
+  };
+
+  const lastNameAsk = function() {
+    rl.question(
+        'Last Name: ',
+        function(answer) {
+          last_name = answer;
+          companyAsk();
+        }
     );
   };
 
   rl.question(
-    'First Name: ',
-    function(answer) {
-      first_name = answer;
-      lastNameAsk();
-    }
+      'First Name: ',
+      function(answer) {
+        first_name = answer;
+        lastNameAsk();
+      }
   );
 }
 
 function verifyEmail() {
   if (this.resend !== undefined) {
     api.verifyEmailResend(
-      this.resend,
-      _basicSuccessCallback,
-      _basicErrorCallback
+        this.resend,
+        _basicSuccessCallback,
+        _basicErrorCallback
     );
   } else {
     api.verifyEmail(
-      this.code,
-      _basicSuccessCallback,
-      _basicErrorCallback
+        this.code,
+        _basicSuccessCallback,
+        _basicErrorCallback
     );
   }
 }
 
 function changePassword() {
   whoAmI(
-    function() {
-      const rl = readline.createInterface({
-        input: process.stdin,
-        output: mutableStdout,
-        terminal: true
-      });
+      function() {
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: mutableStdout,
+          terminal: true
+        });
 
-      mutableStdout.muted = true;
+        mutableStdout.muted = true;
 
-      process.stdout.write('Old Password: ');
+        process.stdout.write('Old Password: ');
 
-      rl.question('',
-        function(oldPassword) {
-          process.stdout.write('\nNew Password: ');
+        rl.question('',
+            function(oldPassword) {
+              process.stdout.write('\nNew Password: ');
 
-          rl.question('',
-            function(newPassword) {
-              console.log('');
-              api.changePassword(
-                oldPassword,
-                newPassword,
-                function() {
-                  console.log(this.message);
-                  console.log('You will need to log back in.');
-                },
-                _basicErrorCallback
+              rl.question('',
+                  function(newPassword) {
+                    console.log('');
+                    api.changePassword(
+                        oldPassword,
+                        newPassword,
+                        function() {
+                          console.log(this.message);
+                          console.log('You will need to log back in.');
+                        },
+                        _basicErrorCallback
+                    );
+
+                    rl.close();
+                  }
               );
-
-              rl.close();
             }
-          );
-        }
-      );
-    }
+        );
+      }
   );
 }
 
 function forgotPassword() {
   api.forgotPassword(
-    this.email,
-    _basicSuccessCallback,
-    _basicErrorCallback
+      this.email,
+      _basicSuccessCallback,
+      _basicErrorCallback
   );
 }
 
 function resetPassword() {
-  let code = this.code;
+  const code = this.code;
 
   _getCredentials(
-    function(email, password) {
-      api.resetPassword(
-        code,
-        email,
-        password,
-        _basicSuccessCallback,
-        _basicErrorCallback
-      )
-    }
+      function(email, password) {
+        api.resetPassword(
+            code,
+            email,
+            password,
+            _basicSuccessCallback,
+            _basicErrorCallback
+        );
+      }
   );
 }
 
 function submitSmartSliceJob(job, is3mf) {
   const outputFile = path.join(
-    path.dirname(job),
-    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
+      path.dirname(job),
+      path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
   );
 
   fs.readFile(
-    job,
-    (error, data) => {
-      if (error) {
-        console.error(error);
-      } else {
-
-        if (!is3mf) {
-          try {
-            data = JSON.parse(data);
-          } catch (error) {
-            throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
+      job,
+      (error, data) => {
+        if (error) {
+          console.error(error);
+        } else {
+          if (!is3mf) {
+            try {
+              data = JSON.parse(data);
+            } catch (error) {
+              throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
+            }
           }
+
+          console.log('CTRL+C to cancel job');
+
+          let abort = false;
+
+          process.on('SIGINT', _ => {
+            abort = true;
+          });
+
+          api.submitSmartSliceJobAndPoll(
+              data,
+              function() { console.error(this); },
+              function() {
+                if (this.status === 'finished') {
+                  console.log(`Job finished, writing result to ${outputFile}`);
+                  fs.writeFileSync(outputFile, JSON.stringify(this.result));
+                } else {
+                  console.log(`Job ${this.status}`);
+                }
+              },
+              function() {
+                console.error('Job failed');
+                for (const e of this.errors) {
+                  console.error(e);
+                }
+              },
+              function() {
+                const now = new Date();
+                console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
+                return abort;
+              }
+          );
         }
-
-        console.log('CTRL+C to cancel job');
-
-        let abort = false;
-
-        process.on('SIGINT', _ => {
-          abort = true;
-        });
-
-        api.submitSmartSliceJobAndPoll(
-          data,
-          function() { console.error(this); },
-          function() {
-            if (this.status === 'finished') {
-              console.log(`Job finished, writing result to ${outputFile}`);
-              fs.writeFileSync(outputFile, JSON.stringify(this.result));
-            } else {
-              console.log(`Job ${this.status}`);
-            }
-          },
-          function() {
-            console.error('Job failed');
-            for (let e of this.errors) {
-              console.error(e);
-            }
-          },
-          function() {
-            let now = new Date();
-            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
-            return abort;
-          }
-        )
       }
-    }
   );
 }
 
 function cancelSmartSliceJob(jobId) {
   api.cancelSmartSliceJob(
-    jobId,
-    function() { console.log(`Job status: ${this.status}`); },
-    _basicErrorCallback
+      jobId,
+      function() { console.log(`Job status: ${this.status}`); },
+      _basicErrorCallback
   );
 }
 
@@ -497,43 +494,43 @@ function listSmartSliceJobs(page, limit) {
   page = Math.max(1, page);
   limit = Math.max(1, limit);
 
-  let success = function() {
+  const success = function() {
     console.log(`Page ${this.page}/${this.total_pages}`);
-    for (let job of this.jobs) {
+    for (const job of this.jobs) {
       console.log(`${job.id} : ${job.status} (${job.progress})`);
     }
     console.log(`Page ${this.page}/${this.total_pages}`);
-  }
+  };
 
   api.listSmartSliceJobs(limit, page, success, _basicErrorCallback);
 }
 
 function createTeam() {
   _multipleQuestions(
-    ['Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ', 'Full Team Name: '],
-    function(name, fullName) {
-      api.createTeam(
-        name,
-        fullName,
-        _basicSuccessCallback,
-        _basicErrorCallback
-      );
-    }
+      ['Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ', 'Full Team Name: '],
+      function(name, fullName) {
+        api.createTeam(
+            name,
+            fullName,
+            _basicSuccessCallback,
+            _basicErrorCallback
+        );
+      }
   );
 }
 
 function listMemberships() {
   api.teamMemberships(
-    function() { console.log(this); },
-    _basicErrorCallback
+      function() { console.log(this); },
+      _basicErrorCallback
   );
 }
 
 function listTeamMembers(team) {
   api.teamMembers(
-    team,
-    function() { console.log(this); },
-    _basicErrorCallback
+      team,
+      function() { console.log(this); },
+      _basicErrorCallback
   );
 }
 
@@ -556,15 +553,15 @@ function removeTeamMember(team, email) {
   });
 
   rl.question(
-    `Are you sure you want to remove ${email} from ${team} (y/N): `,
-    answer => {
-      if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
-        api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
-      } else {
-        console.log('Member removal action canceled');
+      `Are you sure you want to remove ${email} from ${team} (y/N): `,
+      answer => {
+        if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
+          api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
+        } else {
+          console.log('Member removal action canceled');
+        }
+        rl.close();
       }
-      rl.close();
-    }
   );
 }
 
