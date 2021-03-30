@@ -15,16 +15,16 @@ const thor = require('./thor');
 // default configuration
 const HOST = 'https://api.smartslice.xyz';
 let config = {
-  host: HOST
+  host: HOST,
 };
 
-let jconfig = thor.API.localStorage.getItem('config');
+const jconfig = thor.API.localStorage.getItem('config');
 
 if (jconfig !== null) {
   config = JSON.parse(jconfig);
 }
 
-let api = new thor.API(config);
+const api = new thor.API(config);
 
 const mutableStdout = new Writable({
   write: function(chunk, encoding, callback) {
@@ -32,7 +32,7 @@ const mutableStdout = new Writable({
       process.stdout.write(chunk, encoding);
     }
     callback();
-  }
+  },
 });
 
 app
@@ -63,7 +63,7 @@ const password = app.command('password');
 
 password
   .command('change')
-  .action(changePassword)
+  .action(changePassword);
 
 password
   .command('forgot')
@@ -80,20 +80,20 @@ const smartslice = app.command('smartslice');
 smartslice
   .command('submit3MF <file>')
   .description('Submit 3MF file for validation/optimization')
-  .action(job => {
+  .action((job) => {
     whoAmI(submitSmartSliceJob, job, true);
   });
 
 smartslice
   .command('submit <file>' )
   .description('Submit JSON file for validation/optimization')
-  .action(job => {
-    whoAmI(submitSmartSliceJob, job, false)
+  .action((job) => {
+    whoAmI(submitSmartSliceJob, job, false);
   });
 
 smartslice
   .command('cancel <id>')
-  .action(jobId => whoAmI(cancelSmartSliceJob, jobId));
+  .action((jobId) => whoAmI(cancelSmartSliceJob, jobId));
 
 smartslice
   .command('jobs <page>')
@@ -101,22 +101,22 @@ smartslice
   .action(
     function(page) {
       whoAmI(listSmartSliceJobs, page, this.limit);
-    }
+    },
   );
 
 const teams = app.command('teams');
 
 teams
   .command('create')
-  .action(_ => whoAmI(createTeam));
+  .action((_) => whoAmI(createTeam));
 
 teams
   .command('memberships')
-  .action(_ => whoAmI(listMemberships));
+  .action((_) => whoAmI(listMemberships));
 
 teams
   .command('members <team>')
-  .action(team => whoAmI(listTeamMembers, team));
+  .action((team) => whoAmI(listTeamMembers, team));
 
 teams
   .command('invite <team> <email>')
@@ -124,12 +124,12 @@ teams
   .action(
     function(team, email) {
       whoAmI(manageTeamInvite, team, email, this.revoke);
-    }
+    },
   );
 
 teams
   .command('accept-invite <team>')
-  .action(team => whoAmI(acceptTeamInvite, team));
+  .action((team) => whoAmI(acceptTeamInvite, team));
 
 teams
   .command('remove-member <team> <email>')
@@ -146,23 +146,21 @@ teams
 app.parse(process.argv);
 
 function configure() {
-
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   console.log('Input the parameters to re-configure Thor.');
   console.log('Leave inputs empty to use the default, specified in parentheses.');
   console.log('If you were previously logged in, this process will log you out.');
 
-  let new_config = {
-    host: HOST
+  const new_config = {
+    host: HOST,
   };
 
   rl.question('Host (' + HOST + '): ',
     function(host) {
-
       if (host.length > 0) {
         new_config.host = host;
       }
@@ -170,24 +168,24 @@ function configure() {
       thor.API.localStorage.setItem('config', JSON.stringify(new_config));
 
       rl.close();
-    }
+    },
   );
 
   api.releaseToken(function() {}, function() {});
 }
 
 function _multipleQuestions(questions, callback) {
-  let answers = [];
+  const answers = [];
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   function askQuestion(i) {
     rl.question(
       questions[i],
-      answer => {
+      (answer) => {
         answers.push(answer);
         if (questions.length > (i + 1)) {
           askQuestion(i + 1);
@@ -195,7 +193,7 @@ function _multipleQuestions(questions, callback) {
           rl.close();
           callback(...answers);
         }
-      }
+      },
     );
   }
 
@@ -206,7 +204,7 @@ function _getCredentials(callback) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: mutableStdout,
-    terminal: true
+    terminal: true,
   });
 
   mutableStdout.muted = false;
@@ -222,9 +220,9 @@ function _getCredentials(callback) {
           console.log('');
           callback(email, pass);
           rl.close();
-        }
+        },
       );
-    }
+    },
   );
 }
 
@@ -237,25 +235,25 @@ function _basicErrorCallback() {
 }
 
 function login() {
-  var loginWithCreds = function(email, pass) {
+  const loginWithCreds = function(email, pass) {
     api.getToken(email, pass,
       function() {
         console.log('Hi ' + this.first_name + ', you are logged in.');
         console.log('Use the logout command to log out.');
       },
-      _basicErrorCallback
+      _basicErrorCallback,
     );
-  }
+  };
 
   _getCredentials(loginWithCreds);
 }
 
 function whoAmI(callback, ...args) {
   api.whoAmI(
-    _ => callback(...args),
+    (_) => callback(...args),
     function() {
       console.error('No user is currently logged in');
-    }
+    },
   );
 }
 
@@ -263,25 +261,27 @@ function logout() {
   whoAmI(
     function() {
       api.releaseToken(
-        function() { console.log('Logged out'); },
-        _basicErrorCallback
+        function() {
+          console.log('Logged out');
+        },
+        _basicErrorCallback,
       );
-    }
+    },
   );
 }
 
 function register() {
-  var first_name;
-  var last_name;
-  var country;
-  var company;
+  let first_name;
+  let last_name;
+  let country;
+  let company;
 
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  var registerWithCreds = function(email, pass) {
+  const registerWithCreds = function(email, pass) {
     api.register(
       first_name, last_name, email, pass, company, country,
       _basicSuccessCallback,
@@ -289,38 +289,38 @@ function register() {
         console.error('Failed to register');
         console.error(this.message);
         rl.close();
-      }
+      },
     );
-  }
+  };
 
-  var countryAsk = function() {
+  const countryAsk = function() {
     rl.question(
       'Country: ',
       function(answer) {
         country = answer;
         rl.close();
         _getCredentials(registerWithCreds);
-      }
+      },
     );
   };
 
-  var companyAsk = function() {
+  const companyAsk = function() {
     rl.question(
       'Company: ',
       function(answer) {
         company = answer;
         countryAsk();
-      }
+      },
     );
   };
 
-  var lastNameAsk = function() {
+  const lastNameAsk = function() {
     rl.question(
       'Last Name: ',
       function(answer) {
         last_name = answer;
         companyAsk();
-      }
+      },
     );
   };
 
@@ -329,7 +329,7 @@ function register() {
     function(answer) {
       first_name = answer;
       lastNameAsk();
-    }
+    },
   );
 }
 
@@ -338,13 +338,13 @@ function verifyEmail() {
     api.verifyEmailResend(
       this.resend,
       _basicSuccessCallback,
-      _basicErrorCallback
+      _basicErrorCallback,
     );
   } else {
     api.verifyEmail(
       this.code,
       _basicSuccessCallback,
-      _basicErrorCallback
+      _basicErrorCallback,
     );
   }
 }
@@ -355,7 +355,7 @@ function changePassword() {
       const rl = readline.createInterface({
         input: process.stdin,
         output: mutableStdout,
-        terminal: true
+        terminal: true,
       });
 
       mutableStdout.muted = true;
@@ -376,15 +376,15 @@ function changePassword() {
                   console.log(this.message);
                   console.log('You will need to log back in.');
                 },
-                _basicErrorCallback
+                _basicErrorCallback,
               );
 
               rl.close();
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 }
 
@@ -392,12 +392,12 @@ function forgotPassword() {
   api.forgotPassword(
     this.email,
     _basicSuccessCallback,
-    _basicErrorCallback
+    _basicErrorCallback,
   );
 }
 
 function resetPassword() {
-  let code = this.code;
+  const code = this.code;
 
   _getCredentials(
     function(email, password) {
@@ -406,16 +406,16 @@ function resetPassword() {
         email,
         password,
         _basicSuccessCallback,
-        _basicErrorCallback
-      )
-    }
+        _basicErrorCallback,
+      );
+    },
   );
 }
 
 function submitSmartSliceJob(job, is3mf) {
   const outputFile = path.join(
     path.dirname(job),
-    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
+    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json',
   );
 
   fs.readFile(
@@ -424,7 +424,6 @@ function submitSmartSliceJob(job, is3mf) {
       if (error) {
         console.error(error);
       } else {
-
         if (!is3mf) {
           try {
             data = JSON.parse(data);
@@ -437,13 +436,15 @@ function submitSmartSliceJob(job, is3mf) {
 
         let abort = false;
 
-        process.on('SIGINT', _ => {
+        process.on('SIGINT', (_) => {
           abort = true;
         });
 
         api.submitSmartSliceJobAndPoll(
           data,
-          function() { console.error(this); },
+          function() {
+            console.error(this);
+          },
           function() {
             if (this.status === 'finished') {
               console.log(`Job finished, writing result to ${outputFile}`);
@@ -454,26 +455,28 @@ function submitSmartSliceJob(job, is3mf) {
           },
           function() {
             console.error('Job failed');
-            for (let e of this.errors) {
+            for (const e of this.errors) {
               console.error(e);
             }
           },
           function() {
-            let now = new Date();
+            const now = new Date();
             console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
             return abort;
-          }
-        )
+          },
+        );
       }
-    }
+    },
   );
 }
 
 function cancelSmartSliceJob(jobId) {
   api.cancelSmartSliceJob(
     jobId,
-    function() { console.log(`Job status: ${this.status}`); },
-    _basicErrorCallback
+    function() {
+      console.log(`Job status: ${this.status}`);
+    },
+    _basicErrorCallback,
   );
 }
 
@@ -485,13 +488,13 @@ function listSmartSliceJobs(page, limit) {
   page = Math.max(1, page);
   limit = Math.max(1, limit);
 
-  let success = function() {
+  const success = function() {
     console.log(`Page ${this.page}/${this.total_pages}`);
-    for (let job of this.jobs) {
+    for (const job of this.jobs) {
       console.log(`${job.id} : ${job.status} (${job.progress})`);
     }
     console.log(`Page ${this.page}/${this.total_pages}`);
-  }
+  };
 
   api.listSmartSliceJobs(limit, page, success, _basicErrorCallback);
 }
@@ -504,24 +507,28 @@ function createTeam() {
         name,
         fullName,
         _basicSuccessCallback,
-        _basicErrorCallback
+        _basicErrorCallback,
       );
-    }
+    },
   );
 }
 
 function listMemberships() {
   api.teamMemberships(
-    function() { console.log(this); },
-    _basicErrorCallback
+    function() {
+      console.log(this);
+    },
+    _basicErrorCallback,
   );
 }
 
 function listTeamMembers(team) {
   api.teamMembers(
     team,
-    function() { console.log(this); },
-    _basicErrorCallback
+    function() {
+      console.log(this);
+    },
+    _basicErrorCallback,
   );
 }
 
@@ -540,19 +547,19 @@ function acceptTeamInvite(team) {
 function removeTeamMember(team, email) {
   const rl = readline.createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
   rl.question(
     `Are you sure you want to remove ${email} from ${team} (y/N): `,
-    answer => {
+    (answer) => {
       if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
         api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
       } else {
         console.log('Member removal action canceled');
       }
       rl.close();
-    }
+    },
   );
 }
 
