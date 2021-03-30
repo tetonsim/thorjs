@@ -429,7 +429,7 @@ function submitSmartSliceJob(job, is3mf) {
           try {
             data = JSON.parse(data);
           } catch (error) {
-            throw new Error(' "JSON failed to parse. If this is a 3MF file use the submit3MF command');
+            throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
           }
         }
 
