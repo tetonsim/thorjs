@@ -4,11 +4,6 @@ if (typeof window === 'undefined') {
 
   var os = require('os');
   var path = require('path');
-
-  var location = path.join(os.homedir(), '.thor');
-
-  var LocalStorage = require('node-localstorage').LocalStorage;
-  localStorage = new LocalStorage(location);
 }
 
 const _HelperCallbacks = {
@@ -19,8 +14,6 @@ const _HelperCallbacks = {
       } else {
         api.token = this.token;
         api.user = this.user;
-
-        localStorage.setItem('token', JSON.stringify(api.token));
 
         if (success !== undefined) {
           success.bind(api.user)();
@@ -55,34 +48,34 @@ class Message {
  * Handles Thor API requests
  */
 class API {
+  /**@typedef Token
+   * @property {string} expires - Token expiration date
+   * @property {string} id - Token id
+   */
+
   /**
    * API Constructor
    * @param {Object} [config] API configuration
    * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
+   * @param {Token} config.token - Token object containing key and expiration
    */
   constructor(config) {
     if (config === undefined) {
       config = {
-        host: 'https://api.smartslice.xyz'
+        host: 'https://api.smartslice.xyz',
+        token: null
       };
     }
 
     this.host = config.host;
-    this.error = function() {};
+    this.token = config.token;
 
+    this.error = function() {};
     this.user = null;
-    this.token = null;
   }
 
   static get version() {
     return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
-  }
-
-  /**
-   * @returns The LocalStorage object used by the API
-   */
-  static get localStorage() {
-    return localStorage;
   }
 
   get config() {
@@ -142,7 +135,7 @@ class API {
 
     xhttp.setRequestHeader('Accept-version', API.version);
 
-    if (this.token !== null) {
+    if (this.token) {
       xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
     }
 
@@ -216,17 +209,10 @@ class API {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
-      // Check local storage for a token
-      let saved_token = localStorage.getItem('token');
-
-      if (saved_token === null || saved_token === undefined) {
-        error.bind(new Message(401, 'No token available'))();
-        return false;
-      }
-
-      this.token = JSON.parse(saved_token);
-
       getUserInfoFromServer = true;
+
+      error.bind(new Message(401, 'No token available'))();
+      return false;
     }
 
     if (this.user === null || getUserInfoFromServer) {
@@ -282,6 +268,14 @@ class API {
   }
 
   /**
+   *
+   * @param {Token} token
+   */
+  setToken(token) {
+    this.token = token
+  }
+
+  /**
    * Refreshes the API token. This is not usable for expired tokens. If a refresh
    * is attempted on an expired token the server will return 401 Unauthorized.
    * @param {API~getToken-success} success Callback function if refresh is successful.
@@ -313,7 +307,6 @@ class API {
             success();
           }
 
-          localStorage.removeItem('token');
         } else {
           if (error !== undefined) {
             error.bind(new Message(400, 'Failed to logout'));
