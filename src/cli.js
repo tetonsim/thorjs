@@ -89,7 +89,7 @@ smartslice
   .description('Submit JSON file for validation/optimization')
   .action(job => {
     whoAmI(submitSmartSliceJob, job, false)
-  })
+  });
 
 smartslice
   .command('cancel <id>')
