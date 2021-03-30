@@ -78,8 +78,18 @@ password
 const smartslice = app.command('smartslice');
 
 smartslice
-  .command('submit <threemf>')
-  .action(threemf => whoAmI(submitSmartSliceJob, threemf));
+  .command('submit3MF <file>')
+  .description('Submit 3MF file for validation/optimization')
+  .action(job => {
+    whoAmI(submitSmartSliceJob, job, true);
+  });
+
+smartslice
+  .command('submit <file>' )
+  .description('Submit JSON file for validation/optimization')
+  .action(job => {
+    whoAmI(submitSmartSliceJob, job, false)
+  });
 
 smartslice
   .command('cancel <id>')
@@ -402,23 +412,34 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob(threemf) {
-  let outputFile = path.join(
-    path.dirname(threemf),
-    path.basename(threemf, '.3mf') + '.json'
+function submitSmartSliceJob(job, is3mf) {
+  const outputFile = path.join(
+    path.dirname(job),
+    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
   );
 
   fs.readFile(
-    threemf,
+    job,
     (error, data) => {
       if (error) {
         console.error(error);
       } else {
-        let abort = false;
 
-        process.on('SIGINT', _ => { abort = true; });
+        if (!is3mf) {
+          try {
+            data = JSON.parse(data);
+          } catch (error) {
+            throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
+          }
+        }
 
         console.log('CTRL+C to cancel job');
+
+        let abort = false;
+
+        process.on('SIGINT', _ => {
+          abort = true;
+        });
 
         api.submitSmartSliceJobAndPoll(
           data,
