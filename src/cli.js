@@ -78,16 +78,16 @@ password
 const smartslice = app.command('smartslice');
 
 smartslice
-    .command('submit3MF <file>')
-    .description('Submit 3MF file for validation/optimization')
-    .action(job => {
-      whoAmI(submitSmartSliceJob, job, true);
-    });
+  .command('submit3MF <file>')
+  .description('Submit 3MF file for validation/optimization')
+  .action(job => {
+    whoAmI(submitSmartSliceJob, job, true);
+  });
 
 smartslice
   .command('submit <file>' )
   .description('Submit JSON file for validation/optimization')
-  .action( job => {
+  .action(job => {
     whoAmI(submitSmartSliceJob, job, false)
   })
 

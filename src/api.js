@@ -474,8 +474,14 @@ class API {
    */
 
   /**
+   * @typedef Job
+   * @property {Object} [job] - JavaScript job object
+   * @property {Buffer} [job] - Buffer object of 3mf file
+   */
+
+  /**
    * Submit and start a new job with the given 3MF specified as a buffer
-   * @param {Buffer} job
+   * @param {Job} job
    * @param {API~job-callback} success
    * @param {API~error} error
    */
