@@ -427,15 +427,9 @@ function submitSmartSliceJob(job, is3mf) {
 
         if (!is3mf) {
           try {
-            data = JSON.parse(data)
+            data = JSON.parse(data);
           } catch (error) {
-            if (job.includes('3mf')) {
-              throw new Error('3MF files not supported. Try submit3mf command')
-            }
-
-            throw new Error('' +
-              'File type not supported, supported file types are json for submit command and 3mf for submit3mf command'
-            )
+            throw new Error(' "JSON failed to parse. If this is a 3MF file use the submit3MF command');
           }
         }
 
