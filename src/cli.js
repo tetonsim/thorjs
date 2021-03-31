@@ -6,19 +6,25 @@ const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
 
 const app = require('commander');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const process = require('process');
 const readline = require('readline');
 const Writable = require('stream').Writable;
 const thor = require('./thor');
 
+const location = path.join(os.homedir(), '.thor');
+const LocalStorage = require('node-localstorage').LocalStorage;
+const storage = new LocalStorage(location);
+
 // default configuration
 const HOST = 'https://api.smartslice.xyz';
 let config = {
-  host: HOST
+  host: HOST,
+  token: null
 };
 
-let jconfig = thor.API.localStorage.getItem('config');
+let jconfig = storage.getItem('config');
 
 if (jconfig !== null) {
   config = JSON.parse(jconfig);
@@ -157,7 +163,8 @@ function configure() {
   console.log('If you were previously logged in, this process will log you out.');
 
   let new_config = {
-    host: HOST
+    host: HOST,
+    token: null
   };
 
   rl.question('Host (' + HOST + '): ',
@@ -167,7 +174,7 @@ function configure() {
         new_config.host = host;
       }
 
-      thor.API.localStorage.setItem('config', JSON.stringify(new_config));
+      storage.setItem('config', JSON.stringify(new_config));
 
       rl.close();
     }
@@ -240,6 +247,11 @@ function login() {
   var loginWithCreds = function(email, pass) {
     api.getToken(email, pass,
       function() {
+        const new_config = {
+          host: api.config.host,
+          token: api.token
+        }
+        storage.setItem('config', JSON.stringify(new_config));
         console.log('Hi ' + this.first_name + ', you are logged in.');
         console.log('Use the logout command to log out.');
       },
