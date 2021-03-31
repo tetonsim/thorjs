@@ -12,7 +12,7 @@ module.exports = {
   },
   'rules': {
     "indent": [2, 2],
-    "camelcase":"off",
+    "camelcase": "off",
     "no-invalid-this": "off",
     "max-len": "off",
     "require-jsdoc": "off"
