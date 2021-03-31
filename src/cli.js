@@ -6,10 +6,10 @@ const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
 
 const app = require('commander');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const process = require('process');
 const readline = require('readline');
-const os = require('os');
 const Writable = require('stream').Writable;
 const thor = require('./thor');
 

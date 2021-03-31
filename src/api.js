@@ -1,9 +1,6 @@
 
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
-
-  var os = require('os');
-  var path = require('path');
 }
 
 const _HelperCallbacks = {
@@ -49,15 +46,15 @@ class Message {
  */
 class API {
   /**@typedef Token
-   * @property {string} expires - Token expiration date
-   * @property {string} id - Token id
+   * @property {string} expires Token expiration date
+   * @property {string} id Token id
    */
 
   /**
    * API Constructor
    * @param {Object} [config] API configuration
    * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
-   * @param {Token} config.token - Token object containing key and expiration
+   * @param {Token} config.token Authorization bearer token to use in API calls
    */
   constructor(config) {
     if (config === undefined) {
@@ -272,7 +269,7 @@ class API {
    * @param {Token} token
    */
   setToken(token) {
-    this.token = token
+    this.token = token;
   }
 
   /**
