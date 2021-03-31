@@ -16,8 +16,8 @@ const _HelperCallbacks = {
           success.bind(api.user)();
         }
       }
-    }
-  }
+    };
+  },
 };
 
 /**
@@ -45,7 +45,7 @@ class Message {
  * Handles Thor API requests
  */
 class API {
-  /**@typedef Token
+  /** @typedef Token
    * @property {string} expires Token expiration date
    * @property {string} id Token id
    */
@@ -60,7 +60,7 @@ class API {
     if (config === undefined) {
       config = {
         host: 'https://api.smartslice.xyz',
-        token: null
+        token: null,
       };
     }
 
@@ -77,18 +77,18 @@ class API {
 
   get config() {
     return {
-      host: this.host
-    }
+      host: this.host,
+    };
   }
 
   _request(method, route, success, error, data) {
-    var xhttp = new XMLHttpRequest();
+    const xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState === 4) {
         try {
           var response = JSON.parse(xhttp.responseText);
-        } catch(err) {
+        } catch (err) {
           var response = xhttp.responseText;
         }
 
@@ -126,7 +126,7 @@ class API {
           error.bind(err)();
         }
       }
-    }
+    };
 
     xhttp.open(method, this.host + route, true);
 
@@ -162,7 +162,7 @@ class API {
    * @this {Message}
    */
 
-   /**
+  /**
     * Verify version successfull callback
     * @callback API~verify-version
     * @param {boolean} compatible True if the host version is compatible with this client library
@@ -176,33 +176,33 @@ class API {
   * @param {API~error} error
   */
   verifyVersion(success, error) {
-    let parseVersion = function() {
-      let sv = this.version.split('.');
-      let cv = API.version.split('.');
+    const parseVersion = function() {
+      const sv = this.version.split('.');
+      const cv = API.version.split('.');
 
-      let sv_maj = parseInt(sv[0]);
-      let sv_min = parseInt(sv[1]);
+      const sv_maj = parseInt(sv[0]);
+      const sv_min = parseInt(sv[1]);
 
-      let cv_maj = parseInt(cv[0]);
-      let cv_min = parseInt(cv[1]);
+      const cv_maj = parseInt(cv[0]);
+      const cv_min = parseInt(cv[1]);
 
       // Require the exact same version. As versions advance
       // how can we make this less restrictive?
-      let compatible = (sv_maj === cv_maj && sv_min === cv_min);
+      const compatible = (sv_maj === cv_maj && sv_min === cv_min);
 
       success(compatible, API.version, this.version);
-    }
+    };
 
     this._request('GET', '/', parseVersion, error);
   }
 
-   /**
+  /**
     * Checks if a token is already in use and
     * returns the user information if available, otherwise null
     * @param {API~getToken-success} success
     * @param {API~error} error
     */
-   whoAmI(success, error) {
+  whoAmI(success, error) {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
@@ -213,13 +213,13 @@ class API {
     }
 
     if (this.user === null || getUserInfoFromServer) {
-      let api = this;
+      const api = this;
 
-      let clearUser = function() {
+      const clearUser = function() {
         api.user = null;
         api.token = null;
         error.bind(this)();
-      }
+      };
 
       this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
@@ -237,8 +237,8 @@ class API {
         last_name: last_name,
         password: password,
         company: company,
-        country: country
-      }
+        country: country,
+      },
     );
   }
 
@@ -261,7 +261,7 @@ class API {
    */
   getToken(email, password, success, error) {
     this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, { email: email, password: password });
+      error, {email: email, password: password});
   }
 
   /**
@@ -293,7 +293,7 @@ class API {
    * @param {API~error} error
    */
   releaseToken(success, error) {
-    var api = this;
+    const api = this;
 
     this._request('DELETE', '/auth/token',
       function() {
@@ -303,14 +303,13 @@ class API {
           if (success !== undefined) {
             success();
           }
-
         } else {
           if (error !== undefined) {
             error.bind(new Message(400, 'Failed to logout'));
           }
         }
       },
-      error
+      error,
     );
   }
 
@@ -325,7 +324,7 @@ class API {
       'POST', '/auth/verify',
       success,
       error,
-      { code: code }
+      {code: code},
     );
   }
 
@@ -339,7 +338,7 @@ class API {
       'POST', '/auth/verify/resend',
       success,
       error,
-      { email: email }
+      {email: email},
     );
   }
 
@@ -358,8 +357,8 @@ class API {
       {
         old_password: oldPassword,
         password: newPassword,
-        confirm_password: newPassword
-      }
+        confirm_password: newPassword,
+      },
     );
   }
 
@@ -374,7 +373,7 @@ class API {
       'POST', '/auth/password/forgot',
       success,
       error,
-      { email: email }
+      {email: email},
     );
   }
 
@@ -395,8 +394,8 @@ class API {
         email: email,
         code: code,
         password: password,
-        confirm_password: password
-      }
+        confirm_password: password,
+      },
     );
   }
 
@@ -428,7 +427,7 @@ class API {
     this._request(
       'GET', url,
       success,
-      error
+      error,
     );
   }
 
@@ -474,7 +473,7 @@ class API {
       'POST', '/smartslice',
       success,
       error,
-      job
+      job,
     );
   }
 
@@ -488,7 +487,7 @@ class API {
     this._request(
       'DELETE', `/smartslice/${jobId}`,
       success,
-      error
+      error,
     );
   }
 
@@ -518,7 +517,7 @@ class API {
    * @param {API~job-poll-callback} poll
    */
   pollSmartSliceJob(jobId, error, finished, failed, poll) {
-    let api = this;
+    const api = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
 
@@ -527,10 +526,10 @@ class API {
 
     function pollJob(period) {
       return function() {
-        let handleJobStatus = function() {
+        const handleJobStatus = function() {
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
-              let abort = poll.bind(this)();
+              const abort = poll.bind(this)();
 
               if (abort) {
                 api.cancelSmartSliceJob(jobId, () => {}, () => {});
@@ -547,17 +546,17 @@ class API {
           }
         };
 
-        let errorHandler = function() {
+        const errorHandler = function() {
           if (this.http_code == 429) {
             // If the error is a rate limit, then just continue polling.
             setTimeout(pollJob(period), period);
           } else {
             error.bind(this)();
           }
-        }
+        };
 
         api.getSmartSliceJob(jobId, handleJobStatus, errorHandler, true);
-      }
+      };
     }
 
     pollJob(1000)();
@@ -573,13 +572,13 @@ class API {
    * @param {API~job-poll-callback} poll
    */
   submitSmartSliceJobAndPoll(job, error, finished, failed, poll) {
-    let that = this;
+    const that = this;
     this.submitSmartSliceJob(
       job,
       function() {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },
-      error
+      error,
     );
   }
 
@@ -591,7 +590,7 @@ class API {
    * @param {API~error} error
    */
   listSmartSliceJobs(limit, page, success, error) {
-    let route = `/smartslice/jobs?limit=${limit}&page=${page}`;
+    const route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
     this._request('GET', route, success, error);
   }
@@ -649,8 +648,8 @@ class API {
       error,
       {
         name: name,
-        full_name: fullName
-      }
+        full_name: fullName,
+      },
     );
   }
 
@@ -681,7 +680,7 @@ class API {
    * @param {API~error} error
    */
   inviteToTeam(team, email, success, error) {
-    this._request('POST', `/teams/${team}/invite`, success, error, { email: email });
+    this._request('POST', `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -692,7 +691,7 @@ class API {
    * @param {API~error} error
    */
   revokeTeamInvite(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/invite`, success, error, { email: email });
+    this._request('DELETE', `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -713,7 +712,7 @@ class API {
    * @param {API~error} error
    */
   removeTeamMember(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/member`, success, error, { email: email });
+    this._request('DELETE', `/teams/${team}/member`, success, error, {email: email});
   }
 
   /**
@@ -731,8 +730,8 @@ class API {
       error,
       {
         email: email,
-        role: role
-      }
+        role: role,
+      },
     );
   }
 
@@ -751,8 +750,8 @@ class API {
       error,
       {
         email: email,
-        role: role
-      }
+        role: role,
+      },
     );
   }
 
@@ -784,8 +783,8 @@ class API {
       error,
       {
         description: description,
-        job: jobId
-      }
+        job: jobId,
+      },
     );
   }
 }
