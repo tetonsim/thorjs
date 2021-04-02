@@ -1,8 +1,9 @@
 #! /usr/bin/env node
+export {};
 
 'use strict';
 
-const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
+const version =  'dev';
 
 const app = require('commander');
 const fs = require('fs');

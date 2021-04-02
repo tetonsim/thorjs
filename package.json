@@ -23,6 +23,7 @@
     "xmlhttprequest": "^1.8.0"
   },
   "devDependencies": {
+    "@types/node": "^14.14.37",
     "eslint": "^7.23.0",
     "eslint-config-google": "^0.14.0",
     "jsdoc": "^3.6.6",
