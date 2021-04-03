@@ -50,7 +50,7 @@ class Message {
 /**
  * Handles Thor API requests
  */
-class API {
+export class API {
 	public host: any;
 	public token: any;
 	public error: any;
@@ -277,7 +277,7 @@ class API {
    * @param {API~getToken-success} success Callback function if token is obtained.
    * @param {API~error} error Callback function if token creation fails.
    */
-  getToken(email, password, success, error) {
+  getToken(email: string, password: string, success: ()=>void, error: ()=>void) {
     this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
       error, {email: email, password: password});
   }
@@ -296,7 +296,7 @@ class API {
    * @param {API~getToken-success} success Callback function if refresh is successful.
    * @param {API~error} error Callback function if refresh is unsuccessful.
    */
-  refreshToken(success, error) {
+  refreshToken(success: any, error: (arg0: string) => void) {
     if (this.token === null) {
       error('null token');
       return;
@@ -310,7 +310,7 @@ class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  releaseToken(success, error) {
+  releaseToken(success: () => void, error: { bind: (arg0: Message) => void; }) {
     const api = this;
 
     this._request('DELETE', '/auth/token',
