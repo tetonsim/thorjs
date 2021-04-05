@@ -630,12 +630,17 @@ export class Job{
 }
 
 class SmartSliceJob extends Job {
-  constructor(config: Job) {
+  job: Job
+  serializedJob: string
+
+  constructor(config: Job = null) {
     super(config)
+
+    this.updateJob()
   }
 
-  getObject(serialized: boolean = true) {
-    const job: Job = {
+  updateJob():void {
+    this.job = {
       type: this.type,
       chop: this.chop,
       extruders: this.extruders,
@@ -643,11 +648,10 @@ class SmartSliceJob extends Job {
       bulk: this.bulk
     }
 
-    if (serialized) {
-      return job
-    } else {
-      return JSON.stringify(job)
-    }
+    this.serializedJob = JSON.stringify(this.job)
+  }
 
+  getJob(serialized: boolean = false): string | Job {
+    return serialized? this.serializedJob: this.job
   }
 }
