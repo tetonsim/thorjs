@@ -1,3 +1,10 @@
+/* eslint @typescript-eslint/explicit-module-boundary-types: off*/
+/* eslint @typescript-eslint/no-var-requires: off*/
+/* eslint @typescript-eslint/no-explicit-any: off */
+/* eslint  @typescript-eslint/no-empty-function: off */
+/* eslint @typescript-eslint/no-this-alias: off */
+
+
 export {};
 let XMLHttpRequest;
 if (typeof window === 'undefined') {
@@ -5,8 +12,8 @@ if (typeof window === 'undefined') {
 }
 
 const _HelperCallbacks = {
-  getToken: function(api, success, error) {
-    return function() {
+  getToken: function (api, success, error) {
+    return function () {
       if (this.error && error !== undefined) {
         error.bind(this)();
       } else {
@@ -29,10 +36,10 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
-	public http_code: any;
-	public message: any;
-	public success: any;
-	public error: any;
+  public http_code: any;
+  public message: any;
+  public success: any;
+  public error: any;
 
   constructor(http_code, message) {
     this.http_code = http_code;
@@ -50,16 +57,16 @@ class Message {
 /**
  * Handles Thor API requests
  */
-export class API {
-	public host: any;
-	public token: any;
-	public error: any;
-	public user: any;
-	public version: any;
-	public success: any;
-	public status: any;
-	public http_code: any;
-	public id: any;
+class API {
+  public host: any;
+  public token: any;
+  public error: any;
+  public user: any;
+  public version: any;
+  public success: any;
+  public status: any;
+  public http_code: any;
+  public id: any;
 
   /** @typedef Token
    * @property {string} expires Token expiration date
@@ -83,12 +90,12 @@ export class API {
     this.host = config.host;
     this.token = config.token;
 
-    this.error = function() {};
+    this.error = function () {};
     this.user = null;
   }
 
   static get version() {
-    return '21.0'
+    return '21.0';
     // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
@@ -102,7 +109,7 @@ export class API {
     const xhttp = new XMLHttpRequest();
     var response;
 
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);
@@ -181,20 +188,20 @@ export class API {
    */
 
   /**
-    * Verify version successfull callback
-    * @callback API~verify-version
-    * @param {boolean} compatible True if the host version is compatible with this client library
-    * @param {string} client_version The client version - also available through API.version
-    * @param {string} server_version The server version
-    */
+   * Verify version successfull callback
+   * @callback API~verify-version
+   * @param {boolean} compatible True if the host version is compatible with this client library
+   * @param {string} client_version The client version - also available through API.version
+   * @param {string} server_version The server version
+   */
 
   /**
-  *
-  * @param {API~verify-version} success
-  * @param {API~error} error
-  */
+   *
+   * @param {API~verify-version} success
+   * @param {API~error} error
+   */
   verifyVersion(success, error) {
-    const parseVersion = function() {
+    const parseVersion = function () {
       const sv = this.version.split('.');
       const cv = API.version.split('.');
 
@@ -206,7 +213,7 @@ export class API {
 
       // Require the exact same version. As versions advance
       // how can we make this less restrictive?
-      const compatible = (sv_maj === cv_maj && sv_min === cv_min);
+      const compatible = sv_maj === cv_maj && sv_min === cv_min;
 
       success(compatible, API.version, this.version);
     };
@@ -215,11 +222,11 @@ export class API {
   }
 
   /**
-    * Checks if a token is already in use and
-    * returns the user information if available, otherwise null
-    * @param {API~getToken-success} success
-    * @param {API~error} error
-    */
+   * Checks if a token is already in use and
+   * returns the user information if available, otherwise null
+   * @param {API~getToken-success} success
+   * @param {API~error} error
+   */
   whoAmI(success, error) {
     let getUserInfoFromServer = false;
 
@@ -233,13 +240,18 @@ export class API {
     if (this.user === null || getUserInfoFromServer) {
       const api = this;
 
-      const clearUser = function() {
+      const clearUser = function () {
         api.user = null;
         api.token = null;
         error.bind(this)();
       };
 
-      this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
+      this._request(
+        'GET',
+        '/auth/whoami',
+        _HelperCallbacks.getToken(api, success, error),
+        clearUser
+      );
     } else {
       success.bind(this.user)();
     }
@@ -247,17 +259,24 @@ export class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, company, country, success, error) {
-    this._request('POST', '/auth/register', success, error,
-      {
-        email: email,
-        first_name: first_name,
-        last_name: last_name,
-        password: password,
-        company: company,
-        country: country,
-      },
-    );
+  register(
+    first_name,
+    last_name,
+    email,
+    password,
+    company,
+    country,
+    success,
+    error
+  ) {
+    this._request('POST', '/auth/register', success, error, {
+      email: email,
+      first_name: first_name,
+      last_name: last_name,
+      password: password,
+      company: company,
+      country: country,
+    });
   }
 
   /**
@@ -277,9 +296,19 @@ export class API {
    * @param {API~getToken-success} success Callback function if token is obtained.
    * @param {API~error} error Callback function if token creation fails.
    */
-  getToken(email: string, password: string, success: ()=>void, error: ()=>void) {
-    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, {email: email, password: password});
+  getToken(
+    email: string,
+    password: string,
+    success: () => void,
+    error: () => void
+  ) {
+    this._request(
+      'POST',
+      '/auth/token',
+      _HelperCallbacks.getToken(this, success, error),
+      error,
+      { email: email, password: password }
+    );
   }
 
   /**
@@ -302,7 +331,12 @@ export class API {
       return;
     }
 
-    this._request('PUT', '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
+    this._request(
+      'PUT',
+      '/auth/token',
+      _HelperCallbacks.getToken(this, success, error),
+      error
+    );
   }
 
   /**
@@ -310,11 +344,13 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  releaseToken(success: () => void, error: { bind: (arg0: Message) => void; }) {
+  releaseToken(success: () => void, error: { bind: (arg0: Message) => void }) {
     const api = this;
 
-    this._request('DELETE', '/auth/token',
-      function() {
+    this._request(
+      'DELETE',
+      '/auth/token',
+      function () {
         if (this.success) {
           api.token = null;
           api.user = null;
@@ -327,7 +363,7 @@ export class API {
           }
         }
       },
-      error,
+      error
     );
   }
 
@@ -338,12 +374,7 @@ export class API {
    * @param {API~error} error
    */
   verifyEmail(code, success, error) {
-    this._request(
-      'POST', '/auth/verify',
-      success,
-      error,
-      {code: code},
-    );
+    this._request('POST', '/auth/verify', success, error, { code: code });
   }
 
   /**
@@ -352,12 +383,9 @@ export class API {
    * @param {API~error} error
    */
   verifyEmailResend(email, success, error) {
-    this._request(
-      'POST', '/auth/verify/resend',
-      success,
-      error,
-      {email: email},
-    );
+    this._request('POST', '/auth/verify/resend', success, error, {
+      email: email,
+    });
   }
 
   /**
@@ -368,16 +396,11 @@ export class API {
    * @param {API~error} error
    */
   changePassword(oldPassword, newPassword, success, error) {
-    this._request(
-      'POST', '/auth/password/change',
-      success,
-      error,
-      {
-        old_password: oldPassword,
-        password: newPassword,
-        confirm_password: newPassword,
-      },
-    );
+    this._request('POST', '/auth/password/change', success, error, {
+      old_password: oldPassword,
+      password: newPassword,
+      confirm_password: newPassword,
+    });
   }
 
   /**
@@ -387,12 +410,9 @@ export class API {
    * @param {API~error} error
    */
   forgotPassword(email, success, error) {
-    this._request(
-      'POST', '/auth/password/forgot',
-      success,
-      error,
-      {email: email},
-    );
+    this._request('POST', '/auth/password/forgot', success, error, {
+      email: email,
+    });
   }
 
   /**
@@ -404,17 +424,12 @@ export class API {
    * @param {API~error} error
    */
   resetPassword(code, email, password, success, error) {
-    this._request(
-      'POST', '/auth/password/reset',
-      success,
-      error,
-      {
-        email: email,
-        code: code,
-        password: password,
-        confirm_password: password,
-      },
-    );
+    this._request('POST', '/auth/password/reset', success, error, {
+      email: email,
+      code: code,
+      password: password,
+      confirm_password: password,
+    });
   }
 
   /**
@@ -442,11 +457,7 @@ export class API {
       url += `?team=${team}`;
     }
 
-    this._request(
-      'GET', url,
-      success,
-      error,
-    );
+    this._request('GET', url, success, error);
   }
 
   /**
@@ -487,12 +498,7 @@ export class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job, success, error) {
-    this._request(
-      'POST', '/smartslice',
-      success,
-      error,
-      job,
-    );
+    this._request('POST', '/smartslice', success, error, job);
   }
 
   /**
@@ -502,11 +508,7 @@ export class API {
    * @param {API~error} error
    */
   cancelSmartSliceJob(jobId, success, error) {
-    this._request(
-      'DELETE', `/smartslice/${jobId}`,
-      success,
-      error,
-    );
+    this._request('DELETE', `/smartslice/${jobId}`, success, error);
   }
 
   /**
@@ -543,14 +545,18 @@ export class API {
     const periodMultiplier = 1.25;
 
     function pollJob(period) {
-      return function() {
-        const handleJobStatus = function() {
+      return function () {
+        const handleJobStatus = function () {
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               const abort = poll.bind(this)();
 
               if (abort) {
-                api.cancelSmartSliceJob(jobId, () => {}, () => {});
+                api.cancelSmartSliceJob(
+                  jobId,
+                  () => {},
+                  () => {}
+                );
               }
             }
 
@@ -564,7 +570,7 @@ export class API {
           }
         };
 
-        const errorHandler = function() {
+        const errorHandler = function () {
           if (this.http_code == 429) {
             // If the error is a rate limit, then just continue polling.
             setTimeout(pollJob(period), period);
@@ -593,10 +599,10 @@ export class API {
     const that = this;
     this.submitSmartSliceJob(
       job,
-      function() {
+      function () {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },
-      error,
+      error
     );
   }
 
@@ -660,15 +666,10 @@ export class API {
    * @param {API~error} error
    */
   createTeam(name, fullName, success, error) {
-    this._request(
-      'POST', '/teams',
-      success,
-      error,
-      {
-        name: name,
-        full_name: fullName,
-      },
-    );
+    this._request('POST', '/teams', success, error, {
+      name: name,
+      full_name: fullName,
+    });
   }
 
   /**
@@ -698,7 +699,9 @@ export class API {
    * @param {API~error} error
    */
   inviteToTeam(team, email, success, error) {
-    this._request('POST', `/teams/${team}/invite`, success, error, {email: email});
+    this._request('POST', `/teams/${team}/invite`, success, error, {
+      email: email,
+    });
   }
 
   /**
@@ -709,7 +712,9 @@ export class API {
    * @param {API~error} error
    */
   revokeTeamInvite(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/invite`, success, error, {email: email});
+    this._request('DELETE', `/teams/${team}/invite`, success, error, {
+      email: email,
+    });
   }
 
   /**
@@ -730,7 +735,9 @@ export class API {
    * @param {API~error} error
    */
   removeTeamMember(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/member`, success, error, {email: email});
+    this._request('DELETE', `/teams/${team}/member`, success, error, {
+      email: email,
+    });
   }
 
   /**
@@ -742,15 +749,10 @@ export class API {
    * @param {API~error} error
    */
   addTeamMemberRole(team, email, role, success, error) {
-    this._request(
-      'POST', `/teams/${team}/role`,
-      success,
-      error,
-      {
-        email: email,
-        role: role,
-      },
-    );
+    this._request('POST', `/teams/${team}/role`, success, error, {
+      email: email,
+      role: role,
+    });
   }
 
   /**
@@ -762,15 +764,10 @@ export class API {
    * @param {API~error} error
    */
   revokeTeamMemberRole(team, email, role, success, error) {
-    this._request(
-      'DELETE', `/teams/${team}/role`,
-      success,
-      error,
-      {
-        email: email,
-        role: role,
-      },
-    );
+    this._request('DELETE', `/teams/${team}/role`, success, error, {
+      email: email,
+      role: role,
+    });
   }
 
   /**
@@ -795,15 +792,10 @@ export class API {
       jobId = null;
     }
 
-    this._request(
-      'POST', '/support/issue',
-      success,
-      error,
-      {
-        description: description,
-        job: jobId,
-      },
-    );
+    this._request('POST', '/support/issue', success, error, {
+      description: description,
+      job: jobId,
+    });
   }
 }
 

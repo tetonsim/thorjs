@@ -1,20 +1,25 @@
 module.exports = {
-  'env': {
-    'commonjs': true,
-    'es2021': true,
-    'node': true,
-  },
-  'extends': [
-    'google',
-  ],
-  'parserOptions': {
-    'ecmaVersion': 12,
-  },
-  'rules': {
-    "indent": [2, 2],
-    "camelcase": "off",
-    "no-invalid-this": "off",
-    "max-len": "off",
-    "require-jsdoc": "off"
-  },
+    "env": {
+        "es2021": true,
+        "node": true
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "rules": {
+        "camelcase": "off",
+        "no-invalid-this": "off",
+        "max-len": "off",
+        "require-jsdoc": "off",
+        "indent": 'off'
+    }
 };
