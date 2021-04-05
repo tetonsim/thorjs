@@ -281,13 +281,6 @@ export interface Load {
   force: Array<number>;
 }
 
-export class load implements Load {
-  face: Array<number>;
-  force: Array<number>;
-  mesh: string;
-  name: string;
-  type: string;
-}
 
 /**
  * An engineering material definition.
@@ -479,7 +472,7 @@ export interface VonMisesYield {
   Sy: number;
 }
 
-export class model implements Model {
+export class Model {
   meshes: Mesh[] | Array<null>;
   slicer: Slicer;
   steps: Step;
@@ -546,7 +539,7 @@ export class model implements Model {
   }
 }
 
-export class bulk implements Material {
+export class Material {
   density: number;
   elastic: IsotropicElastic | TransverseIsotropicElastic | OrthotropicElastic;
   failure_yield: VonMisesYield | IsotropicYield;
@@ -580,7 +573,7 @@ export class bulk implements Material {
   }
 }
 
-export class extruder implements Extruder {
+export class Extruder {
   number: number;
   usable_material: Array<string>;
 
@@ -595,7 +588,7 @@ export class extruder implements Extruder {
   }
 }
 
-export class optimization implements Optimization {
+export class Optimization {
   max_displacement: number;
   min_safety_factor: number;
 
@@ -611,8 +604,8 @@ export class optimization implements Optimization {
   }
 }
 
-export class job implements Job {
-  type: string;
+export class Job{
+  public type: string;
   chop: Model;
   bulk: Material[];
   extruders: Extruder[];
@@ -628,10 +621,33 @@ export class job implements Job {
     } else {
       //    set default values
       this.type = 'validation';
-      this.chop = new model();
-      this.bulk = [new bulk()];
-      this.extruders = [new extruder()];
-      this.optimization = new optimization();
+      this.chop = new Model();
+      this.bulk = [new Material()];
+      this.extruders = [new Extruder()];
+      this.optimization = new Optimization();
     }
+  } 
+}
+
+class SmartSliceJob extends Job {
+  constructor(config: Job) {
+    super(config)
+  }
+
+  getObject(serialized: boolean = true) {
+    const job: Job = {
+      type: this.type,
+      chop: this.chop,
+      extruders: this.extruders,
+      optimization: this.optimization,
+      bulk: this.bulk
+    }
+
+    if (serialized) {
+      return job
+    } else {
+      return JSON.stringify(job)
+    }
+
   }
 }
