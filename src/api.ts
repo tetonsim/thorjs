@@ -4,7 +4,6 @@
 /* eslint  @typescript-eslint/no-empty-function: off */
 /* eslint @typescript-eslint/no-this-alias: off */
 
-
 export {};
 let XMLHttpRequest;
 if (typeof window === 'undefined') {

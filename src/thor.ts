@@ -1,11 +1,11 @@
 export {};
 
-const API = require('./api')
-import { job } from './job';
+const API = require('./api');
+// import { Job } from './job';
 
 const thor = {
   API: API,
-  Job: job,
+  // Job: Job,
 };
 
 module.exports = thor;
