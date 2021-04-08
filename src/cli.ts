@@ -1,8 +1,13 @@
 #! /usr/bin/env node
+/* eslint @typescript-eslint/no-var-requires: off */
+/* eslint @typescript-eslint/no-unused-vars: off */
+/* eslint @typescript-eslint/no-empty-function: off */
 
-'use strict';
+export {};
 
-const version = typeof THOR_VERSION === 'undefined' ? 'dev' : THOR_VERSION;
+('use strict');
+
+const version = 'dev';
 
 const app = require('commander');
 const fs = require('fs');
@@ -91,7 +96,7 @@ smartslice
   });
 
 smartslice
-  .command('submit <file>' )
+  .command('submit <file>')
   .description('Submit JSON file for validation/optimization')
   .action((job) => {
     whoAmI(submitSmartSliceJob, job, false);

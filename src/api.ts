@@ -1,4 +1,5 @@
-
+export {};
+let XMLHttpRequest;
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
@@ -28,6 +29,11 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
+	public http_code: any;
+	public message: any;
+	public success: any;
+	public error: any;
+
   constructor(http_code, message) {
     this.http_code = http_code;
     this.message = message;
@@ -45,6 +51,16 @@ class Message {
  * Handles Thor API requests
  */
 class API {
+	public host: any;
+	public token: any;
+	public error: any;
+	public user: any;
+	public version: any;
+	public success: any;
+	public status: any;
+	public http_code: any;
+	public id: any;
+
   /** @typedef Token
    * @property {string} expires Token expiration date
    * @property {string} id Token id
@@ -72,7 +88,8 @@ class API {
   }
 
   static get version() {
-    return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
+    return '21.0'
+    // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
   get config() {
@@ -81,15 +98,17 @@ class API {
     };
   }
 
-  _request(method, route, success, error, data) {
+  _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function() {
+      let response;
+      
       if (xhttp.readyState === 4) {
         try {
-          var response = JSON.parse(xhttp.responseText);
+          response = JSON.parse(xhttp.responseText);
         } catch (err) {
-          var response = xhttp.responseText;
+          response = xhttp.responseText;
         }
 
         let err = null;

@@ -1,4 +1,6 @@
-const API = require('./api');
+export {};
+
+const API = require('./api')
 
 const thor = {
   API: API,
