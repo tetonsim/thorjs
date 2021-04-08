@@ -3,7 +3,6 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 /* eslint  @typescript-eslint/no-empty-function: off */
 /* eslint @typescript-eslint/no-this-alias: off */
-import {load} from 'ts-dotenv'
 
 export {};
 let XMLHttpRequest;
