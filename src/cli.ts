@@ -199,7 +199,7 @@ function _multipleQuestions(questions, callback) {
       questions[i],
       (answer) => {
         answers.push(answer);
-        if (questions.length > i + 1) {
+        if (questions.length > (i + 1)) {
           askQuestion(i + 1);
         } else {
           rl.close();

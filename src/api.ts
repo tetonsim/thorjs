@@ -100,9 +100,10 @@ class API {
 
   _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
-    var response;
 
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
+      let response;
+      
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);
