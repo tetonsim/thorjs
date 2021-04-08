@@ -35,7 +35,7 @@ export interface Model {
    * A list of all of the surface mesh geometries. One printable mesh is required (and currently only one is
    * supported). Additional modifier meshes can also be specified in this list.
    */
-  meshes: Array<Mesh> | Array<null>;
+  meshes: Array<Mesh>;
   /**
    * A list of the loading steps. Currently, only one step is supported.
    */
@@ -369,7 +369,7 @@ export interface Printer {
   /**
    * list of the extruders on the printer
    */
-  extruders: Extruders;
+  extruders: Array<Extruders>;
 }
 
 /**
@@ -430,11 +430,11 @@ export interface Step {
   /**
    * A list of boundary conditions applied in this step.
    */
-  boundary_conditions: Array<BoundaryCondition> | Array<null>;
+  boundary_conditions: Array<BoundaryCondition>
   /**
    * A list of loads applied in this step.
    */
-  loads: Array<Load> | Array<null>;
+  loads: Array<Load>;
 }
 
 /**
@@ -488,11 +488,11 @@ const defaultPrintConfig: PrintConfig = {
 
 const defaultPrinter: Printer = {
   name: 'printer',
-  extruders: {
-    id: 1,
+  extruders: [{
+    id: 0,
     diameter: .4,
     print_config: defaultPrintConfig
-  },
+  }]
 }
 
 const defaultSlicer: Slicer = {
@@ -501,22 +501,56 @@ const defaultSlicer: Slicer = {
   print_config: defaultPrintConfig
 };
 
-const defaultStep: Step = {
-  name: 'step',
-  boundary_conditions: [],
-  loads: [],
+// const defaultStep: Step = {
+//   name: 'step',
+//   boundary_conditions: [],
+//   loads: [],
+// }
+class DefaultPrintConfig {
+  layer_height: number = 1
+  layer_width: number = 1
+  bottom_layers: number =  1
+  top_layers: 1
+  auxiliary: {}
+  infill: {
+    pattern: 'default',
+    density: 1,
+    orientation: 1,
+  }
+  walls: 1
+  skin_orientations: [1]
 }
+
+class DefaultPrinter {
+  name: string = 'printer'
+  extruders: Array<Extruders> = [{
+    id: 0,
+    diameter: .4
+    print_config: new defaultPrintConfig()
+  }]
+}
+
+class DefaultSlicer {
+  type: string = 'slicer'
+  printer: Printer = new DefaultPrinter()
+}
+
+class DefaultStep{
+  name: string = 'step'
+  boundary_conditions: Array<BoundaryCondition> = []
+  loads: Array<Load> = []
+ }
 
 
 export class Model {
-  meshes: Mesh[] | Array<null>;
+  meshes: Mesh[];
   slicer: Slicer;
   steps: Step;
 
-  constructor(meshes?: Mesh[] | Array<null>, slicer?: Slicer, steps?: Step) {
+  constructor(meshes?: Mesh[], slicer?: Slicer, steps?: Step) {
     this.meshes = meshes ? meshes : []
     this.slicer = slicer ? slicer : defaultSlicer
-    this.steps = steps ? steps : defaultStep
+    this.steps = steps ? steps : new DefaultStep()
   }
 }
 
