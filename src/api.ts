@@ -101,7 +101,7 @@ class API {
   _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
 
-    xhttp.onreadystatechange = function () {
+    xhttp.onreadystatechange = function() {
       let response;
       
       if (xhttp.readyState === 4) {
