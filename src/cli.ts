@@ -38,7 +38,7 @@ if (jconfig !== null) {
 const api = new thor.API(config);
 
 const mutableStdout = new Writable({
-  write: function (chunk, encoding, callback) {
+  write: function(chunk, encoding, callback) {
     if (!this.muted) {
       process.stdout.write(chunk, encoding);
     }
@@ -110,7 +110,7 @@ smartslice
   .command('jobs <page>')
   .option('-l, --limit [limit]', 'Number of jobs to retrieve')
   .action(
-    function (page) {
+    function(page) {
       whoAmI(listSmartSliceJobs, page, this.limit);
     }
   );
@@ -133,7 +133,7 @@ teams
   .command('invite <team> <email>')
   .option('-r, --revoke', 'Revoke an existing invitation')
   .action(
-    function (team, email) {
+    function(team, email) {
       whoAmI(manageTeamInvite, team, email, this.revoke);
     }
   );
@@ -172,7 +172,7 @@ function configure() {
   };
 
   rl.question('Host (' + HOST + '): ',
-    function (host) {
+    function(host) {
       if (host.length > 0) {
         new_config.host = host;
       }
@@ -222,19 +222,19 @@ function _getCredentials(callback) {
   mutableStdout.muted = false;
 
   rl.question('Email: ',
-    function (email) {
+    function(email) {
       process.stdout.write('Password: ');
 
       mutableStdout.muted = true;
 
       rl.question('',
-        function (pass) {
+        function(pass) {
           console.log('');
           callback(email, pass);
           rl.close();
-        }
+        },
       );
-    }
+    },
   );
 }
 
@@ -247,9 +247,9 @@ function _basicErrorCallback() {
 }
 
 function login() {
-  const loginWithCreds = function (email, pass) {
+  const loginWithCreds = function(email, pass) {
     api.getToken(email, pass,
-      function () {
+      function() {
         const new_config = {
           host: api.config.host,
           token: api.token,
@@ -268,7 +268,7 @@ function login() {
 function whoAmI(callback, ...args) {
   api.whoAmI(
     (_) => callback(...args),
-    function () {
+    function() {
       console.error('No user is currently logged in');
     },
   );
@@ -276,14 +276,14 @@ function whoAmI(callback, ...args) {
 
 function logout() {
   whoAmI(
-    function () {
+    function() {
       api.releaseToken(
-        function () {
+        function() {
           console.log('Logged out');
         },
         _basicErrorCallback,
       );
-    }
+    },
   );
 }
 
@@ -299,53 +299,54 @@ function register() {
   });
 
   const registerWithCreds = function (email, pass) {
-    api.register(first_name, last_name, email, pass, company, country,
+    api.register(
+      first_name, last_name, email, pass, company, country,
       _basicSuccessCallback,
-      function () {
+      function() {
         console.error('Failed to register');
         console.error(this.message);
         rl.close();
-      }
+      },
     );
   };
 
-  const countryAsk = function () {
+  const countryAsk = function() {
     rl.question(
       'Country: ',
-      function (answer) {
+      function(answer) {
         country = answer;
         rl.close();
         _getCredentials(registerWithCreds);
-      }
+      },
     );
   };
 
-  const companyAsk = function () {
+  const companyAsk = function() {
     rl.question(
       'Company: ',
-      function (answer) {
+      function(answer) {
         company = answer;
         countryAsk();
-      }
+      },
     );
   };
 
-  const lastNameAsk = function () {
+  const lastNameAsk = function() {
     rl.question(
       'Last Name: ',
-      function (answer) {
+      function(answer) {
         last_name = answer;
         companyAsk();
-      }
+      },
     );
   };
 
   rl.question(
     'First Name: ',
-    function (answer) {
+    function(answer) {
       first_name = answer;
       lastNameAsk();
-    }
+    },
   );
 }
 
@@ -367,7 +368,7 @@ function verifyEmail() {
 
 function changePassword() {
   whoAmI(
-    function () {
+    function() {
       const rl = readline.createInterface({
         input: process.stdin,
         output: mutableStdout,
@@ -379,11 +380,11 @@ function changePassword() {
       process.stdout.write('Old Password: ');
 
       rl.question('',
-        function (oldPassword) {
+        function(oldPassword) {
           process.stdout.write('\nNew Password: ');
 
           rl.question('',
-            function (newPassword) {
+            function(newPassword) {
               console.log('');
               api.changePassword(
                 oldPassword,
@@ -396,11 +397,11 @@ function changePassword() {
               );
 
               rl.close();
-            }
+            },
           );
-        }
+        },
       );
-    }
+    },
   );
 }
 
@@ -416,7 +417,7 @@ function resetPassword() {
   const code = this.code;
 
   _getCredentials(
-    function (email, password) {
+    function(email, password) {
       api.resetPassword(
         code,
         email,
@@ -424,7 +425,7 @@ function resetPassword() {
         _basicSuccessCallback,
         _basicErrorCallback,
       );
-    }
+    },
   );
 }
 
@@ -458,10 +459,10 @@ function submitSmartSliceJob(job, is3mf) {
 
         api.submitSmartSliceJobAndPoll(
           data,
-          function () {
+          function() {
             console.error(this);
           },
-          function () {
+          function() {
             if (this.status === 'finished') {
               console.log(`Job finished, writing result to ${outputFile}`);
               fs.writeFileSync(outputFile, JSON.stringify(this.result));
@@ -469,27 +470,27 @@ function submitSmartSliceJob(job, is3mf) {
               console.log(`Job ${this.status}`);
             }
           },
-          function () {
+          function() {
             console.error('Job failed');
             for (const e of this.errors) {
               console.error(e);
             }
           },
-          function () {
+          function() {
             const now = new Date();
             console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
             return abort;
-          }
+          },
         );
       }
-    }
+    },
   );
 }
 
 function cancelSmartSliceJob(jobId) {
   api.cancelSmartSliceJob(
     jobId,
-    function () {
+    function() {
       console.log(`Job status: ${this.status}`);
     },
     _basicErrorCallback,
@@ -504,7 +505,7 @@ function listSmartSliceJobs(page, limit) {
   page = Math.max(1, page);
   limit = Math.max(1, limit);
 
-  const success = function () {
+  const success = function() {
     console.log(`Page ${this.page}/${this.total_pages}`);
     for (const job of this.jobs) {
       console.log(`${job.id} : ${job.status} (${job.progress})`);
@@ -531,7 +532,7 @@ function createTeam() {
 
 function listMemberships() {
   api.teamMemberships(
-    function () {
+    function() {
       console.log(this);
     },
     _basicErrorCallback,
@@ -541,7 +542,7 @@ function listMemberships() {
 function listTeamMembers(team) {
   api.teamMembers(
     team,
-    function () {
+    function() {
       console.log(this);
     },
     _basicErrorCallback,
