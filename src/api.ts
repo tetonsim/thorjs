@@ -245,12 +245,7 @@ class API {
         error.bind(this)();
       };
 
-      this._request(
-        'GET',
-        '/auth/whoami',
-        _HelperCallbacks.getToken(api, success, error),
-        clearUser
-      );
+      this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
       success.bind(this.user)();
     }
@@ -259,14 +254,16 @@ class API {
   }
 
   register(first_name, last_name, email, password, company, country, success, error) {
-    this._request('POST', '/auth/register', success, error, {
-      email: email,
-      first_name: first_name,
-      last_name: last_name,
-      password: password,
-      company: company,
-      country: country,
-    });
+    this._request('POST', '/auth/register', success, error,
+      {
+        email: email,
+        first_name: first_name,
+        last_name: last_name,
+        password: password,
+        company: company,
+        country: country,
+      }
+    );
   }
 
   /**
@@ -287,9 +284,7 @@ class API {
    * @param {API~error} error Callback function if token creation fails.
    */
   getToken(email, password, success, error) {
-    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, { email: email, password: password }
-    );
+    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error), error, { email: email, password: password });
   }
 
   /**
@@ -349,10 +344,10 @@ class API {
    */
   verifyEmail(code, success, error) {
     this._request(
-      'POST',
-      '/auth/verify',
+      'POST', '/auth/verify',
       success, error,
-      { code: code });
+      { code: code }
+    );
   }
 
   /**
@@ -362,11 +357,10 @@ class API {
    */
   verifyEmailResend(email, success, error) {
     this._request(
-      'POST',
-      '/auth/verify/resend',
+      'POST', '/auth/verify/resend',
       success,
       error,
-      { email: email }
+      {email: email},
     );
   }
 
@@ -379,15 +373,14 @@ class API {
    */
   changePassword(oldPassword, newPassword, success, error) {
     this._request(
-      'POST',
-      '/auth/password/change',
+      'POST', '/auth/password/change',
       success,
       error,
       {
         old_password: oldPassword,
         password: newPassword,
         confirm_password: newPassword,
-      }
+      },
     );
   }
 
@@ -399,11 +392,10 @@ class API {
    */
   forgotPassword(email, success, error) {
     this._request(
-      'POST',
-      '/auth/password/forgot',
+      'POST', '/auth/password/forgot',
       success,
       error,
-      {email: email}
+      {email: email},
     );
   }
 
@@ -417,8 +409,7 @@ class API {
    */
   resetPassword(code, email, password, success, error) {
     this._request(
-      'POST',
-      '/auth/password/reset',
+      'POST', '/auth/password/reset',
       success,
       error,
       {
@@ -426,7 +417,7 @@ class API {
         code: code,
         password: password,
         confirm_password: password,
-      }
+      },
     );
   }
 
@@ -458,7 +449,7 @@ class API {
     this._request(
       'GET', url,
       success,
-      error
+      error,
     );
   }
 
@@ -504,7 +495,7 @@ class API {
       'POST', '/smartslice',
       success,
       error,
-      job
+      job,
     );
   }
 
@@ -518,7 +509,7 @@ class API {
     this._request(
       'DELETE', `/smartslice/${jobId}`,
       success,
-      error
+      error,
     );
   }
 
@@ -563,11 +554,7 @@ class API {
               const abort = poll.bind(this)();
 
               if (abort) {
-                api.cancelSmartSliceJob(
-                  jobId,
-                  () => {},
-                  () => {}
-                );
+                api.cancelSmartSliceJob(jobId, () => {}, () => {});
               }
             }
 
@@ -613,7 +600,7 @@ class API {
       function () {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },
-      error
+      error,
     );
   }
 
@@ -684,7 +671,7 @@ class API {
       {
         name: name,
         full_name: fullName,
-      }
+      },
     );
   }
 
@@ -766,7 +753,7 @@ class API {
       {
         email: email,
         role: role,
-      }
+      },
     );
   }
 
@@ -786,7 +773,7 @@ class API {
       {
         email: email,
         role: role,
-      }
+      },
     );
   }
 
@@ -819,7 +806,7 @@ class API {
       {
         description: description,
         job: jobId,
-      }
+      },
     );
   }
 }

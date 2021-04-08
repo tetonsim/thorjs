@@ -51,8 +51,8 @@ app
   .command('login')
   .action(login);
 
-app.
-  command('logout')
+app
+  .command('logout')
   .action(logout);
 
 app
@@ -117,7 +117,8 @@ smartslice
 
 const teams = app.command('teams');
 
-teams.command('create')
+teams
+  .command('create')
   .action((_) => whoAmI(createTeam));
 
 teams
