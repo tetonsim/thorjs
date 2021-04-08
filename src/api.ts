@@ -1,9 +1,3 @@
-/* eslint @typescript-eslint/explicit-module-boundary-types: off*/
-/* eslint @typescript-eslint/no-var-requires: off*/
-/* eslint @typescript-eslint/no-explicit-any: off */
-/* eslint  @typescript-eslint/no-empty-function: off */
-/* eslint @typescript-eslint/no-this-alias: off */
-
 export {};
 let XMLHttpRequest;
 if (typeof window === 'undefined') {
@@ -11,8 +5,8 @@ if (typeof window === 'undefined') {
 }
 
 const _HelperCallbacks = {
-  getToken: function (api, success, error) {
-    return function () {
+  getToken: function(api, success, error) {
+    return function() {
       if (this.error && error !== undefined) {
         error.bind(this)();
       } else {
@@ -35,10 +29,10 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
-  public http_code: any;
-  public message: any;
-  public success: any;
-  public error: any;
+	public http_code: any;
+	public message: any;
+	public success: any;
+	public error: any;
 
   constructor(http_code, message) {
     this.http_code = http_code;
@@ -57,15 +51,15 @@ class Message {
  * Handles Thor API requests
  */
 class API {
-  public host: any;
-  public token: any;
-  public error: any;
-  public user: any;
-  public version: any;
-  public success: any;
-  public status: any;
-  public http_code: any;
-  public id: any;
+	public host: any;
+	public token: any;
+	public error: any;
+	public user: any;
+	public version: any;
+	public success: any;
+	public status: any;
+	public http_code: any;
+	public id: any;
 
   /** @typedef Token
    * @property {string} expires Token expiration date
@@ -89,12 +83,12 @@ class API {
     this.host = config.host;
     this.token = config.token;
 
-    this.error = function () {};
+    this.error = function() {};
     this.user = null;
   }
 
   static get version() {
-    return '21.0';
+    return '21.0'
     // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
@@ -106,9 +100,9 @@ class API {
 
   _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
+    var response;
 
-    xhttp.onreadystatechange = function () {
-      let response;
+    xhttp.onreadystatechange = function() {
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);
@@ -187,20 +181,20 @@ class API {
    */
 
   /**
-   * Verify version successfull callback
-   * @callback API~verify-version
-   * @param {boolean} compatible True if the host version is compatible with this client library
-   * @param {string} client_version The client version - also available through API.version
-   * @param {string} server_version The server version
-   */
+    * Verify version successfull callback
+    * @callback API~verify-version
+    * @param {boolean} compatible True if the host version is compatible with this client library
+    * @param {string} client_version The client version - also available through API.version
+    * @param {string} server_version The server version
+    */
 
   /**
-   *
-   * @param {API~verify-version} success
-   * @param {API~error} error
-   */
+  *
+  * @param {API~verify-version} success
+  * @param {API~error} error
+  */
   verifyVersion(success, error) {
-    const parseVersion = function () {
+    const parseVersion = function() {
       const sv = this.version.split('.');
       const cv = API.version.split('.');
 
@@ -212,7 +206,7 @@ class API {
 
       // Require the exact same version. As versions advance
       // how can we make this less restrictive?
-      const compatible = sv_maj === cv_maj && sv_min === cv_min;
+      const compatible = (sv_maj === cv_maj && sv_min === cv_min);
 
       success(compatible, API.version, this.version);
     };
@@ -221,11 +215,11 @@ class API {
   }
 
   /**
-   * Checks if a token is already in use and
-   * returns the user information if available, otherwise null
-   * @param {API~getToken-success} success
-   * @param {API~error} error
-   */
+    * Checks if a token is already in use and
+    * returns the user information if available, otherwise null
+    * @param {API~getToken-success} success
+    * @param {API~error} error
+    */
   whoAmI(success, error) {
     let getUserInfoFromServer = false;
 
@@ -239,7 +233,7 @@ class API {
     if (this.user === null || getUserInfoFromServer) {
       const api = this;
 
-      const clearUser = function () {
+      const clearUser = function() {
         api.user = null;
         api.token = null;
         error.bind(this)();
@@ -262,7 +256,7 @@ class API {
         password: password,
         company: company,
         country: country,
-      }
+      },
     );
   }
 
@@ -284,7 +278,8 @@ class API {
    * @param {API~error} error Callback function if token creation fails.
    */
   getToken(email, password, success, error) {
-    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error), error, { email: email, password: password });
+    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
+      error, {email: email, password: password});
   }
 
   /**
@@ -319,7 +314,7 @@ class API {
     const api = this;
 
     this._request('DELETE', '/auth/token',
-      function () {
+      function() {
         if (this.success) {
           api.token = null;
           api.user = null;
@@ -332,7 +327,7 @@ class API {
           }
         }
       },
-      error
+      error,
     );
   }
 
@@ -345,8 +340,9 @@ class API {
   verifyEmail(code, success, error) {
     this._request(
       'POST', '/auth/verify',
-      success, error,
-      { code: code }
+      success,
+      error,
+      {code: code},
     );
   }
 
@@ -547,8 +543,8 @@ class API {
     const periodMultiplier = 1.25;
 
     function pollJob(period) {
-      return function () {
-        const handleJobStatus = function () {
+      return function() {
+        const handleJobStatus = function() {
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               const abort = poll.bind(this)();
@@ -568,7 +564,7 @@ class API {
           }
         };
 
-        const errorHandler = function () {
+        const errorHandler = function() {
           if (this.http_code == 429) {
             // If the error is a rate limit, then just continue polling.
             setTimeout(pollJob(period), period);
@@ -597,7 +593,7 @@ class API {
     const that = this;
     this.submitSmartSliceJob(
       job,
-      function () {
+      function() {
         that.pollSmartSliceJob(this.id, error, finished, failed, poll);
       },
       error,

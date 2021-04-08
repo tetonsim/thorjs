@@ -175,7 +175,7 @@ function configure() {
     function (host) {
       if (host.length > 0) {
         new_config.host = host;
-    }
+      }
 
       storage.setItem('config', JSON.stringify(new_config));
 
@@ -281,7 +281,7 @@ function logout() {
         function () {
           console.log('Logged out');
         },
-        _basicErrorCallback
+        _basicErrorCallback,
       );
     }
   );
@@ -354,13 +354,13 @@ function verifyEmail() {
     api.verifyEmailResend(
       this.resend,
       _basicSuccessCallback,
-      _basicErrorCallback
+      _basicErrorCallback,
     );
   } else {
     api.verifyEmail(
       this.code,
       _basicSuccessCallback,
-      _basicErrorCallback
+      _basicErrorCallback,
     );
   }
 }
@@ -392,7 +392,7 @@ function changePassword() {
                   console.log(this.message);
                   console.log('You will need to log back in.');
                 },
-                _basicErrorCallback
+                _basicErrorCallback,
               );
 
               rl.close();
@@ -408,7 +408,7 @@ function forgotPassword() {
   api.forgotPassword(
     this.email,
     _basicSuccessCallback,
-    _basicErrorCallback
+    _basicErrorCallback,
   );
 }
 
@@ -422,7 +422,7 @@ function resetPassword() {
         email,
         password,
         _basicSuccessCallback,
-        _basicErrorCallback
+        _basicErrorCallback,
       );
     }
   );
@@ -525,7 +525,7 @@ function createTeam() {
         _basicSuccessCallback,
         _basicErrorCallback,
       );
-    }
+    },
   );
 }
 
@@ -534,7 +534,7 @@ function listMemberships() {
     function () {
       console.log(this);
     },
-    _basicErrorCallback
+    _basicErrorCallback,
   );
 }
 
@@ -544,7 +544,7 @@ function listTeamMembers(team) {
     function () {
       console.log(this);
     },
-    _basicErrorCallback
+    _basicErrorCallback,
   );
 }
 
