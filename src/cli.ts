@@ -112,7 +112,7 @@ smartslice
   .action(
     function(page) {
       whoAmI(listSmartSliceJobs, page, this.limit);
-    }
+    },
   );
 
 const teams = app.command('teams');
@@ -135,7 +135,7 @@ teams
   .action(
     function(team, email) {
       whoAmI(manageTeamInvite, team, email, this.revoke);
-    }
+    },
   );
 
 teams
@@ -183,7 +183,7 @@ function configure() {
     },
   );
 
-  api.releaseToken(function () {}, function () {});
+  api.releaseToken(function() {}, function() {});
 }
 
 function _multipleQuestions(questions, callback) {
@@ -205,7 +205,7 @@ function _multipleQuestions(questions, callback) {
           rl.close();
           callback(...answers);
         }
-      }
+      },
     );
   }
 
@@ -298,7 +298,7 @@ function register() {
     output: process.stdout,
   });
 
-  const registerWithCreds = function (email, pass) {
+  const registerWithCreds = function(email, pass) {
     api.register(
       first_name, last_name, email, pass, company, country,
       _basicSuccessCallback,
@@ -389,7 +389,7 @@ function changePassword() {
               api.changePassword(
                 oldPassword,
                 newPassword,
-                function () {
+                function() {
                   console.log(this.message);
                   console.log('You will need to log back in.');
                 },
