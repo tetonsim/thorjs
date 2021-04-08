@@ -3,6 +3,7 @@
 /* eslint @typescript-eslint/no-explicit-any: off */
 /* eslint  @typescript-eslint/no-empty-function: off */
 /* eslint @typescript-eslint/no-this-alias: off */
+import {load} from 'ts-dotenv'
 
 export {};
 let XMLHttpRequest;
@@ -106,9 +107,9 @@ class API {
 
   _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
-    var response;
 
     xhttp.onreadystatechange = function () {
+      let response;
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);
@@ -258,16 +259,7 @@ class API {
     return true;
   }
 
-  register(
-    first_name,
-    last_name,
-    email,
-    password,
-    company,
-    country,
-    success,
-    error
-  ) {
+  register(first_name, last_name, email, password, company, country, success, error) {
     this._request('POST', '/auth/register', success, error, {
       email: email,
       first_name: first_name,
@@ -295,18 +287,9 @@ class API {
    * @param {API~getToken-success} success Callback function if token is obtained.
    * @param {API~error} error Callback function if token creation fails.
    */
-  getToken(
-    email: string,
-    password: string,
-    success: () => void,
-    error: () => void
-  ) {
-    this._request(
-      'POST',
-      '/auth/token',
-      _HelperCallbacks.getToken(this, success, error),
-      error,
-      { email: email, password: password }
+  getToken(email, password, success, error) {
+    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
+      error, { email: email, password: password }
     );
   }
 
@@ -324,18 +307,13 @@ class API {
    * @param {API~getToken-success} success Callback function if refresh is successful.
    * @param {API~error} error Callback function if refresh is unsuccessful.
    */
-  refreshToken(success: any, error: (arg0: string) => void) {
+  refreshToken(success, error) {
     if (this.token === null) {
       error('null token');
       return;
     }
 
-    this._request(
-      'PUT',
-      '/auth/token',
-      _HelperCallbacks.getToken(this, success, error),
-      error
-    );
+    this._request('PUT', '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
   }
 
   /**
@@ -343,12 +321,10 @@ class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  releaseToken(success: () => void, error: { bind: (arg0: Message) => void }) {
+  releaseToken(success, error) {
     const api = this;
 
-    this._request(
-      'DELETE',
-      '/auth/token',
+    this._request('DELETE', '/auth/token',
       function () {
         if (this.success) {
           api.token = null;
@@ -373,7 +349,11 @@ class API {
    * @param {API~error} error
    */
   verifyEmail(code, success, error) {
-    this._request('POST', '/auth/verify', success, error, { code: code });
+    this._request(
+      'POST',
+      '/auth/verify',
+      success, error,
+      { code: code });
   }
 
   /**
@@ -382,9 +362,13 @@ class API {
    * @param {API~error} error
    */
   verifyEmailResend(email, success, error) {
-    this._request('POST', '/auth/verify/resend', success, error, {
-      email: email,
-    });
+    this._request(
+      'POST',
+      '/auth/verify/resend',
+      success,
+      error,
+      { email: email }
+    );
   }
 
   /**
@@ -395,11 +379,17 @@ class API {
    * @param {API~error} error
    */
   changePassword(oldPassword, newPassword, success, error) {
-    this._request('POST', '/auth/password/change', success, error, {
-      old_password: oldPassword,
-      password: newPassword,
-      confirm_password: newPassword,
-    });
+    this._request(
+      'POST',
+      '/auth/password/change',
+      success,
+      error,
+      {
+        old_password: oldPassword,
+        password: newPassword,
+        confirm_password: newPassword,
+      }
+    );
   }
 
   /**
@@ -409,9 +399,13 @@ class API {
    * @param {API~error} error
    */
   forgotPassword(email, success, error) {
-    this._request('POST', '/auth/password/forgot', success, error, {
-      email: email,
-    });
+    this._request(
+      'POST',
+      '/auth/password/forgot',
+      success,
+      error,
+      {email: email}
+    );
   }
 
   /**
@@ -423,12 +417,18 @@ class API {
    * @param {API~error} error
    */
   resetPassword(code, email, password, success, error) {
-    this._request('POST', '/auth/password/reset', success, error, {
-      email: email,
-      code: code,
-      password: password,
-      confirm_password: password,
-    });
+    this._request(
+      'POST',
+      '/auth/password/reset',
+      success,
+      error,
+      {
+        email: email,
+        code: code,
+        password: password,
+        confirm_password: password,
+      }
+    );
   }
 
   /**
@@ -456,7 +456,11 @@ class API {
       url += `?team=${team}`;
     }
 
-    this._request('GET', url, success, error);
+    this._request(
+      'GET', url,
+      success,
+      error
+    );
   }
 
   /**
@@ -497,7 +501,12 @@ class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job, success, error) {
-    this._request('POST', '/smartslice', success, error, job);
+    this._request(
+      'POST', '/smartslice',
+      success,
+      error,
+      job
+    );
   }
 
   /**
@@ -507,7 +516,11 @@ class API {
    * @param {API~error} error
    */
   cancelSmartSliceJob(jobId, success, error) {
-    this._request('DELETE', `/smartslice/${jobId}`, success, error);
+    this._request(
+      'DELETE', `/smartslice/${jobId}`,
+      success,
+      error
+    );
   }
 
   /**
@@ -665,10 +678,15 @@ class API {
    * @param {API~error} error
    */
   createTeam(name, fullName, success, error) {
-    this._request('POST', '/teams', success, error, {
-      name: name,
-      full_name: fullName,
-    });
+    this._request(
+      'POST', '/teams',
+      success,
+      error,
+      {
+        name: name,
+        full_name: fullName,
+      }
+    );
   }
 
   /**
@@ -698,9 +716,7 @@ class API {
    * @param {API~error} error
    */
   inviteToTeam(team, email, success, error) {
-    this._request('POST', `/teams/${team}/invite`, success, error, {
-      email: email,
-    });
+    this._request('POST', `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -711,9 +727,7 @@ class API {
    * @param {API~error} error
    */
   revokeTeamInvite(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/invite`, success, error, {
-      email: email,
-    });
+    this._request('DELETE', `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -734,9 +748,7 @@ class API {
    * @param {API~error} error
    */
   removeTeamMember(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/member`, success, error, {
-      email: email,
-    });
+    this._request('DELETE', `/teams/${team}/member`, success, error, {email: email});
   }
 
   /**
@@ -748,10 +760,15 @@ class API {
    * @param {API~error} error
    */
   addTeamMemberRole(team, email, role, success, error) {
-    this._request('POST', `/teams/${team}/role`, success, error, {
-      email: email,
-      role: role,
-    });
+    this._request(
+      'POST', `/teams/${team}/role`,
+      success,
+      error,
+      {
+        email: email,
+        role: role,
+      }
+    );
   }
 
   /**
@@ -763,10 +780,15 @@ class API {
    * @param {API~error} error
    */
   revokeTeamMemberRole(team, email, role, success, error) {
-    this._request('DELETE', `/teams/${team}/role`, success, error, {
-      email: email,
-      role: role,
-    });
+    this._request(
+      'DELETE', `/teams/${team}/role`,
+      success,
+      error,
+      {
+        email: email,
+        role: role,
+      }
+    );
   }
 
   /**
@@ -791,10 +813,15 @@ class API {
       jobId = null;
     }
 
-    this._request('POST', '/support/issue', success, error, {
-      description: description,
-      job: jobId,
-    });
+    this._request(
+      'POST', '/support/issue',
+      success,
+      error,
+      {
+        description: description,
+        job: jobId,
+      }
+    );
   }
 }
 

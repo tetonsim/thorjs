@@ -46,13 +46,22 @@ const mutableStdout = new Writable({
   },
 });
 
-app.version(version).command('login').action(login);
+app
+  .version(version)
+  .command('login')
+  .action(login);
 
-app.command('logout').action(logout);
+app.
+  command('logout')
+  .action(logout);
 
-app.command('config').action(configure);
+app
+  .command('config')
+  .action(configure);
 
-app.command('register').action(register);
+app
+  .command('register')
+  .action(register);
 
 app
   .command('email')
@@ -63,14 +72,13 @@ app
 
 const password = app.command('password');
 
-password.command('change').action(changePassword);
+password
+  .command('change')
+  .action(changePassword);
 
 password
   .command('forgot')
-  .requiredOption(
-    '-e, --email [email]',
-    'Email of the account the password was forgotten for.'
-  )
+  .requiredOption('-e, --email [email]', 'Email of the account the password was forgotten for.')
   .action(forgotPassword);
 
 password
@@ -101,24 +109,33 @@ smartslice
 smartslice
   .command('jobs <page>')
   .option('-l, --limit [limit]', 'Number of jobs to retrieve')
-  .action(function (page) {
-    whoAmI(listSmartSliceJobs, page, this.limit);
-  });
+  .action(
+    function (page) {
+      whoAmI(listSmartSliceJobs, page, this.limit);
+    }
+  );
 
 const teams = app.command('teams');
 
-teams.command('create').action((_) => whoAmI(createTeam));
+teams.command('create')
+  .action((_) => whoAmI(createTeam));
 
-teams.command('memberships').action((_) => whoAmI(listMemberships));
+teams
+  .command('memberships')
+  .action((_) => whoAmI(listMemberships));
 
-teams.command('members <team>').action((team) => whoAmI(listTeamMembers, team));
+teams
+  .command('members <team>')
+  .action((team) => whoAmI(listTeamMembers, team));
 
 teams
   .command('invite <team> <email>')
   .option('-r, --revoke', 'Revoke an existing invitation')
-  .action(function (team, email) {
-    whoAmI(manageTeamInvite, team, email, this.revoke);
-  });
+  .action(
+    function (team, email) {
+      whoAmI(manageTeamInvite, team, email, this.revoke);
+    }
+  );
 
 teams
   .command('accept-invite <team>')
@@ -134,9 +151,7 @@ teams
 
 teams
   .command('revoke-member-role <team> <email> <role>')
-  .action((team, email, role) =>
-    whoAmI(revokeTeamMemberRole, team, email, role)
-  );
+  .action((team, email, role) => whoAmI(revokeTeamMemberRole, team, email, role));
 
 app.parse(process.argv);
 
@@ -147,32 +162,27 @@ function configure() {
   });
 
   console.log('Input the parameters to re-configure Thor.');
-  console.log(
-    'Leave inputs empty to use the default, specified in parentheses.'
-  );
-  console.log(
-    'If you were previously logged in, this process will log you out.'
-  );
+  console.log('Leave inputs empty to use the default, specified in parentheses.');
+  console.log('If you were previously logged in, this process will log you out.');
 
   const new_config = {
     host: HOST,
     token: null,
   };
 
-  rl.question('Host (' + HOST + '): ', function (host) {
-    if (host.length > 0) {
-      new_config.host = host;
+  rl.question('Host (' + HOST + '): ',
+    function (host) {
+      if (host.length > 0) {
+        new_config.host = host;
     }
 
-    storage.setItem('config', JSON.stringify(new_config));
+      storage.setItem('config', JSON.stringify(new_config));
 
-    rl.close();
-  });
-
-  api.releaseToken(
-    function () {},
-    function () {}
+      rl.close();
+    },
   );
+
+  api.releaseToken(function () {}, function () {});
 }
 
 function _multipleQuestions(questions, callback) {
@@ -184,15 +194,18 @@ function _multipleQuestions(questions, callback) {
   });
 
   function askQuestion(i) {
-    rl.question(questions[i], (answer) => {
-      answers.push(answer);
-      if (questions.length > i + 1) {
-        askQuestion(i + 1);
-      } else {
-        rl.close();
-        callback(...answers);
+    rl.question(
+      questions[i],
+      (answer) => {
+        answers.push(answer);
+        if (questions.length > i + 1) {
+          askQuestion(i + 1);
+        } else {
+          rl.close();
+          callback(...answers);
+        }
       }
-    });
+    );
   }
 
   askQuestion(0);
@@ -207,17 +220,21 @@ function _getCredentials(callback) {
 
   mutableStdout.muted = false;
 
-  rl.question('Email: ', function (email) {
-    process.stdout.write('Password: ');
+  rl.question('Email: ',
+    function (email) {
+      process.stdout.write('Password: ');
 
-    mutableStdout.muted = true;
+      mutableStdout.muted = true;
 
-    rl.question('', function (pass) {
-      console.log('');
-      callback(email, pass);
-      rl.close();
-    });
-  });
+      rl.question('',
+        function (pass) {
+          console.log('');
+          callback(email, pass);
+          rl.close();
+        }
+      );
+    }
+  );
 }
 
 function _basicSuccessCallback() {
@@ -230,9 +247,7 @@ function _basicErrorCallback() {
 
 function login() {
   const loginWithCreds = function (email, pass) {
-    api.getToken(
-      email,
-      pass,
+    api.getToken(email, pass,
       function () {
         const new_config = {
           host: api.config.host,
@@ -242,7 +257,7 @@ function login() {
         console.log('Hi ' + this.first_name + ', you are logged in.');
         console.log('Use the logout command to log out.');
       },
-      _basicErrorCallback
+      _basicErrorCallback,
     );
   };
 
@@ -254,16 +269,21 @@ function whoAmI(callback, ...args) {
     (_) => callback(...args),
     function () {
       console.error('No user is currently logged in');
-    }
+    },
   );
 }
 
 function logout() {
-  whoAmI(function () {
-    api.releaseToken(function () {
-      console.log('Logged out');
-    }, _basicErrorCallback);
-  });
+  whoAmI(
+    function () {
+      api.releaseToken(
+        function () {
+          console.log('Logged out');
+        },
+        _basicErrorCallback
+      );
+    }
+  );
 }
 
 function register() {
@@ -278,13 +298,7 @@ function register() {
   });
 
   const registerWithCreds = function (email, pass) {
-    api.register(
-      first_name,
-      last_name,
-      email,
-      pass,
-      company,
-      country,
+    api.register(first_name, last_name, email, pass, company, country,
       _basicSuccessCallback,
       function () {
         console.error('Failed to register');
@@ -295,31 +309,43 @@ function register() {
   };
 
   const countryAsk = function () {
-    rl.question('Country: ', function (answer) {
-      country = answer;
-      rl.close();
-      _getCredentials(registerWithCreds);
-    });
+    rl.question(
+      'Country: ',
+      function (answer) {
+        country = answer;
+        rl.close();
+        _getCredentials(registerWithCreds);
+      }
+    );
   };
 
   const companyAsk = function () {
-    rl.question('Company: ', function (answer) {
-      company = answer;
-      countryAsk();
-    });
+    rl.question(
+      'Company: ',
+      function (answer) {
+        company = answer;
+        countryAsk();
+      }
+    );
   };
 
   const lastNameAsk = function () {
-    rl.question('Last Name: ', function (answer) {
-      last_name = answer;
-      companyAsk();
-    });
+    rl.question(
+      'Last Name: ',
+      function (answer) {
+        last_name = answer;
+        companyAsk();
+      }
+    );
   };
 
-  rl.question('First Name: ', function (answer) {
-    first_name = answer;
-    lastNameAsk();
-  });
+  rl.question(
+    'First Name: ',
+    function (answer) {
+      first_name = answer;
+      lastNameAsk();
+    }
+  );
 }
 
 function verifyEmail() {
@@ -330,120 +356,133 @@ function verifyEmail() {
       _basicErrorCallback
     );
   } else {
-    api.verifyEmail(this.code, _basicSuccessCallback, _basicErrorCallback);
+    api.verifyEmail(
+      this.code,
+      _basicSuccessCallback,
+      _basicErrorCallback
+    );
   }
 }
 
 function changePassword() {
-  whoAmI(function () {
-    const rl = readline.createInterface({
-      input: process.stdin,
-      output: mutableStdout,
-      terminal: true,
-    });
-
-    mutableStdout.muted = true;
-
-    process.stdout.write('Old Password: ');
-
-    rl.question('', function (oldPassword) {
-      process.stdout.write('\nNew Password: ');
-
-      rl.question('', function (newPassword) {
-        console.log('');
-        api.changePassword(
-          oldPassword,
-          newPassword,
-          function () {
-            console.log(this.message);
-            console.log('You will need to log back in.');
-          },
-          _basicErrorCallback
-        );
-
-        rl.close();
+  whoAmI(
+    function () {
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: mutableStdout,
+        terminal: true,
       });
-    });
-  });
+
+      mutableStdout.muted = true;
+
+      process.stdout.write('Old Password: ');
+
+      rl.question('',
+        function (oldPassword) {
+          process.stdout.write('\nNew Password: ');
+
+          rl.question('',
+            function (newPassword) {
+              console.log('');
+              api.changePassword(
+                oldPassword,
+                newPassword,
+                function () {
+                  console.log(this.message);
+                  console.log('You will need to log back in.');
+                },
+                _basicErrorCallback
+              );
+
+              rl.close();
+            }
+          );
+        }
+      );
+    }
+  );
 }
 
 function forgotPassword() {
-  api.forgotPassword(this.email, _basicSuccessCallback, _basicErrorCallback);
+  api.forgotPassword(
+    this.email,
+    _basicSuccessCallback,
+    _basicErrorCallback
+  );
 }
 
 function resetPassword() {
   const code = this.code;
 
-  _getCredentials(function (email, password) {
-    api.resetPassword(
-      code,
-      email,
-      password,
-      _basicSuccessCallback,
-      _basicErrorCallback
-    );
-  });
+  _getCredentials(
+    function (email, password) {
+      api.resetPassword(
+        code,
+        email,
+        password,
+        _basicSuccessCallback,
+        _basicErrorCallback
+      );
+    }
+  );
 }
 
 function submitSmartSliceJob(job, is3mf) {
   const outputFile = path.join(
     path.dirname(job),
-    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json'
+    path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json',
   );
 
-  fs.readFile(job, (error, data) => {
-    if (error) {
-      console.error(error);
-    } else {
-      if (!is3mf) {
-        try {
-          data = JSON.parse(data);
-        } catch (error) {
-          throw new Error(
-            'JSON failed to parse. If this is a 3MF file use the submit3MF command'
-          );
+  fs.readFile(
+    job,
+    (error, data) => {
+      if (error) {
+        console.error(error);
+      } else {
+        if (!is3mf) {
+          try {
+            data = JSON.parse(data);
+          } catch (error) {
+            throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
+          }
         }
+
+        console.log('CTRL+C to cancel job');
+
+        let abort = false;
+
+        process.on('SIGINT', (_) => {
+          abort = true;
+        });
+
+        api.submitSmartSliceJobAndPoll(
+          data,
+          function () {
+            console.error(this);
+          },
+          function () {
+            if (this.status === 'finished') {
+              console.log(`Job finished, writing result to ${outputFile}`);
+              fs.writeFileSync(outputFile, JSON.stringify(this.result));
+            } else {
+              console.log(`Job ${this.status}`);
+            }
+          },
+          function () {
+            console.error('Job failed');
+            for (const e of this.errors) {
+              console.error(e);
+            }
+          },
+          function () {
+            const now = new Date();
+            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
+            return abort;
+          }
+        );
       }
-
-      console.log('CTRL+C to cancel job');
-
-      let abort = false;
-
-      process.on('SIGINT', (_) => {
-        abort = true;
-      });
-
-      api.submitSmartSliceJobAndPoll(
-        data,
-        function () {
-          console.error(this);
-        },
-        function () {
-          if (this.status === 'finished') {
-            console.log(`Job finished, writing result to ${outputFile}`);
-            fs.writeFileSync(outputFile, JSON.stringify(this.result));
-          } else {
-            console.log(`Job ${this.status}`);
-          }
-        },
-        function () {
-          console.error('Job failed');
-          for (const e of this.errors) {
-            console.error(e);
-          }
-        },
-        function () {
-          const now = new Date();
-          console.debug(
-            `${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${
-              this.progress
-            })`
-          );
-          return abort;
-        }
-      );
     }
-  });
+  );
 }
 
 function cancelSmartSliceJob(jobId) {
@@ -452,7 +491,7 @@ function cancelSmartSliceJob(jobId) {
     function () {
       console.log(`Job status: ${this.status}`);
     },
-    _basicErrorCallback
+    _basicErrorCallback,
   );
 }
 
@@ -477,25 +516,25 @@ function listSmartSliceJobs(page, limit) {
 
 function createTeam() {
   _multipleQuestions(
-    [
-      'Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ',
-      'Full Team Name: ',
-    ],
-    function (name, fullName) {
+    ['Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ', 'Full Team Name: '],
+    function(name, fullName) {
       api.createTeam(
         name,
         fullName,
         _basicSuccessCallback,
-        _basicErrorCallback
+        _basicErrorCallback,
       );
     }
   );
 }
 
 function listMemberships() {
-  api.teamMemberships(function () {
-    console.log(this);
-  }, _basicErrorCallback);
+  api.teamMemberships(
+    function () {
+      console.log(this);
+    },
+    _basicErrorCallback
+  );
 }
 
 function listTeamMembers(team) {
@@ -510,12 +549,7 @@ function listTeamMembers(team) {
 
 function manageTeamInvite(team, email, revoke) {
   if (revoke) {
-    api.revokeTeamInvite(
-      team,
-      email,
-      _basicSuccessCallback,
-      _basicErrorCallback
-    );
+    api.revokeTeamInvite(team, email, _basicSuccessCallback, _basicErrorCallback);
   } else {
     api.inviteToTeam(team, email, _basicSuccessCallback, _basicErrorCallback);
   }
@@ -535,36 +569,19 @@ function removeTeamMember(team, email) {
     `Are you sure you want to remove ${email} from ${team} (y/N): `,
     (answer) => {
       if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
-        api.removeTeamMember(
-          team,
-          email,
-          _basicSuccessCallback,
-          _basicErrorCallback
-        );
+        api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
       } else {
         console.log('Member removal action canceled');
       }
       rl.close();
-    }
+    },
   );
 }
 
 function addTeamMemberRole(team, email, role) {
-  api.addTeamMemberRole(
-    team,
-    email,
-    role,
-    _basicSuccessCallback,
-    _basicErrorCallback
-  );
+  api.addTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
 }
 
 function revokeTeamMemberRole(team, email, role) {
-  api.revokeTeamMemberRole(
-    team,
-    email,
-    role,
-    _basicSuccessCallback,
-    _basicErrorCallback
-  );
+  api.revokeTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
 }
