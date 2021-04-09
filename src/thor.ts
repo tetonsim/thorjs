@@ -1,11 +1,11 @@
 export {};
 
-const API = require('./api')
-import * as JobDefinitions from './job'
+import { API } from './api'
+import { Job } from './smartslice/job/job'
 
 const thor = {
   API: API,
-  JobDefinitions: JobDefinitions
+  Job: Job
 };
 
 module.exports = thor;

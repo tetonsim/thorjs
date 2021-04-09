@@ -2,6 +2,7 @@
 /* eslint @typescript-eslint/no-var-requires: off */
 /* eslint @typescript-eslint/no-unused-vars: off */
 /* eslint @typescript-eslint/no-empty-function: off */
+/* eslint @typescript-eslint/explicit-module-boundary-types: off */
 
 export {};
 
@@ -265,7 +266,7 @@ function login() {
   _getCredentials(loginWithCreds);
 }
 
-function whoAmI(callback, ...args) {
+export function whoAmI(callback, ...args) {
   api.whoAmI(
     (_) => callback(...args),
     function() {
@@ -429,7 +430,7 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob(job, is3mf) {
+export function submitSmartSliceJob(job, is3mf) {
   const outputFile = path.join(
     path.dirname(job),
     path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json',
@@ -443,6 +444,8 @@ function submitSmartSliceJob(job, is3mf) {
       } else {
         if (!is3mf) {
           try {
+            console.log(data)
+            console.log(JSON.parse(data))
             data = JSON.parse(data);
           } catch (error) {
             throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
