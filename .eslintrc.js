@@ -20,6 +20,7 @@ module.exports = {
         "no-invalid-this": "off",
         "max-len": "off",
         "require-jsdoc": "off",
-        "indent": 'off'
+        "indent": 'off',
+        "no-extra-parens": "off"
     }
 };

@@ -200,7 +200,7 @@ function _multipleQuestions(questions, callback) {
       questions[i],
       (answer) => {
         answers.push(answer);
-        if (questions.length > i + 1) {
+        if (questions.length > (i + 1)) {
           askQuestion(i + 1);
         } else {
           rl.close();
@@ -266,7 +266,7 @@ function login() {
   _getCredentials(loginWithCreds);
 }
 
-export function whoAmI(callback, ...args) {
+function whoAmI(callback, ...args) {
   api.whoAmI(
     (_) => callback(...args),
     function() {
@@ -430,7 +430,7 @@ function resetPassword() {
   );
 }
 
-export function submitSmartSliceJob(job, is3mf) {
+function submitSmartSliceJob(job, is3mf) {
   const outputFile = path.join(
     path.dirname(job),
     path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json',
