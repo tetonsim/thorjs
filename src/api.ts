@@ -1,8 +1,5 @@
-<<<<<<< HEAD:src/api.ts
-=======
-export {};
->>>>>>> r21.0:src/api.js
 let XMLHttpRequest;
+
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
@@ -32,17 +29,11 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
-<<<<<<< HEAD:src/api.ts
 	public http_code: number;
 	public message: string;
 	public success: boolean;
 	public error: string;
-=======
-	public http_code: any;
-	public message: any;
-	public success: any;
-	public error: any;
->>>>>>> r21.0:src/api.js
+
 
   constructor(http_code, message) {
     this.http_code = http_code;
@@ -60,11 +51,7 @@ class Message {
 /**
  * Handles Thor API requests
  */
-<<<<<<< HEAD:src/api.ts
 export class API {
-=======
-class API {
->>>>>>> r21.0:src/api.js
 	public host: any;
 	public token: any;
 	public error: any;
@@ -72,13 +59,9 @@ class API {
 	public version: any;
 	public success: any;
 	public status: any;
-<<<<<<< HEAD:src/api.ts
 	public http_code: number;
 	public id: string;
-=======
-	public http_code: any;
-	public id: any;
->>>>>>> r21.0:src/api.js
+
 
   /** @typedef Token
    * @property {string} expires Token expiration date

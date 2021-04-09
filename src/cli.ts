@@ -2,10 +2,7 @@
 /* eslint @typescript-eslint/no-var-requires: off */
 /* eslint @typescript-eslint/no-unused-vars: off */
 /* eslint @typescript-eslint/no-empty-function: off */
-<<<<<<< HEAD:src/cli.ts
 /* eslint @typescript-eslint/explicit-module-boundary-types: off */
-=======
->>>>>>> r21.0:src/cli.js
 
 export {};
 
