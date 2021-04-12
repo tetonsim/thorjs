@@ -1,5 +1,5 @@
-import { BoundaryCondition } from "./boundaryCondition";
-import { Load } from "./load";
+import {BoundaryCondition} from './boundaryCondition';
+import {Load} from './load';
 
 /**
  * A unique set of boundary conditions and loads that are applied to the model in unison.
@@ -19,7 +19,7 @@ export interface Step {
   loads: Array<Load>;
 }
 
-export class Step{
+export class Step {
   name = 'step'
   boundary_conditions: Array<BoundaryCondition> = []
   loads: Array<Load> = []

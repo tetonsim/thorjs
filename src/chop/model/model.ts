@@ -1,6 +1,6 @@
-import { Mesh } from "../mesh/mesh";
-import { Slicer } from "../slicer/slicer";
-import { Step } from "./step";
+import {Mesh} from '../mesh/mesh';
+import {Slicer} from '../slicer/slicer';
+import {Step} from './step';
 
 /**
  * The process of "chopping" a model is to take the print configuration, including the model geometry and create
@@ -22,7 +22,7 @@ export interface Model {
    */
   slicer: Slicer;
 }
-  
+
 
 export class Model {
   meshes: Mesh[];
@@ -30,8 +30,8 @@ export class Model {
   steps: Step;
 
   constructor(meshes?: Mesh[], slicer?: Slicer, steps?: Step) {
-    this.meshes = meshes ? meshes : []
-    this.slicer = slicer ? slicer : new Slicer()
-    this.steps = steps ? steps : new Step()
+    this.meshes = meshes ? meshes : [];
+    this.slicer = slicer ? slicer : new Slicer();
+    this.steps = steps ? steps : new Step();
   }
 }

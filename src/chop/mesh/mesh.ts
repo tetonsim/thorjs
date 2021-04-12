@@ -1,4 +1,4 @@
-import { Config } from "../../am/config";
+import {Config} from '../../am/config';
 
 /**
  * A surface mesh geometry defined using vertices and triangles.

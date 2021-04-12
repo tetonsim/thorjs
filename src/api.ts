@@ -90,7 +90,7 @@ export class API {
   }
 
   static get version() {
-    return '21.0'
+    return '21.0';
     // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
@@ -106,7 +106,7 @@ export class API {
 
     xhttp.onreadystatechange = function() {
       let response;
-      
+
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);

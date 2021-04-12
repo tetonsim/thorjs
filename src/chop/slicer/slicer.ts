@@ -1,5 +1,5 @@
-import { Config } from "../../am/config";
-import { Printer } from "../machine/printer";
+import {Config} from '../../am/config';
+import {Printer} from '../machine/printer';
 
 /**
  * A slicing engine and print settings.

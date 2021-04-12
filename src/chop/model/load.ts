@@ -1,5 +1,5 @@
 export type Int = number & { __int__: void };
- 
+
 /**
  * Defines a load upon a given portion of the model geometry.
  * The type attribute represents the type of load. The only, current, boundary condition type is "force".

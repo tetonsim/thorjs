@@ -1,6 +1,6 @@
 
- import { Config } from '../../am/config'
- 
+ import {Config} from '../../am/config';
+
  /**
  * Establishes a relationship between an extruder on the printer and the bulk materials that can be used with the extruder.
  */

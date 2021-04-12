@@ -55,7 +55,7 @@ export class OrthotropicElastic {
   nu23: number;
   G12: number;
   G13: number;
-  G23: number; 
+  G23: number;
  }
 
  /**

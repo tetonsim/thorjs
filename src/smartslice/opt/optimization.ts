@@ -20,7 +20,7 @@ export class Optimization {
   min_safety_factor: number;
 
   constructor(max_displacement?: number, min_safety_factor?: number) {
-    this.max_displacement = max_displacement ? max_displacement : 1
-    this.min_safety_factor = min_safety_factor ? min_safety_factor : 2
+    this.max_displacement = max_displacement ? max_displacement : 1;
+    this.min_safety_factor = min_safety_factor ? min_safety_factor : 2;
   }
 }
