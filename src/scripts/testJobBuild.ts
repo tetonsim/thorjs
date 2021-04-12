@@ -10,25 +10,29 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 
-const testType = 'validation'
+const data = require('./validation.json')
 
-const testChop: Model = {
-  steps: new DefaultStep(),
-  slicer: new DefaultSlicer(),
-  meshes: [new DefaultMesh()]
-}
+const testType = data.type
 
-const testBulk: Array<Material> = [ new Material(
-  20,
-  null,
-  null,
-  null,
-  'testMat',
-)]
+const testChop: Model = new Model()
 
-const testExtruders: Extruder[] = [new Extruder(0, ['testMaterial'])]
+testChop.steps = data.chop.steps
+testChop.slicer = data.chop.slicer
+testChop.meshes = data.chop.meshes
 
-const testOptimization: Optimization = new Optimization(2, 1)
+const testBulk: Array<Material> = [new Material()]
+
+testBulk[0].density = data.bulk[0].density
+testBulk[0].elastic = data.bulk[0].elastic
+testBulk[0].failure_yield = data.bulk[0].failure_yield
+testBulk[0].fracture = data.bulk[0].fracture
+testBulk[0].name = data.bulk[0].name
+
+const testExtruders: Extruder[] = [new Extruder()]
+
+testExtruders[0] = data.extruders[0]
+
+const testOptimization: Optimization = new Optimization(2, 2)
 
 // job building method 1
 const testJob = new Job(
@@ -40,11 +44,38 @@ const outputFile = path.join(
   'testJob.json',
 );
 
+const optimizationData = require('./optimization.json')
+
+const testTypeOpt = optimizationData.job.type
+
+
+testChop.steps = optimizationData.job.chop.steps
+testChop.slicer = optimizationData.job.chop.slicer
+testChop.meshes = data.chop.meshes
+
+
+testBulk[0].density = data.bulk[0].density
+testBulk[0].elastic = data.bulk[0].elastic
+testBulk[0].failure_yield = data.bulk[0].failure_yield
+testBulk[0].fracture = data.bulk[0].fracture
+testBulk[0].name = data.bulk[0].name
+
+testExtruders[0] = optimizationData.job.extruders[0]
+
+
+const testJobOptimization = new Job(
+  testTypeOpt, testChop, testBulk, testExtruders, testOptimization
+)
+
+const outputFileOpt = path.join(
+  process.cwd(),
+  'testJobOptimization.json',
+);
+
+
 try {
   fs.writeFileSync(outputFile, testJob.toJSON())
+  fs.writeFileSync(outputFileOpt, testJobOptimization.toJSON())
 } catch (err) {
   console.error(err)
 }
-
-
-

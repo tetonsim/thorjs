@@ -444,8 +444,6 @@ function submitSmartSliceJob(job, is3mf) {
       } else {
         if (!is3mf) {
           try {
-            console.log(data)
-            console.log(JSON.parse(data))
             data = JSON.parse(data);
           } catch (error) {
             throw new Error('JSON failed to parse. If this is a 3MF file use the submit3MF command');
