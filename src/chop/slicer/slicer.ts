@@ -1,11 +1,11 @@
-import { Config, DefaultPrintConfig } from "../../am/config";
-import { DefaultPrinter, Printer } from "../machine/printer";
+import { Config } from "../../am/config";
+import { Printer } from "../machine/printer";
 
 /**
  * A slicing engine and print settings.
  * The type attribute represents the slicing engine to use. Currently, the only, engine supported is "cura".
  */
- export interface Slicer {
+export interface Slicer {
   /**
    * type = "cura"
    */
@@ -18,10 +18,10 @@ import { DefaultPrinter, Printer } from "../machine/printer";
    * Global printer settings to be used by the slicer
    */
   print_config: Config;
- }
+}
 
- export class DefaultSlicer implements Slicer {
-  type = 'slicer'
-  print_config: Config = new DefaultPrintConfig();
-  printer: Printer = new DefaultPrinter()
+export class Slicer {
+  type = ''
+  print_config = new Config();
+  printer = new Printer()
 }

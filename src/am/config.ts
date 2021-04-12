@@ -5,7 +5,7 @@ import { Infill } from './infill'
  * An FDM printer configuration definition. This can be used to apply settings globally,
  * for a specific extruder, or for a specific mesh.
  */
- export interface Config {
+export interface Config {
   /**
    * The width of a printed road/extrusion in millimeters. This should be greater than or equal to the extruder's diameter.
    */
@@ -46,19 +46,19 @@ import { Infill } from './infill'
    * populate this dictionary with the slicer's default properties and then override any that are defined explicitly here.
    */
   auxiliary: Record<string, unknown>;
- }
+}
+ 
 
- export class DefaultPrintConfig implements Config {
+export class Config {
   layer_height = .2
   layer_width = .45
   bottom_layers =  6
   top_layers =  6
-  auxiliary = {}
   infill: Infill =  {
     pattern: 'grid',
     density: 20,
     orientation: 0.0,
   }
   walls = 2
-  skin_orientations: Array<number> = [1]
+  skin_orientations = [45, 135]
 }

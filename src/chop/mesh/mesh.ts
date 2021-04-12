@@ -1,9 +1,9 @@
-import { Config, DefaultPrintConfig } from "../../am/config";
+import { Config } from "../../am/config";
 
 /**
  * A surface mesh geometry defined using vertices and triangles.
  */
- export interface Mesh {
+export interface Mesh {
   /**
    * The type of mesh. Must be "normal" (a regular mesh that is part of printed geometry) or "infill" (a mesh that
    * overrides settings of normal meshes where they overlap, also referred to as a modifier mesh).
@@ -34,11 +34,11 @@ import { Config, DefaultPrintConfig } from "../../am/config";
   print_config: Config;
  }
 
- export class DefaultMesh implements Mesh {
+export class Mesh {
    type = 'normal';
    name = 'mesh';
-   vertices = null;
-   triangles = null;
+   vertices = [[0]];
+   triangles = [[0]];
    transform = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
-   print_config = new DefaultPrintConfig();
+   print_config = new Config();
  }

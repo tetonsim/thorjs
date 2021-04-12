@@ -8,7 +8,7 @@
    */
   type: string;
   /**
-   * von Mises strength.
+   * Von Mises strength.
    */
   Sy: number;
  }
@@ -43,7 +43,7 @@ export class IsotropicYield {
   S: number;
 }
 
-export class VonMisesYield implements VonMisesYield {
+export class VonMisesYield {
   type = 'von_mises';
   Sy: number;
 }

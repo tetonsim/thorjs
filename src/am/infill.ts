@@ -1,7 +1,7 @@
 /**
  * FDM infill configuration.
  */
- export interface Infill {
+export interface Infill {
   /**
    * The name of the infill pattern. Valid values are "grid", "triangle", "triangles", and "cubic".
    */

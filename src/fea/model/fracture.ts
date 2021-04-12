@@ -1,9 +1,9 @@
 /**
  * Fracture properties.
  */
- export interface Fracture {
+export interface Fracture {
   /**
    * Mode I fracture toughness.
    */
   KIc: number;
- }
+}

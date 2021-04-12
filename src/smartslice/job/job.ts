@@ -8,7 +8,7 @@ import { Extruder } from "./extruder";
 /**
  * A complete SmartSlice job definition (validation or optimization).
  */
- export interface Job {
+export interface Job {
   /**
    *  The job type. Acceptable values are "validation" and "optimization".
    */
@@ -27,7 +27,7 @@ import { Extruder } from "./extruder";
    * Optimization configuration if the job type is "optimization". If "validation" this can be omitted.
    */
   optimization: Optimization;
- }
+}
 
 
 export class Job {
@@ -43,17 +43,5 @@ export class Job {
     this.bulk = bulk ? bulk : [new Material]
     this.extruders = extruders ? extruders : [new Extruder()]
     this.optimization = optimization ? optimization : new Optimization()
-  }
-
-  toJSON(): string {
-    const job = {
-      type: this.type,
-      chop: this.chop,
-      extruders: this.extruders,
-      optimization: this.optimization,
-      bulk: this.bulk,
-    }
-
-    return JSON.stringify(job);
   }
 }

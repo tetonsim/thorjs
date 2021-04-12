@@ -6,7 +6,7 @@ import {Fracture} from './fracture'
 /**
  * An engineering material definition.
  */
- export interface Material {
+export interface Material {
   /**
    * A unique name for the material
    */

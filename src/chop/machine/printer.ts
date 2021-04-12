@@ -1,10 +1,10 @@
-import { DefaultPrintConfig } from '../../am/config'
+import { Config } from '../../am/config'
 import { Extruder } from './extruder'
 
 /**
  * An FDM printer definition.
  */
- export interface Printer {
+export interface Printer {
   /**
    * A name for the printer. This currently is not used or referenced in any logic.
    */
@@ -15,11 +15,11 @@ import { Extruder } from './extruder'
   extruders: Array<Extruder>;
  }
 
- export class DefaultPrinter implements Printer {
+export class Printer {
   name = 'printer'
-  extruders: Array<Extruder> = [{
+  extruders: Extruder[] = [{
     id: 0,
     diameter: .4,
-    print_config: new DefaultPrintConfig()
+    print_config: new Config()
   }]
 }

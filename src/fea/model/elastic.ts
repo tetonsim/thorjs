@@ -2,7 +2,7 @@
  *  Linear elastic material properties. All moduli should be given in units of MPa.
  *  This object is polymorphic. The attributes depend on the value of the "type" attribute.
  */
- export interface OrthotropicElastic {
+export interface OrthotropicElastic {
   /**
    * type = "orthotropic"
    */
@@ -43,7 +43,7 @@
    * hear modulus in 23 plane
    */
   G23: number;
- }
+}
 
 export class OrthotropicElastic {
   type = 'orthotropic';
@@ -87,7 +87,7 @@ export class IsotropicElastic {
  * Linear elastic material properties. All moduli should be given in units of MPa.
  * This object is polymorphic. The attributes depend on the value of the "type" attribute.
  */
- export interface TransverseIsotropicElastic {
+export interface TransverseIsotropicElastic {
   /**
    * type = "isotropic"
    */
@@ -112,7 +112,7 @@ export class IsotropicElastic {
    * Poisson ratio in plane of isotropy. For example, if iso_plane=23, nutt would represent nu23.
    */
   nutt: number;
- }
+}
 
 export class TransverseIsotropicElastic {
   type = 'transverse_isotropic';
@@ -121,4 +121,4 @@ export class TransverseIsotropicElastic {
   Et: number;
   nuat: number;
   nutt: number;
- }
+}

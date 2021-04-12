@@ -1,7 +1,4 @@
-import { DefaultMesh } from '../chop/mesh/mesh'
 import { Model } from '../chop/model/model'
-import { DefaultStep } from '../chop/model/step'
-import { DefaultSlicer } from '../chop/slicer/slicer'
 import { Material } from '../fea/model/material'
 import { Extruder } from '../smartslice/job/extruder'
 import{ Job } from '../smartslice/job/job'
@@ -9,7 +6,7 @@ import { Optimization } from '../smartslice/opt/optimization'
 import * as fs from 'fs'
 import * as path from 'path'
 
-
+// requires validation json file
 const data = require('./validation.json')
 
 const testType = data.type
@@ -44,6 +41,7 @@ const outputFile = path.join(
   'testJob.json',
 );
 
+//  requires optimization json data
 const optimizationData = require('./optimization.json')
 
 const testTypeOpt = optimizationData.job.type
@@ -74,8 +72,8 @@ const outputFileOpt = path.join(
 
 
 try {
-  fs.writeFileSync(outputFile, testJob.toJSON())
-  fs.writeFileSync(outputFileOpt, testJobOptimization.toJSON())
+  fs.writeFileSync(outputFile, JSON.stringify(testJob))
+  fs.writeFileSync(outputFileOpt, JSON.stringify(testJobOptimization))
 } catch (err) {
   console.error(err)
 }

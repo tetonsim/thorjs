@@ -2,7 +2,7 @@
  * SmartSlice optimization parameters.
  * Current column number [if this function was defined in a script]
  */
- export interface Optimization {
+export interface Optimization {
   /**
    * The global minimum safety factor to target in the optimization. Print configurations that contain safety
    * factors lower than this number will be thrown out.
@@ -13,9 +13,9 @@
    * that contain displacements that exceed this number will be thrown out.
    */
   max_displacement: number;
- }
+}
 
- export class Optimization {
+export class Optimization {
   max_displacement: number;
   min_safety_factor: number;
 
