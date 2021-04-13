@@ -10,7 +10,7 @@
    * The names of the bulk materials that are usable in this extruder
    */
   usable_material: Array<string>;
- }
+}
 
  export class Extruder {
   constructor(number?: number, usable_material?: string[]) {

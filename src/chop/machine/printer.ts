@@ -13,7 +13,7 @@ export interface Printer {
    * list of the extruders on the printer
    */
   extruders: Array<Extruder>;
- }
+}
 
 export class Printer {
   constructor(name?: string, extruders?: Extruder[]) {

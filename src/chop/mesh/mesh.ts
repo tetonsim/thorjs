@@ -38,16 +38,18 @@ export interface Mesh {
    * Print settings unique to this mesh.
    */
   print_config: Config;
- }
+}
 
 export class Mesh {
   constructor(
+    type?: MeshType,
     name?: string,
     transform?: Transform,
     print_config?: Config,
     vertices?: VectorArray,
     triangles?: VectorArray,
   ) {
+    this.type = type ?? MeshType.normal
     this.name = name ?? 'mesh';
     this.transform = transform ?? [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
     this.print_config = print_config ?? new Config();

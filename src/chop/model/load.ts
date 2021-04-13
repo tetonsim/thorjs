@@ -1,10 +1,8 @@
-import {Face} from "../types";
+import {Face, Vector} from "../types";
 
 export enum LoadType {
   force = 'force'
 }
-
-type Vector = [number, number, number]
 
 /**
  * Defines a load upon a given portion of the model geometry.
