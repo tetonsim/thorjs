@@ -1,5 +1,8 @@
-let XMLHttpRequest;
+import * as zlib from 'zlib';
+import {JobType} from './smartslice/job/job';
+import {Encoding} from './types';
 
+let XMLHttpRequest;
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
@@ -47,6 +50,7 @@ class Message {
     }
   }
 }
+
 
 /**
  * Handles Thor API requests
@@ -100,7 +104,7 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?) {
+  _request(method, route, success, error, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
     let response;
 
@@ -108,6 +112,12 @@ export class API {
       let response;
 
       if (xhttp.readyState === 4) {
+        if (xhttp.getResponseHeader('content-encoding') == 'gzip') {
+          zlib.gunzip(response, (_, data) => {
+            response = JSON.parse(data.toString());
+          });
+        }
+
         try {
           response = JSON.parse(xhttp.responseText);
         } catch (err) {
@@ -150,6 +160,10 @@ export class API {
       }
     };
 
+    if (encoding) {
+      xhttp.setRequestHeader(encoding.accept, encoding.type);
+    }
+
     xhttp.open(method, this.host + route, true);
 
     xhttp.setRequestHeader('Accept-version', API.version);
@@ -165,7 +179,19 @@ export class API {
       xhttp.send(data);
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
-      xhttp.send(JSON.stringify(data));
+
+      if (data.type == JobType.validation || data.type == JobType.optimization ) {
+        zlib.gzip(JSON.stringify(data), (err, gz) => {
+          if (err) {
+            console.log(err);
+          } else {
+            xhttp.setRequestHeader('Content-Encoding', 'gzip');
+            xhttp.send(gz);
+          }
+        });
+      } else {
+        xhttp.send(JSON.stringify(data));
+      }
     }
   }
 
@@ -522,12 +548,17 @@ export class API {
    */
   getSmartSliceJob(jobId, success, error, withResults) {
     let route = `/smartslice/${jobId}`;
+    let encoding: Encoding;
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
+      encoding = {
+        accept: 'Accept-Encoding',
+        type: 'gzip',
+      };
     }
 
-    this._request('GET', route, success, error);
+    this._request('GET', route, success, error, encoding);
   }
 
   /**
