@@ -17,3 +17,11 @@ export interface Infill {
    */
   orientation: number;
 }
+
+export class Infill {
+  constructor(pattern?: string, density?: number, orientation?: number) {
+    this.pattern = pattern ?? 'grid'
+    this.density = density ?? 20
+    this.orientation = orientation ?? 0.0
+  }
+}

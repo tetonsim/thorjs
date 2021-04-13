@@ -13,11 +13,8 @@
  }
 
  export class Extruder {
-  number: number;
-  usable_material: Array<string>;
-
-  constructor(number?: number, usable_material?: Array<string>) {
-    this.number = number ? number : 0;
-    this.usable_material = usable_material ? usable_material : [];
+  constructor(number?: number, usable_material?: string[]) {
+    this.number = number ?? 0;
+    this.usable_material = usable_material ?? [];
   }
 }

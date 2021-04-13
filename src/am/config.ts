@@ -1,5 +1,6 @@
 
-import {Infill} from './infill';
+import { Infill } from './infill';
+
 
 /**
  * An FDM printer configuration definition. This can be used to apply settings globally,
@@ -50,15 +51,23 @@ export interface Config {
 
 
 export class Config {
-  layer_height = .2
-  layer_width = .45
-  bottom_layers = 6
-  top_layers = 6
-  infill: Infill = {
-    pattern: 'grid',
-    density: 20,
-    orientation: 0.0,
+  constructor(
+    layer_height?: number,
+    layer_width?: number,
+    bottom_layers?: number,
+    top_layers?: number,
+    infill?: Infill,
+    walls?: number,
+    skin_orientations?: number[],
+    auxiliary?: Record<string, unknown> 
+  ) {
+    this.layer_height = layer_height ?? 0.2
+    this.layer_width = layer_width ?? .45
+    this.bottom_layers = bottom_layers ?? 6
+    this.top_layers = top_layers ?? 6
+    this.infill = infill ?? new Infill('grid', 20, 0.0)
+    this.walls = walls ?? 2
+    this.skin_orientations = skin_orientations ?? [45, 135]
+    this.auxiliary = auxiliary ?? {}
   }
-  walls = 2
-  skin_orientations = [45, 135]
 }

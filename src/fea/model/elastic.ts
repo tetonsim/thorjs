@@ -1,12 +1,23 @@
+import { isNull } from "node:util";
+
+interface Elastic {
+  /**
+   * type = 'orthotropic' | 'isotropic' | 'transverse_isotropic'
+   */
+  type: ElasticType
+}
+
+export enum ElasticType {
+  orthotropic = 'orthotropic',
+  isotropic = 'isotropic',
+  transverse_isotropic = 'transverse_isotropic'
+}
+
 /**
  *  Linear elastic material properties. All moduli should be given in units of MPa.
  *  This object is polymorphic. The attributes depend on the value of the "type" attribute.
  */
-export interface OrthotropicElastic {
-  /**
-   * type = "orthotropic"
-   */
-  type: string;
+export interface OrthotropicElastic extends Elastic {
   /**
    * Elastic modulus parallel to material 1 axis
    */
@@ -46,27 +57,30 @@ export interface OrthotropicElastic {
 }
 
 export class OrthotropicElastic {
-  type = 'orthotropic';
-  E11: number;
-  E22: number;
-  E33: number;
-  nu12: number;
-  nu13: number;
-  nu23: number;
-  G12: number;
-  G13: number;
-  G23: number;
- }
+  type = ElasticType.orthotropic;
+
+  constructor(
+    E11?: number, E22?: number, E33?: number,
+    nu12?: number, nu13?: number, nu23?: number,
+    G12?: number, G13?: number, G23?: number
+  ) {
+    this.E11 = E11
+    this.E22 = E22
+    this.E33 = E33
+    this.nu12 = nu12
+    this.nu13 = nu13
+    this.nu23 = nu23
+    this.G12 = G12
+    this.G13 = G13
+    this.G23 = G23
+  }
+}
 
  /**
  * Linear elastic material properties. All moduli should be given in units of MPa.
  * This object is polymorphic. The attributes depend on the value of the "type" attribute.
  */
-export interface IsotropicElastic {
-  /**
-   * type = "isotropic"
-   */
-  type: string;
+export interface IsotropicElastic extends Elastic{
   /**
    * Elastic modulus
    */
@@ -78,20 +92,19 @@ export interface IsotropicElastic {
 }
 
 export class IsotropicElastic {
-  type = 'isotropic';
-  E: number;
-  nu: number;
+  type = ElasticType.isotropic;
+
+  constructor(E?: number, nu?: number) {
+    this.E = E
+    this.nu = nu
+  }
 }
 
 /**
  * Linear elastic material properties. All moduli should be given in units of MPa.
  * This object is polymorphic. The attributes depend on the value of the "type" attribute.
  */
-export interface TransverseIsotropicElastic {
-  /**
-   * type = "isotropic"
-   */
-  type: string;
+export interface TransverseIsotropicElastic extends Elastic {
   /**
    *  The plane of isotropy, must be one of 12, 13, or 23
    */
@@ -115,10 +128,13 @@ export interface TransverseIsotropicElastic {
 }
 
 export class TransverseIsotropicElastic {
-  type = 'transverse_isotropic';
-  iso_plane: number;
-  Ea: number;
-  Et: number;
-  nuat: number;
-  nutt: number;
+  type = ElasticType.transverse_isotropic;
+
+  constructor(iso_plane?: number, Ea?: number, Et?: number, nuat?: number, nutt?: number) {
+    this.iso_plane = iso_plane
+    this.Ea = Ea
+    this.Et = Et
+    this.nuat = nuat
+    this.nutt = nutt
+  }
 }

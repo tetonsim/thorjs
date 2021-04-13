@@ -1,3 +1,7 @@
+export enum BoundaryConditionType {
+  fixed = 'fixed'
+}
+
 /**
  * Prescribes the displacement upon a given portion of the model geometry. Typically, this is used to fix a part of the
  * model (fix the displacement at zero).
@@ -8,7 +12,7 @@
   /**
    * type = "fixed"
    */
-  type: string;
+  type: BoundaryConditionType;
   /**
    * A unique name for the boundary condition.
    */
@@ -21,5 +25,15 @@
    * A list of face ids on "mesh" that this boundary condition is applied to.
    */
   face: Array<number>;
- }
+}
+
+export class BoundaryCondition {
+  type = BoundaryConditionType.fixed;
+
+  constructor(name?: string, mesh?: string, face?: number[]) {
+    this.name = name ?? ''
+    this.mesh = mesh ?? ''
+    this.face = face ?? []
+  }
+}
 

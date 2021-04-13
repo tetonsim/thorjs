@@ -1,5 +1,10 @@
-import {Config} from '../../am/config';
-import {Printer} from '../machine/printer';
+import { Config } from '../../am/config';
+import { Printer } from '../machine/printer';
+
+
+export enum SlicerType {
+  cura = 'cura'
+}
 
 /**
  * A slicing engine and print settings.
@@ -9,7 +14,7 @@ export interface Slicer {
   /**
    * type = "cura"
    */
-  type: string;
+  type: SlicerType;
   /**
    * The printer definition.
    */
@@ -21,7 +26,10 @@ export interface Slicer {
 }
 
 export class Slicer {
-  type = ''
-  print_config = new Config();
-  printer = new Printer()
+  type = SlicerType.cura;
+  
+  constructor(print_config?: Config, printer?: Printer) {
+    this.print_config = print_config ?? new Config()
+    this.printer = printer ?? new Printer()
+  }
 }

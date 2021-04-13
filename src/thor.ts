@@ -1,11 +1,14 @@
 export {};
 
-import {API} from './api';
-import {Job} from './smartslice/job/job';
+import { API } from './api';
+import { chop, smartslice, fea, am } from './smartslice/job/job';
 
 const thor = {
   API: API,
-  Job: Job,
+  chop: chop,
+  smartslice: smartslice,
+  fea: fea,
+  am: am
 };
 
 module.exports = thor;

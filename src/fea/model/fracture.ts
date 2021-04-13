@@ -7,3 +7,11 @@ export interface Fracture {
    */
   KIc: number;
 }
+
+export class Fracture {
+  KIc: number;
+
+  constructor(KIc?: number) {
+    this.KIc = KIc
+  }
+}

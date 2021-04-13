@@ -1,81 +1,49 @@
-/* eslint @typescript-eslint/no-var-requires: off */
-
-import {Model} from '../chop/model/model';
-import {Material} from '../fea/model/material';
-import {Extruder} from '../smartslice/job/extruder';
-import {Job} from '../smartslice/job/job';
-import {Optimization} from '../smartslice/opt/optimization';
+import { vertices, triangles, transform } from './testVariables';
+import { fea, smartslice, chop } from '../smartslice/job/job';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// requires validation json file
-const data = require('./validation.json');
 
-const testType = data.type;
+const testType = smartslice.job.JobType.optimization;
 
-const testChop: Model = new Model();
+const meshes = new chop.mesh.Mesh();
+meshes.transform = transform;
+meshes.triangles = triangles;
+meshes.vertices = vertices;
 
-testChop.steps = data.chop.steps;
-testChop.slicer = data.chop.slicer;
-testChop.meshes = data.chop.meshes;
+const slicer = new chop.slicer.Slicer();
 
-const testBulk: Array<Material> = [new Material()];
+const bc = new chop.model.BoundaryCondition('anchor1', 'mesh1', [4, 5]);
 
-testBulk[0].density = data.bulk[0].density;
-testBulk[0].elastic = data.bulk[0].elastic;
-testBulk[0].failure_yield = data.bulk[0].failure_yield;
-testBulk[0].fracture = data.bulk[0].fracture;
-testBulk[0].name = data.bulk[0].name;
+const load = new chop.model.Load('load1', 'mesh1', [44, 45], [-10, 0, 0]);
 
-const testExtruders: Extruder[] = [new Extruder()];
+const steps = new chop.model.Step('step1', [bc], [load]);
 
-testExtruders[0] = data.extruders[0];
+const model = new chop.model.Model([meshes], slicer, [steps]);
 
-const testOptimization: Optimization = new Optimization(2, 2);
+const material = new fea.model.Material();
+material.density = 1.1e-09;
+material.elastic = new fea.model.Elastic.Isotropic(1619, 0.35);
+material.failure_yield = new fea.model.Yield.VonMises(39);
+material.fracture = new fea.model.Fracture(7.42);
+material.name = 'ABS';
 
-// job building method 1
-const testJob = new Job(
-    testType, testChop, testBulk, testExtruders, testOptimization,
+const extruders = new smartslice.job.Extruder();
+extruders.usable_material = ['ABS'];
+
+const optimization = new smartslice.opt.Optimization();
+
+const job = new smartslice.job.Job(
+  testType, model, [material], [extruders], optimization,
 );
 
 const outputFile = path.join(
-    process.cwd(),
-    'testJob.json',
+  process.cwd(),
+  'testJob.json',
 );
-
-//  requires optimization json data
-const optimizationData = require('./optimization.json');
-
-const testTypeOpt = optimizationData.job.type;
-
-
-testChop.steps = optimizationData.job.chop.steps;
-testChop.slicer = optimizationData.job.chop.slicer;
-testChop.meshes = data.chop.meshes;
-
-
-testBulk[0].density = data.bulk[0].density;
-testBulk[0].elastic = data.bulk[0].elastic;
-testBulk[0].failure_yield = data.bulk[0].failure_yield;
-testBulk[0].fracture = data.bulk[0].fracture;
-testBulk[0].name = data.bulk[0].name;
-
-testExtruders[0] = optimizationData.job.extruders[0];
-
-
-const testJobOptimization = new Job(
-    testTypeOpt, testChop, testBulk, testExtruders, testOptimization,
-);
-
-const outputFileOpt = path.join(
-    process.cwd(),
-    'testJobOptimization.json',
-);
-
 
 try {
-  fs.writeFileSync(outputFile, JSON.stringify(testJob));
-  fs.writeFileSync(outputFileOpt, JSON.stringify(testJobOptimization));
+  fs.writeFileSync(outputFile, JSON.stringify(job));
 } catch (err) {
   console.error(err);
 }
