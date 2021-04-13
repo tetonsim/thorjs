@@ -28,8 +28,7 @@ material.failure_yield = new fea.model.Yield.VonMises(39);
 material.fracture = new fea.model.Fracture(7.42);
 material.name = 'ABS';
 
-const extruders = new smartslice.job.Extruder();
-extruders.usable_material = ['ABS'];
+const extruders = new smartslice.job.Extruder(0, ['ABS']);
 
 const optimization = new smartslice.opt.Optimization();
 

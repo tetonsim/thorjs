@@ -1,11 +1,11 @@
 import {Config} from '../../am/config';
+import {Transform, VectorArray} from '../types';
 
 export enum MeshType {
   normal = 'normal',
   infill = 'infill'
 }
 
-type VectorArray = Array<[number, number, number]>
 /**
  * A surface mesh geometry defined using vertices and triangles.
  */
@@ -33,7 +33,7 @@ export interface Mesh {
    * An array of 16 floats that represent the transformation matrix in flattened form in row major order.
    * The default is the identity matrix.
    */
-  transform: Array<number>;
+  transform: Transform;
   /**
    * Print settings unique to this mesh.
    */
@@ -43,7 +43,7 @@ export interface Mesh {
 export class Mesh {
   constructor(
     name?: string,
-    transform?: number[],
+    transform?: Transform,
     print_config?: Config,
     vertices?: VectorArray,
     triangles?: VectorArray,

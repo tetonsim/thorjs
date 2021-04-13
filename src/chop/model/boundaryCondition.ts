@@ -1,3 +1,5 @@
+import {Face} from "../types";
+
 export enum BoundaryConditionType {
   fixed = 'fixed'
 }
@@ -24,13 +26,13 @@ export enum BoundaryConditionType {
   /**
    * A list of face ids on "mesh" that this boundary condition is applied to.
    */
-  face: Array<number>;
+  face: Face;
 }
 
 export class BoundaryCondition {
   type = BoundaryConditionType.fixed;
 
-  constructor(name?: string, mesh?: string, face?: number[]) {
+  constructor(name?: string, mesh?: string, face?: Face) {
     this.name = name ?? '';
     this.mesh = mesh ?? '';
     this.face = face ?? [];

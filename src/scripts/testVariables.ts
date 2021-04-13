@@ -1,3 +1,5 @@
+import {Transform} from "../chop/types";
+
 export const triangles: [number, number, number][] = [
   [
    0,
@@ -3124,7 +3126,7 @@ export const vertices: [number, number, number][] = [
   ],
 ];
 
-export const transform =[
+export const transform: Transform = [
   1.0,
   0.0,
   0.0,

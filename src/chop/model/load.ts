@@ -1,9 +1,11 @@
+import {Face} from "../types";
+
 export enum LoadType {
   force = 'force'
 }
 
 type Vector = [number, number, number]
-//  type VectorArray ={ }
+
 /**
  * Defines a load upon a given portion of the model geometry.
  * The type attribute represents the type of load. The only, current, boundary condition type is "force".
@@ -24,7 +26,7 @@ export interface Load {
   /**
    * A list of face ids on "mesh" that this load is applied to.
    */
-  face: Array<number>;
+  face: Face;
   /**
    * The applied force vector in Newtons.
    */
@@ -34,7 +36,7 @@ export interface Load {
 export class Load {
   type = LoadType.force;
 
-  constructor(name?: string, mesh?: string, face?: number[], force?: Vector) {
+  constructor(name?: string, mesh?: string, face?: Face, force?: Vector) {
     this.name = name ?? '';
     this.mesh = mesh ?? '';
     this.face = face ?? null;

@@ -1,8 +1,8 @@
-import * as Elastic from './elastic';
-import * as Yield from './yield';
 import {Fracture} from './fracture';
+import {Elastic, FailureYield} from './types';
 
-
+// type Elastic = LinearElastic.IsotropicElastic | LinearElastic.TransverseIsotropicElastic | LinearElastic.OrthotropicElastic;
+// type FailureYield = Yield.IsotropicYield | Yield.VonMisesYield
 /**
  * An engineering material definition.
  */
@@ -18,11 +18,11 @@ export interface Material {
   /**
    * The material's linear elastic properties
    */
-  elastic: Elastic.IsotropicElastic | Elastic.TransverseIsotropicElastic | Elastic.OrthotropicElastic;
+  elastic: Elastic;
   /**
    * The material's yield strength properties
    */
-  failure_yield: Yield.VonMisesYield | Yield.IsotropicYield;
+  failure_yield: FailureYield;
   /**
    * The material's fracture properties
    */
@@ -32,8 +32,8 @@ export interface Material {
 export class Material {
   constructor(
     density?: number,
-    elastic?: Elastic.IsotropicElastic | Elastic.TransverseIsotropicElastic | Elastic.OrthotropicElastic,
-    failure_yield?: Yield.VonMisesYield | Yield.IsotropicYield,
+    elastic?: Elastic,
+    failure_yield?: FailureYield,
     fracture?: Fracture,
     name?: string,
   ) {
