@@ -1,6 +1,7 @@
 # ThorJS documentation
 
 ## Typescript
+#### Running
 After running `npm install` 
 Typescript commands:
   -`npx ts-node <filename> # to compile and run file`
@@ -10,6 +11,9 @@ To globally install ts-node and typescript commands run
 `npm install -g ts-node` then you can just run `ts-node <filename`
 
 more command line options can be found [here (ts-node)](https://github.com/TypeStrong/ts-node) and [here (tsc)](https://www.typescriptlang.org/docs/handbook/compiler-options.html)
+
+#### Type Annotations
+When declaring types or interfaces the longhand description is preffered i.e.(Array<T>). When implementing types in classes, functions and objects the shorthand notation is preffered i.e.(T[])
 
 
 ## Eslint 
