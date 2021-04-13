@@ -1,6 +1,6 @@
-import { Mesh } from '../mesh/mesh';
-import { Slicer } from '../slicer/slicer';
-import { Step } from './step';
+import {Mesh} from '../mesh/mesh';
+import {Slicer} from '../slicer/slicer';
+import {Step} from './step';
 
 /**
  * The process of "chopping" a model is to take the print configuration, including the model geometry and create

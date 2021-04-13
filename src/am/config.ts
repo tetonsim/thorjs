@@ -1,5 +1,5 @@
 
-import { Infill } from './infill';
+import {Infill} from './infill';
 
 
 /**
@@ -59,15 +59,15 @@ export class Config {
     infill?: Infill,
     walls?: number,
     skin_orientations?: number[],
-    auxiliary?: Record<string, unknown> 
+    auxiliary?: Record<string, unknown>,
   ) {
-    this.layer_height = layer_height ?? 0.2
-    this.layer_width = layer_width ?? .45
-    this.bottom_layers = bottom_layers ?? 6
-    this.top_layers = top_layers ?? 6
-    this.infill = infill ?? new Infill('grid', 20, 0.0)
-    this.walls = walls ?? 2
-    this.skin_orientations = skin_orientations ?? [45, 135]
-    this.auxiliary = auxiliary ?? {}
+    this.layer_height = layer_height ?? 0.2;
+    this.layer_width = layer_width ?? .45;
+    this.bottom_layers = bottom_layers ?? 6;
+    this.top_layers = top_layers ?? 6;
+    this.infill = infill ?? new Infill('grid', 20, 0.0);
+    this.walls = walls ?? 2;
+    this.skin_orientations = skin_orientations ?? [45, 135];
+    this.auxiliary = auxiliary ?? {};
   }
 }

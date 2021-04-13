@@ -1,5 +1,5 @@
-import { Config } from '../../am/config';
-import { Extruder } from './extruder';
+import {Config} from '../../am/config';
+import {Extruder} from './extruder';
 
 /**
  * An FDM printer definition.
@@ -17,7 +17,7 @@ export interface Printer {
 
 export class Printer {
   constructor(name?: string, extruders?: Extruder[]) {
-    this.name = name ?? this.name
-    this.extruders = extruders ?? [new Extruder(0, 0.4, new Config())]
+    this.name = name ?? this.name;
+    this.extruders = extruders ?? [new Extruder(0, 0.4, new Config())];
   }
 }

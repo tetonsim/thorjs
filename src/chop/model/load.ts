@@ -1,6 +1,6 @@
 export enum LoadType {
   force = 'force'
-} 
+}
 
 type Vector = [number, number, number]
 //  type VectorArray ={ }
@@ -35,10 +35,9 @@ export class Load {
   type = LoadType.force;
 
   constructor(name?: string, mesh?: string, face?: number[], force?: Vector) {
-    this.name = name ?? ''
-    this.mesh = mesh ?? ''
-    this.face = face ?? null
-    this.force = force ?? null
+    this.name = name ?? '';
+    this.mesh = mesh ?? '';
+    this.face = face ?? null;
+    this.force = force ?? null;
   }
-
 }

@@ -12,6 +12,6 @@ export class Fracture {
   KIc: number;
 
   constructor(KIc?: number) {
-    this.KIc = KIc
+    this.KIc = KIc;
   }
 }

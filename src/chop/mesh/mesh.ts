@@ -1,4 +1,4 @@
-import { Config } from '../../am/config';
+import {Config} from '../../am/config';
 
 export enum MeshType {
   normal = 'normal',
@@ -46,12 +46,12 @@ export class Mesh {
     transform?: number[],
     print_config?: Config,
     vertices?: VectorArray,
-    triangles?: VectorArray
+    triangles?: VectorArray,
   ) {
-    this.name = name ?? 'mesh'
-    this.transform = transform ?? [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
-    this.print_config = print_config ?? new Config()
-    this.vertices = vertices ?? []
-    this.triangles = triangles ?? []
+    this.name = name ?? 'mesh';
+    this.transform = transform ?? [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
+    this.print_config = print_config ?? new Config();
+    this.vertices = vertices ?? [];
+    this.triangles = triangles ?? [];
   }
 }

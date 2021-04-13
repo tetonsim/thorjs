@@ -31,9 +31,9 @@ export class BoundaryCondition {
   type = BoundaryConditionType.fixed;
 
   constructor(name?: string, mesh?: string, face?: number[]) {
-    this.name = name ?? ''
-    this.mesh = mesh ?? ''
-    this.face = face ?? []
+    this.name = name ?? '';
+    this.mesh = mesh ?? '';
+    this.face = face ?? [];
   }
 }
 

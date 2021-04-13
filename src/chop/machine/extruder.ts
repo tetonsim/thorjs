@@ -1,5 +1,5 @@
 
- import { Config } from '../../am/config';
+ import {Config} from '../../am/config';
 
  /**
  * Establishes a relationship between an extruder on the printer and the bulk materials that can be used with the extruder.
@@ -21,8 +21,8 @@ export interface Extruder {
 
 export class Extruder {
   constructor(id?: number, diameter?: number, print_config?:Config) {
-    this.id = id
-    this.diameter = diameter
-    this.print_config = print_config
+    this.id = id;
+    this.diameter = diameter;
+    this.print_config = print_config;
   }
 }

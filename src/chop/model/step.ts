@@ -21,8 +21,8 @@ export interface Step {
 
 export class Step {
   constructor(name?: string, boundary_condition?: BoundaryCondition[], loads?: Load[]) {
-    this.name = name ?? 'step'
-    this.boundary_conditions = boundary_condition ?? []
-    this.loads = loads ?? []
+    this.name = name ?? 'step';
+    this.boundary_conditions = boundary_condition ?? [];
+    this.loads = loads ?? [];
   }
 }

@@ -42,9 +42,9 @@ export class IsotropicYield {
   type = YieldType.isotropic;
 
   constructor(T?: number, C?: number, S?: number) {
-    this.T = T
-    this.C = C
-    this.S = S
+    this.T = T;
+    this.C = C;
+    this.S = S;
   }
 }
 
@@ -52,7 +52,7 @@ export class VonMisesYield {
   type = YieldType.vonMises;
 
   constructor(Sy?: number) {
-    this.Sy = Sy
+    this.Sy = Sy;
   }
 }
 

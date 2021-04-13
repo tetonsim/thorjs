@@ -1,6 +1,6 @@
 import * as Elastic from './elastic';
 import * as Yield from './yield';
-import { Fracture } from './fracture';
+import {Fracture} from './fracture';
 
 
 /**

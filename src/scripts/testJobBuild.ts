@@ -1,5 +1,5 @@
-import { vertices, triangles, transform } from './testVariables';
-import { fea, smartslice, chop } from '../smartslice/job/job';
+import {vertices, triangles, transform} from './testVariables';
+import {fea, smartslice, chop} from '../smartslice/job/job';
 import * as fs from 'fs';
 import * as path from 'path';
 
