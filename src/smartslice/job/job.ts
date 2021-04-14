@@ -1,19 +1,8 @@
 
-import {Mesh} from '../../chop/mesh/mesh';
-import {BoundaryCondition} from '../../chop/model/boundaryCondition';
-import {Load} from '../../chop/model/load';
 import {Model} from '../../chop/model/model';
-import {Step} from '../../chop/model/step';
-import {IsotropicElastic, OrthotropicElastic, TransverseIsotropicElastic} from '../../fea/model/elastic';
 import {Material} from '../../fea/model/material';
-import {IsotropicYield, VonMisesYield} from '../../fea/model/yield';
 import {Optimization} from '../opt/optimization';
 import {Extruder} from './extruder';
-import {Fracture} from '../../fea/model/fracture';
-import {Slicer} from '../../chop/slicer/slicer';
-import {Printer} from '../../chop/machine/printer';
-import {Config} from '../../am/config';
-import {Infill} from '../../am/infill';
 
 
 export enum JobType {
@@ -55,53 +44,3 @@ export class Job {
     this.optimization = optimization ?? new Optimization();
   }
 }
-
-export const smartslice = {
-  job: {
-    Job: Job,
-    JobType: JobType,
-    Extruder: Extruder,
-  },
-  opt: {
-    Optimization: Optimization,
-  },
-};
-
-export const fea = {
-  model: {
-    Material: Material,
-    Elastic: {
-      Isotropic: IsotropicElastic,
-      Transverse: TransverseIsotropicElastic,
-      Orthotropic: OrthotropicElastic,
-    },
-    Yield: {
-      VonMises: VonMisesYield,
-      Isotropic: IsotropicYield,
-    },
-    Fracture: Fracture,
-  },
-};
-
-export const chop = {
-  model: {
-    Model: Model,
-    Step: Step,
-    BoundaryCondition: BoundaryCondition,
-    Load: Load,
-  },
-  mesh: {
-    Mesh: Mesh,
-  },
-  slicer: {
-    Slicer: Slicer,
-  },
-  machine: {
-    Printer: Printer,
-  },
-};
-
-export const am = {
-  Config: Config,
-  Infill: Infill,
-};

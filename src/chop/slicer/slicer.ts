@@ -3,7 +3,7 @@ import {Printer} from '../machine/printer';
 
 
 export enum SlicerType {
-  cura = 'cura'
+  cura = 'cura',
 }
 
 /**

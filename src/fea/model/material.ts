@@ -31,17 +31,17 @@ export interface Material {
 
 export class Material {
   constructor(
+    name?: string,
     density?: number,
     elastic?: Elastic,
     failure_yield?: FailureYield,
     fracture?: Fracture,
-    name?: string,
   ) {
+    this.name = name ?? '';
     this.density = density ?? 0;
     this.elastic = elastic ?? null;
     this.fracture = fracture ?? null;
     this.failure_yield = failure_yield ?? null;
-    this.name = name ?? '';
   }
 }
 

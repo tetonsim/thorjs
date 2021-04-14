@@ -20,7 +20,7 @@ export interface Extruder {
 }
 
 export class Extruder {
-  constructor(id?: number, diameter?: number, print_config?:Config) {
+  constructor(id?: number, diameter?: number, print_config?: Config) {
     this.id = id;
     this.diameter = diameter;
     this.print_config = print_config;
