@@ -1,5 +1,5 @@
-export {};
 let XMLHttpRequest;
+
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
@@ -29,10 +29,11 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
-	public http_code: any;
-	public message: any;
-	public success: any;
-	public error: any;
+	public http_code: number;
+	public message: string;
+	public success: boolean;
+	public error: string;
+
 
   constructor(http_code, message) {
     this.http_code = http_code;
@@ -50,7 +51,7 @@ class Message {
 /**
  * Handles Thor API requests
  */
-class API {
+export class API {
 	public host: any;
 	public token: any;
 	public error: any;
@@ -58,8 +59,9 @@ class API {
 	public version: any;
 	public success: any;
 	public status: any;
-	public http_code: any;
-	public id: any;
+	public http_code: number;
+	public id: string;
+
 
   /** @typedef Token
    * @property {string} expires Token expiration date
@@ -72,7 +74,7 @@ class API {
    * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
    * @param {Token} config.token Authorization bearer token to use in API calls
    */
-  constructor(config) {
+  constructor(config?) {
     if (config === undefined) {
       config = {
         host: 'https://api.smartslice.xyz',
@@ -88,7 +90,7 @@ class API {
   }
 
   static get version() {
-    return '21.0'
+    return '21.0';
     // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
   }
 
@@ -100,10 +102,11 @@ class API {
 
   _request(method, route, success, error, data?) {
     const xhttp = new XMLHttpRequest();
+    let response;
 
     xhttp.onreadystatechange = function() {
       let response;
-      
+
       if (xhttp.readyState === 4) {
         try {
           response = JSON.parse(xhttp.responseText);
@@ -807,5 +810,3 @@ class API {
     );
   }
 }
-
-module.exports = API;

@@ -8,17 +8,17 @@ if (process.env.BUILD_NUMBER) {
   version = version + '.' + process.env.BUILD_NUMBER;
 }
 
-let externals = {
+const externals = {
   xmlhttprequest: 'XMLHttpRequest',
-  three: 'THREE'
+  three: 'THREE',
 };
 
 externals['node-localstorage'] = 'localStorage';
 
-let definitions = new webpack.DefinePlugin(
+const definitions = new webpack.DefinePlugin(
   {
-    THOR_VERSION: JSON.stringify(version)
-  }
+    THOR_VERSION: JSON.stringify(version),
+  },
 );
 
 base_web_config = {
@@ -27,14 +27,14 @@ base_web_config = {
   externals: externals,
   plugins: [
     new webpack.IgnorePlugin(/xmlhttprequest/),
-    definitions
+    definitions,
   ],
   node: {
     fs: 'empty',
     os: 'empty',
     path: 'empty',
-    child_process: 'empty'
-  }
+    child_process: 'empty',
+  },
 };
 
 prod_config = {
@@ -42,8 +42,8 @@ prod_config = {
   output: {
     filename: 'thor.js',
     library: 'thor',
-    path: path.resolve(__dirname, 'build')
-  }
+    path: path.resolve(__dirname, 'build'),
+  },
 };
 
 Object.assign(prod_config, base_web_config);
@@ -53,8 +53,8 @@ dev_config = {
   output: {
     filename: 'thor.dev.js',
     library: 'thor',
-    path: path.resolve(__dirname, 'build')
-  }
+    path: path.resolve(__dirname, 'build'),
+  },
 };
 
 Object.assign(dev_config, base_web_config);
@@ -64,16 +64,16 @@ cli_config = {
   target: 'node',
   mode: 'production',
   externals: {
-    three: 'THREE'
+    three: 'THREE',
   },
   output: {
     filename: 'thor.cli.js',
-    //library: 'thor',
-    path: path.resolve(__dirname, 'build')
+    // library: 'thor',
+    path: path.resolve(__dirname, 'build'),
   },
   plugins: [
-    definitions
-  ]
+    definitions,
+  ],
 };
 
 module.exports = [prod_config, dev_config, cli_config];

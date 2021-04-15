@@ -2,6 +2,7 @@
 /* eslint @typescript-eslint/no-var-requires: off */
 /* eslint @typescript-eslint/no-unused-vars: off */
 /* eslint @typescript-eslint/no-empty-function: off */
+/* eslint @typescript-eslint/explicit-module-boundary-types: off */
 
 export {};
 
