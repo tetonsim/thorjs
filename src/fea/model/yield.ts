@@ -1,10 +1,10 @@
 export enum YieldType {
   vonMises = 'von_mises',
-  isotropic = 'isotropic'
+  isotropic = 'isotropic',
 }
 
 interface Yield {
-  type: YieldType
+  type: YieldType,
 }
 
 /**

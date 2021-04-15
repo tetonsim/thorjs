@@ -1,7 +1,7 @@
-import {Face} from "../types";
+import {Face} from '../types';
 
 export enum BoundaryConditionType {
-  fixed = 'fixed'
+  fixed = 'fixed',
 }
 
 /**

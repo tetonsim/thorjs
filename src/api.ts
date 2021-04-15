@@ -3,6 +3,7 @@ import {JobType} from './smartslice/job/job';
 import {Encoding} from './types';
 
 let XMLHttpRequest;
+
 if (typeof window === 'undefined') {
   XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }

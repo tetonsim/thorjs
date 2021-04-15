@@ -1,9 +1,9 @@
 import {Config} from '../../am/config';
-import {Transform, VectorArray} from '../types';
+import {IndexArray, Transform, VertexArray} from '../types';
 
 export enum MeshType {
   normal = 'normal',
-  infill = 'infill'
+  infill = 'infill',
 }
 
 /**
@@ -22,13 +22,13 @@ export interface Mesh {
   /**
    * A list of 3 float arrays that define the coordinates of the vertices.
    */
-  vertices: VectorArray;
+  vertices: VertexArray;
   /**
    * A list of 3 integer arrays that define the triangle connectivities. The integers refer to the indices of
    * the vertices (counting starts at zero). The computed triangle normal should point outward from the geometry
    * (consistent with the well known STL format)
    */
-  triangles: VectorArray;
+  triangles: IndexArray;
   /**
    * An array of 16 floats that represent the transformation matrix in flattened form in row major order.
    * The default is the identity matrix.
@@ -46,8 +46,8 @@ export class Mesh {
     name?: string,
     transform?: Transform,
     print_config?: Config,
-    vertices?: VectorArray,
-    triangles?: VectorArray,
+    vertices?: VertexArray,
+    triangles?: IndexArray,
   ) {
     this.type = type ?? MeshType.normal
     this.name = name ?? 'mesh';

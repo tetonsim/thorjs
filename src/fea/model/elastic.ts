@@ -8,7 +8,7 @@ interface Elastic {
 export enum ElasticType {
   orthotropic = 'orthotropic',
   isotropic = 'isotropic',
-  transverse_isotropic = 'transverse_isotropic'
+  transverse_isotropic = 'transverse_isotropic',
 }
 
 /**

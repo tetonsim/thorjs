@@ -1,7 +1,7 @@
 import {Face, Vector} from "../types";
 
 export enum LoadType {
-  force = 'force'
+  force = 'force',
 }
 
 /**
