@@ -1,6 +1,6 @@
 import * as zlib from 'zlib';
 import {JobType} from './smartslice/job/job';
-import {Encoding} from './types';
+import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
 
 let XMLHttpRequest;
 
@@ -105,7 +105,7 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?, encoding?: Encoding) {
+  _request(method, route, success, error, data?, header?: XHTTPHeader<string, string>) {
     const xhttp = new XMLHttpRequest();
     let response;
 
@@ -113,16 +113,17 @@ export class API {
       let response;
 
       if (xhttp.readyState === 4) {
-        if (xhttp.getResponseHeader('content-encoding') == 'gzip') {
-          zlib.gunzip(response, (_, data) => {
-            response = JSON.parse(data.toString());
-          });
-        }
-
+        
         try {
           response = JSON.parse(xhttp.responseText);
         } catch (err) {
           response = xhttp.responseText;
+        }
+        
+        if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
+          zlib.gunzip(response, (_, data) => {
+            response = JSON.parse(data.toString());
+          });
         }
 
         let err = null;
@@ -160,14 +161,14 @@ export class API {
         }
       }
     };
-
-    if (encoding) {
-      xhttp.setRequestHeader(encoding.accept, encoding.type);
-    }
-
+    
     xhttp.open(method, this.host + route, true);
-
+    
     xhttp.setRequestHeader('Accept-version', API.version);
+
+    if (header) {
+      xhttp.setRequestHeader(header.type, header.value);
+    }
 
     if (this.token) {
       xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
@@ -177,18 +178,15 @@ export class API {
       xhttp.send();
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      xhttp.send(data);
+      zlib.gzip(data, (_, gz) => {
+        xhttp.send(gz);
+      });
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
 
-      if (data.type == JobType.validation || data.type == JobType.optimization ) {
-        zlib.gzip(JSON.stringify(data), (err, gz) => {
-          if (err) {
-            console.log(err);
-          } else {
-            xhttp.setRequestHeader('Content-Encoding', 'gzip');
-            xhttp.send(gz);
-          }
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(JSON.stringify(data), (_, gz) => {
+          xhttp.send(gz);
         });
       } else {
         xhttp.send(JSON.stringify(data));
@@ -518,11 +516,17 @@ export class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job, success, error) {
+    const header: Encoding = {
+      type: EncodingTypes.content,
+      value: EncodingValues.gzip,
+    }
+
     this._request(
       'POST', '/smartslice',
       success,
       error,
       job,
+      header
     );
   }
 
@@ -549,17 +553,17 @@ export class API {
    */
   getSmartSliceJob(jobId, success, error, withResults) {
     let route = `/smartslice/${jobId}`;
-    let encoding: Encoding;
+    let header: Encoding;
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
-      encoding = {
-        accept: 'Accept-Encoding',
-        type: 'gzip',
+      header = {
+        type: EncodingTypes.accept,
+        value: EncodingValues.gzip,
       };
     }
 
-    this._request('GET', route, success, error, encoding);
+    this._request('GET', route, success, error, header);
   }
 
   /**
