@@ -3,7 +3,7 @@ export type Token = {
   id: string
 }
 
-export interface XHTTPHeader<T, V>  {
+export interface XHTTPHeader<T, V> {
   type: T;
   value: V;
 }

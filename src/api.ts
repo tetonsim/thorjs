@@ -113,13 +113,12 @@ export class API {
       let response;
 
       if (xhttp.readyState === 4) {
-        
         try {
           response = JSON.parse(xhttp.responseText);
         } catch (err) {
           response = xhttp.responseText;
         }
-        
+
         if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
           zlib.gunzip(response, (_, data) => {
             response = JSON.parse(data.toString());
@@ -161,9 +160,9 @@ export class API {
         }
       }
     };
-    
+
     xhttp.open(method, this.host + route, true);
-    
+
     xhttp.setRequestHeader('Accept-version', API.version);
 
     if (header) {
@@ -519,14 +518,14 @@ export class API {
     const header: Encoding = {
       type: EncodingTypes.content,
       value: EncodingValues.gzip,
-    }
+    };
 
     this._request(
       'POST', '/smartslice',
       success,
       error,
       job,
-      header
+      header,
     );
   }
 
