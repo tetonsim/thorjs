@@ -1,3 +1,5 @@
+import { Job } from "./smartslice/job/job";
+
 let XMLHttpRequest;
 
 if (typeof window === 'undefined') {
@@ -29,10 +31,10 @@ const _HelperCallbacks = {
  * @property {boolean} success
  */
 class Message {
-	public http_code: number;
-	public message: string;
-	public success: boolean;
-	public error: string;
+  public http_code: number;
+  public message: string;
+  public success: boolean;
+  public error: string;
 
 
   constructor(http_code, message) {
@@ -48,19 +50,39 @@ class Message {
   }
 }
 
+export interface APIUser {
+
+}
+
+export enum HTTPMethod {
+  GET = 'GET',
+  POST = 'POST',
+  DELETE = 'DELETE',
+  PUT = 'PUT'
+
+}
+
+export interface Callback {
+  (...any): void
+}
+
+export interface Token {
+
+}
 /**
  * Handles Thor API requests
  */
 export class API {
-	public host: any;
-	public token: any;
-	public error: any;
-	public user: any;
-	public version: any;
-	public success: any;
-	public status: any;
-	public http_code: number;
-	public id: string;
+  public host: string;
+  public token: any;
+  // public token: Token;
+  public error: any;
+  public user: APIUser;
+  public version: string | number;
+  public success: any;
+  public status: string;
+  public http_code: number;
+  public id: string;
 
 
   /** @typedef Token
@@ -85,7 +107,7 @@ export class API {
     this.host = config.host;
     this.token = config.token;
 
-    this.error = function() {};
+    this.error = function () { };
     this.user = null;
   }
 
@@ -100,11 +122,10 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?) {
+  _request(method: HTTPMethod, route: string, success: Function, error: Function, data?) {
     const xhttp = new XMLHttpRequest();
-    let response;
 
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
       let response;
 
       if (xhttp.readyState === 4) {
@@ -197,8 +218,8 @@ export class API {
   * @param {API~verify-version} success
   * @param {API~error} error
   */
-  verifyVersion(success, error) {
-    const parseVersion = function() {
+  verifyVersion(success: Callback, error: Callback) {
+    const parseVersion = function () {
       const sv = this.version.split('.');
       const cv = API.version.split('.');
 
@@ -215,7 +236,7 @@ export class API {
       success(compatible, API.version, this.version);
     };
 
-    this._request('GET', '/', parseVersion, error);
+    this._request(HTTPMethod.GET, '/', parseVersion, error);
   }
 
   /**
@@ -237,13 +258,13 @@ export class API {
     if (this.user === null || getUserInfoFromServer) {
       const api = this;
 
-      const clearUser = function() {
+      const clearUser = function () {
         api.user = null;
         api.token = null;
         error.bind(this)();
       };
 
-      this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
+      this._request(HTTPMethod.GET, '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
       success.bind(this.user)();
     }
@@ -252,7 +273,7 @@ export class API {
   }
 
   register(first_name, last_name, email, password, company, country, success, error) {
-    this._request('POST', '/auth/register', success, error,
+    this._request(HTTPMethod.POST, '/auth/register', success, error,
       {
         email: email,
         first_name: first_name,
@@ -281,16 +302,16 @@ export class API {
    * @param {API~getToken-success} success Callback function if token is obtained.
    * @param {API~error} error Callback function if token creation fails.
    */
-  getToken(email, password, success, error) {
-    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, {email: email, password: password});
+  getToken(email: string, password: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
+      error, { email: email, password: password });
   }
 
   /**
    *
    * @param {Token} token
    */
-  setToken(token) {
+  setToken(token: Token) {
     this.token = token;
   }
 
@@ -300,13 +321,13 @@ export class API {
    * @param {API~getToken-success} success Callback function if refresh is successful.
    * @param {API~error} error Callback function if refresh is unsuccessful.
    */
-  refreshToken(success, error) {
+  refreshToken(success: Callback, error: Callback) {
     if (this.token === null) {
       error('null token');
       return;
     }
 
-    this._request('PUT', '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
+    this._request(HTTPMethod.PUT, '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
   }
 
   /**
@@ -314,11 +335,11 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  releaseToken(success, error) {
+  releaseToken(success: Callback, error: Callback) {
     const api = this;
 
-    this._request('DELETE', '/auth/token',
-      function() {
+    this._request(HTTPMethod.DELETE, '/auth/token',
+      function () {
         if (this.success) {
           api.token = null;
           api.user = null;
@@ -341,12 +362,12 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  verifyEmail(code, success, error) {
+  verifyEmail(code: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/auth/verify',
+      HTTPMethod.POST, '/auth/verify',
       success,
       error,
-      {code: code},
+      { code: code },
     );
   }
 
@@ -355,12 +376,12 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  verifyEmailResend(email, success, error) {
+  verifyEmailResend(email: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/auth/verify/resend',
+      HTTPMethod.POST, '/auth/verify/resend',
       success,
       error,
-      {email: email},
+      { email: email },
     );
   }
 
@@ -371,9 +392,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  changePassword(oldPassword, newPassword, success, error) {
+  changePassword(oldPassword: string, newPassword: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/auth/password/change',
+      HTTPMethod.POST, '/auth/password/change',
       success,
       error,
       {
@@ -390,12 +411,12 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  forgotPassword(email, success, error) {
+  forgotPassword(email: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/auth/password/forgot',
+      HTTPMethod.POST, '/auth/password/forgot',
       success,
       error,
-      {email: email},
+      { email: email },
     );
   }
 
@@ -407,9 +428,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  resetPassword(code, email, password, success, error) {
+  resetPassword(code: string, email: string, password: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/auth/password/reset',
+      HTTPMethod.POST, '/auth/password/reset',
       success,
       error,
       {
@@ -439,7 +460,7 @@ export class API {
    * @param {API~error} error
    * @param {string} team Optional team name (short name) to retrieve subscription for
    */
-  getSmartSliceSubscription(success, error, team) {
+  getSmartSliceSubscription(success: Callback, error: Callback, team: string) {
     let url = '/smartslice/subscription';
 
     if (team) {
@@ -447,7 +468,7 @@ export class API {
     }
 
     this._request(
-      'GET', url,
+      HTTPMethod.GET, url,
       success,
       error,
     );
@@ -490,9 +511,9 @@ export class API {
    * @param {API~job-callback} success
    * @param {API~error} error
    */
-  submitSmartSliceJob(job, success, error) {
+  submitSmartSliceJob(job: Buffer | Job, success: Callback, error: Callback) {
     this._request(
-      'POST', '/smartslice',
+      HTTPMethod.POST, '/smartslice',
       success,
       error,
       job,
@@ -505,9 +526,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  cancelSmartSliceJob(jobId, success, error) {
+  cancelSmartSliceJob(jobId: string, success: Callback, error: Callback) {
     this._request(
-      'DELETE', `/smartslice/${jobId}`,
+      HTTPMethod.DELETE, `/smartslice/${jobId}`,
       success,
       error,
     );
@@ -527,7 +548,7 @@ export class API {
       route = `/smartslice/result/${jobId}`;
     }
 
-    this._request('GET', route, success, error);
+    this._request(HTTPMethod.GET, route, success, error);
   }
 
   /**
@@ -538,8 +559,8 @@ export class API {
    * @param {API~job-callback} failed
    * @param {API~job-poll-callback} poll
    */
-  pollSmartSliceJob(jobId, error, finished, failed, poll) {
-    const api = this;
+  pollSmartSliceJob(jobId: string, error: Callback, finished: Callback, failed: Callback, poll: Callback) {
+    const api: API = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
 
@@ -547,14 +568,14 @@ export class API {
     const periodMultiplier = 1.25;
 
     function pollJob(period) {
-      return function() {
-        const handleJobStatus = function() {
+      return function () {
+        const handleJobStatus = function () {
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               const abort = poll.bind(this)();
 
               if (abort) {
-                api.cancelSmartSliceJob(jobId, () => {}, () => {});
+                api.cancelSmartSliceJob(jobId, () => { }, () => { });
               }
             }
 
@@ -568,7 +589,7 @@ export class API {
           }
         };
 
-        const errorHandler = function() {
+        const errorHandler = function () {
           if (this.http_code == 429) {
             // If the error is a rate limit, then just continue polling.
             setTimeout(pollJob(period), period);
@@ -587,13 +608,13 @@ export class API {
   /**
    * Submit and start a new job with the given 3MF specified as a buffer,
    * and then poll it until it has completed or failed.
-   * @param {Buffer} job
+   * @param {Buffer | Job} job
    * @param {API~error} error
    * @param {API~job-callback} finished
    * @param {API~job-callback} failed
    * @param {API~job-poll-callback} poll
    */
-  submitSmartSliceJobAndPoll(job, error, finished, failed, poll) {
+  submitSmartSliceJobAndPoll(job: Buffer | Job , error: Callback, finished: Callback, failed: Callback, poll: Callback) {
     const that = this;
     this.submitSmartSliceJob(
       job,
@@ -611,10 +632,10 @@ export class API {
    * @param {API~list-job-callback} success
    * @param {API~error} error
    */
-  listSmartSliceJobs(limit, page, success, error) {
+  listSmartSliceJobs(limit: number, page: number, success: Callback, error: Callback) {
     const route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
-    this._request('GET', route, success, error);
+    this._request(HTTPMethod.GET, route, success, error);
   }
 
   /**
@@ -663,9 +684,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  createTeam(name, fullName, success, error) {
+  createTeam(name: string, fullName: string, success: Callback, error: Callback) {
     this._request(
-      'POST', '/teams',
+      HTTPMethod.POST, '/teams',
       success,
       error,
       {
@@ -680,8 +701,8 @@ export class API {
    * @param {API~teams-callback} success
    * @param {API~error} error
    */
-  teamMemberships(success, error) {
-    this._request('GET', '/teams', success, error);
+  teamMemberships(success: Callback, error: Callback) {
+    this._request(HTTPMethod.GET, '/teams', success, error);
   }
 
   /**
@@ -690,8 +711,8 @@ export class API {
    * @param {API~members-callback} success
    * @param {API~error} error
    */
-  teamMembers(team, success, error) {
-    this._request('GET', `/teams/${team}/members`, success, error);
+  teamMembers(team: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.GET, `/teams/${team}/members`, success, error);
   }
 
   /**
@@ -701,8 +722,8 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  inviteToTeam(team, email, success, error) {
-    this._request('POST', `/teams/${team}/invite`, success, error, {email: email});
+  inviteToTeam(team: string, email: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.POST, `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -712,8 +733,8 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  revokeTeamInvite(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/invite`, success, error, {email: email});
+  revokeTeamInvite(team: string, email: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.DELETE, `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
@@ -722,8 +743,8 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  acceptTeamInvite(team, success, error) {
-    this._request('GET', `/teams/${team}/invite`, success, error);
+  acceptTeamInvite(team: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.GET, `/teams/${team}/invite`, success, error);
   }
 
   /**
@@ -733,8 +754,8 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  removeTeamMember(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/member`, success, error, {email: email});
+  removeTeamMember(team: string, email: string, success: Callback, error: Callback) {
+    this._request(HTTPMethod.DELETE, `/teams/${team}/member`, success, error, {email: email});
   }
 
   /**
@@ -745,9 +766,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  addTeamMemberRole(team, email, role, success, error) {
+  addTeamMemberRole(team: string, email: string, role: string, success: Callback, error: Callback) {
     this._request(
-      'POST', `/teams/${team}/role`,
+      HTTPMethod.POST, `/teams/${team}/role`,
       success,
       error,
       {
@@ -765,9 +786,9 @@ export class API {
    * @param {API~success} success
    * @param {API~error} error
    */
-  revokeTeamMemberRole(team, email, role, success, error) {
+  revokeTeamMemberRole(team: string, email: string, role, success, error) {
     this._request(
-      'DELETE', `/teams/${team}/role`,
+      HTTPMethod.DELETE, `/teams/${team}/role`,
       success,
       error,
       {
@@ -800,7 +821,7 @@ export class API {
     }
 
     this._request(
-      'POST', '/support/issue',
+      HTTPMethod.POST, '/support/issue',
       success,
       error,
       {
