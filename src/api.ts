@@ -105,7 +105,7 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?, header?: XHTTPHeader<string, string>) {
+  _request(method, route, success, error, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
     let response;
 
@@ -165,8 +165,8 @@ export class API {
 
     xhttp.setRequestHeader('Accept-version', API.version);
 
-    if (header) {
-      xhttp.setRequestHeader(header.type, header.value);
+    if (encoding) {
+      xhttp.setRequestHeader(encoding.name, encoding.value);
     }
 
     if (this.token) {
@@ -177,9 +177,13 @@ export class API {
       xhttp.send();
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      zlib.gzip(data, (_, gz) => {
-        xhttp.send(gz);
-      });
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(JSON.stringify(data), (_, gz) => {
+          xhttp.send(gz);
+        });
+      } else {
+        xhttp.send(data);
+      }
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
 
@@ -515,8 +519,8 @@ export class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job, success, error) {
-    const header: Encoding = {
-      type: EncodingTypes.content,
+    const encoding: Encoding = {
+      name: EncodingTypes.content,
       value: EncodingValues.gzip,
     };
 
@@ -525,7 +529,7 @@ export class API {
       success,
       error,
       job,
-      header,
+      encoding,
     );
   }
 
@@ -552,17 +556,17 @@ export class API {
    */
   getSmartSliceJob(jobId, success, error, withResults) {
     let route = `/smartslice/${jobId}`;
-    let header: Encoding;
+    let encoding: Encoding;
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
-      header = {
-        type: EncodingTypes.accept,
+      encoding = {
+        name: EncodingTypes.accept,
         value: EncodingValues.gzip,
       };
     }
 
-    this._request('GET', route, success, error, header);
+    this._request('GET', route, success, error, encoding);
   }
 
   /**
