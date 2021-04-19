@@ -1,4 +1,5 @@
 import * as zlib from 'zlib';
+import * as dotenv from "dotenv";
 import {JobType} from './smartslice/job/job';
 import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
 
@@ -52,7 +53,7 @@ class Message {
   }
 }
 
-
+dotenv.config()
 /**
  * Handles Thor API requests
  */
@@ -61,11 +62,11 @@ export class API {
 	public token: any;
 	public error: any;
 	public user: any;
-	public version: any;
 	public success: any;
 	public status: any;
 	public http_code: number;
 	public id: string;
+	public version = process.env.THOR_VERSION;
 
 
   /** @typedef Token
@@ -86,7 +87,7 @@ export class API {
         token: null,
       };
     }
-
+    
     this.host = config.host;
     this.token = config.token;
 
@@ -95,10 +96,9 @@ export class API {
   }
 
   static get version() {
-    return '21.0';
-    // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
+    return process.env.THOR_VERSION
   }
-
+  
   get config() {
     return {
       host: this.host,

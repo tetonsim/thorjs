@@ -8,8 +8,6 @@ export {};
 
 ('use strict');
 
-const version = 'dev';
-
 const app = require('commander');
 const fs = require('fs');
 const os = require('os');
@@ -23,7 +21,12 @@ const location = path.join(os.homedir(), '.thor');
 const LocalStorage = require('node-localstorage').LocalStorage;
 const storage = new LocalStorage(location);
 
+import * as dotenv from "dotenv";
+
+
 // default configuration
+dotenv.config()
+const version = process.env.THOR_VERSION;
 const HOST = 'https://api.smartslice.xyz';
 let config = {
   host: HOST,
