@@ -178,7 +178,7 @@ export class API {
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
       if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
-        zlib.gzip(JSON.stringify(data), (_, gz) => {
+        zlib.gzip(data, (_, gz) => {
           xhttp.send(gz);
         });
       } else {
