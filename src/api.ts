@@ -1,3 +1,7 @@
+import * as zlib from 'zlib';
+import {JobType} from './smartslice/job/job';
+import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
+
 let XMLHttpRequest;
 
 if (typeof window === 'undefined') {
@@ -47,6 +51,7 @@ class Message {
     }
   }
 }
+
 
 /**
  * Handles Thor API requests
@@ -100,7 +105,7 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?) {
+  _request(method, route, success, error, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
     let response;
 
@@ -112,6 +117,12 @@ export class API {
           response = JSON.parse(xhttp.responseText);
         } catch (err) {
           response = xhttp.responseText;
+        }
+
+        if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
+          zlib.gunzip(response, (_, data) => {
+            response = JSON.parse(data.toString());
+          });
         }
 
         let err = null;
@@ -154,6 +165,10 @@ export class API {
 
     xhttp.setRequestHeader('Accept-version', API.version);
 
+    if (encoding) {
+      xhttp.setRequestHeader(encoding.name, encoding.value);
+    }
+
     if (this.token) {
       xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
     }
@@ -162,10 +177,23 @@ export class API {
       xhttp.send();
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      xhttp.send(data);
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(data, (_, gz) => {
+          xhttp.send(gz);
+        });
+      } else {
+        xhttp.send(data);
+      }
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
-      xhttp.send(JSON.stringify(data));
+
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(JSON.stringify(data), (_, gz) => {
+          xhttp.send(gz);
+        });
+      } else {
+        xhttp.send(JSON.stringify(data));
+      }
     }
   }
 
@@ -491,11 +519,17 @@ export class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job, success, error) {
+    const encoding: Encoding = {
+      name: EncodingTypes.content,
+      value: EncodingValues.gzip,
+    };
+
     this._request(
       'POST', '/smartslice',
       success,
       error,
       job,
+      encoding,
     );
   }
 
@@ -522,12 +556,17 @@ export class API {
    */
   getSmartSliceJob(jobId, success, error, withResults) {
     let route = `/smartslice/${jobId}`;
+    let encoding: Encoding;
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
+      encoding = {
+        name: EncodingTypes.accept,
+        value: EncodingValues.gzip,
+      };
     }
 
-    this._request('GET', route, success, error);
+    this._request('GET', route, success, error, encoding);
   }
 
   /**
