@@ -69,13 +69,10 @@ const am = {
   Infill: Infill,
 };
 
-const thor = {
+export const thor = {
   API: API,
   chop: chop,
   smartslice: smartslice,
   fea: fea,
   am: am,
 };
-
-export default thor;
-module.exports = thor;

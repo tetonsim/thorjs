@@ -1,31 +1,34 @@
 #! /usr/bin/env node
-/* eslint @typescript-eslint/no-var-requires: off */
-/* eslint @typescript-eslint/no-unused-vars: off */
-/* eslint @typescript-eslint/no-empty-function: off */
-/* eslint @typescript-eslint/explicit-module-boundary-types: off */
-
-export {};
 
 ('use strict');
 
 const version = 'dev';
 
-const app = require('commander');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const process = require('process');
-const readline = require('readline');
-const Writable = require('stream').Writable;
-const thor = require('./thor');
+import * as app from 'commander';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as process from 'process';
+import * as readline from 'readline';
+import * as stream from 'stream';
+import {thor} from './thor';
+import {LocalStorage} from 'node-localstorage';
+import {APIConfig, Callback} from './types';
+
+// add muted property to writable
+declare module 'stream' {
+  export interface Writable {
+      muted?: boolean
+  }
+}
 
 const location = path.join(os.homedir(), '.thor');
-const LocalStorage = require('node-localstorage').LocalStorage;
 const storage = new LocalStorage(location);
 
 // default configuration
 const HOST = 'https://api.smartslice.xyz';
-let config = {
+
+let config: APIConfig = {
   host: HOST,
   token: null,
 };
@@ -38,7 +41,7 @@ if (jconfig !== null) {
 
 const api = new thor.API(config);
 
-const mutableStdout = new Writable({
+const mutableStdout = new stream.Writable({
   write: function(chunk, encoding, callback) {
     if (!this.muted) {
       process.stdout.write(chunk, encoding);
@@ -187,7 +190,7 @@ function configure() {
   api.releaseToken(function() {}, function() {});
 }
 
-function _multipleQuestions(questions, callback) {
+function _multipleQuestions(questions: Array<any>, callback: Callback) {
   const answers = [];
 
   const rl = readline.createInterface({
@@ -213,7 +216,7 @@ function _multipleQuestions(questions, callback) {
   askQuestion(0);
 }
 
-function _getCredentials(callback) {
+function _getCredentials(callback: Callback) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: mutableStdout,
@@ -266,7 +269,7 @@ function login() {
   _getCredentials(loginWithCreds);
 }
 
-function whoAmI(callback, ...args) {
+function whoAmI(callback: Callback, ...args) {
   api.whoAmI(
     (_) => callback(...args),
     function() {
@@ -430,7 +433,7 @@ function resetPassword() {
   );
 }
 
-function submitSmartSliceJob(job, is3mf) {
+function submitSmartSliceJob(job: string, is3mf: boolean) {
   const outputFile = path.join(
     path.dirname(job),
     path.basename(job).slice(0, job.lastIndexOf('.')) + '.out.json',
@@ -438,7 +441,7 @@ function submitSmartSliceJob(job, is3mf) {
 
   fs.readFile(
     job,
-    (error, data) => {
+    (error, data: any) => {
       if (error) {
         console.error(error);
       } else {
@@ -488,7 +491,7 @@ function submitSmartSliceJob(job, is3mf) {
   );
 }
 
-function cancelSmartSliceJob(jobId) {
+function cancelSmartSliceJob(jobId: string) {
   api.cancelSmartSliceJob(
     jobId,
     function() {
@@ -498,7 +501,7 @@ function cancelSmartSliceJob(jobId) {
   );
 }
 
-function listSmartSliceJobs(page, limit) {
+function listSmartSliceJobs(page: number, limit: number) {
   if (limit === undefined) {
     limit = 10;
   }
@@ -540,7 +543,7 @@ function listMemberships() {
   );
 }
 
-function listTeamMembers(team) {
+function listTeamMembers(team: string) {
   api.teamMembers(
     team,
     function() {
@@ -550,7 +553,7 @@ function listTeamMembers(team) {
   );
 }
 
-function manageTeamInvite(team, email, revoke) {
+function manageTeamInvite(team: string, email: string, revoke: boolean) {
   if (revoke) {
     api.revokeTeamInvite(team, email, _basicSuccessCallback, _basicErrorCallback);
   } else {
@@ -558,11 +561,11 @@ function manageTeamInvite(team, email, revoke) {
   }
 }
 
-function acceptTeamInvite(team) {
+function acceptTeamInvite(team: string) {
   api.acceptTeamInvite(team, _basicSuccessCallback, _basicErrorCallback);
 }
 
-function removeTeamMember(team, email) {
+function removeTeamMember(team: string, email: string) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -581,10 +584,10 @@ function removeTeamMember(team, email) {
   );
 }
 
-function addTeamMemberRole(team, email, role) {
+function addTeamMemberRole(team: string, email: string, role: string) {
   api.addTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
 }
 
-function revokeTeamMemberRole(team, email, role) {
+function revokeTeamMemberRole(team: string, email: string, role: string) {
   api.revokeTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
 }

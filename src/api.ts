@@ -1,4 +1,6 @@
-import { Job } from "./smartslice/job/job";
+import * as zlib from 'zlib';
+import {Job} from './smartslice/job/job';
+import {Callback, Encoding, EncodingTypes, EncodingValues, HTTPMethod, Token} from './types';
 
 let XMLHttpRequest;
 
@@ -54,28 +56,12 @@ export interface APIUser {
 
 }
 
-export enum HTTPMethod {
-  GET = 'GET',
-  POST = 'POST',
-  DELETE = 'DELETE',
-  PUT = 'PUT'
-
-}
-
-export interface Callback {
-  (...any): void
-}
-
-export interface Token {
-
-}
 /**
  * Handles Thor API requests
  */
 export class API {
   public host: string;
-  public token: any;
-  // public token: Token;
+  public token: Token;
   public error: any;
   public user: APIUser;
   public version: string | number;
@@ -107,7 +93,7 @@ export class API {
     this.host = config.host;
     this.token = config.token;
 
-    this.error = function () { };
+    this.error = function() { };
     this.user = null;
   }
 
@@ -122,10 +108,10 @@ export class API {
     };
   }
 
-  _request(method: HTTPMethod, route: string, success: Function, error: Function, data?) {
+  _request(method: HTTPMethod, route: string, success: Function, error: Function, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
 
-    xhttp.onreadystatechange = function () {
+    xhttp.onreadystatechange = function() {
       let response;
 
       if (xhttp.readyState === 4) {
@@ -133,6 +119,12 @@ export class API {
           response = JSON.parse(xhttp.responseText);
         } catch (err) {
           response = xhttp.responseText;
+        }
+
+        if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
+          zlib.gunzip(response, (_, data) => {
+            response = JSON.parse(data.toString());
+          });
         }
 
         let err = null;
@@ -175,6 +167,10 @@ export class API {
 
     xhttp.setRequestHeader('Accept-version', API.version);
 
+    if (encoding) {
+      xhttp.setRequestHeader(encoding.name, encoding.value);
+    }
+
     if (this.token) {
       xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
     }
@@ -183,10 +179,23 @@ export class API {
       xhttp.send();
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      xhttp.send(data);
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(data, (_, gz) => {
+          xhttp.send(gz);
+        });
+      } else {
+        xhttp.send(data);
+      }
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
-      xhttp.send(JSON.stringify(data));
+
+      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+        zlib.gzip(JSON.stringify(data), (_, gz) => {
+          xhttp.send(gz);
+        });
+      } else {
+        xhttp.send(JSON.stringify(data));
+      }
     }
   }
 
@@ -219,7 +228,7 @@ export class API {
   * @param {API~error} error
   */
   verifyVersion(success: Callback, error: Callback) {
-    const parseVersion = function () {
+    const parseVersion = function() {
       const sv = this.version.split('.');
       const cv = API.version.split('.');
 
@@ -244,8 +253,9 @@ export class API {
     * returns the user information if available, otherwise null
     * @param {API~getToken-success} success
     * @param {API~error} error
+    * @return {boolean}
     */
-  whoAmI(success, error) {
+  whoAmI(success: Callback, error: Callback) {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
@@ -258,7 +268,7 @@ export class API {
     if (this.user === null || getUserInfoFromServer) {
       const api = this;
 
-      const clearUser = function () {
+      const clearUser = function() {
         api.user = null;
         api.token = null;
         error.bind(this)();
@@ -272,7 +282,7 @@ export class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, company, country, success, error) {
+  register(first_name: string, last_name: string, email: string, password: string, company: string, country: string, success: Callback, error: Callback) {
     this._request(HTTPMethod.POST, '/auth/register', success, error,
       {
         email: email,
@@ -304,7 +314,7 @@ export class API {
    */
   getToken(email: string, password: string, success: Callback, error: Callback) {
     this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, { email: email, password: password });
+      error, {email: email, password: password});
   }
 
   /**
@@ -339,7 +349,7 @@ export class API {
     const api = this;
 
     this._request(HTTPMethod.DELETE, '/auth/token',
-      function () {
+      function() {
         if (this.success) {
           api.token = null;
           api.user = null;
@@ -367,12 +377,13 @@ export class API {
       HTTPMethod.POST, '/auth/verify',
       success,
       error,
-      { code: code },
+      {code: code},
     );
   }
 
   /**
    * Requests a resend of the post-registration email.
+   * @param {string} email
    * @param {API~success} success
    * @param {API~error} error
    */
@@ -381,7 +392,7 @@ export class API {
       HTTPMethod.POST, '/auth/verify/resend',
       success,
       error,
-      { email: email },
+      {email: email},
     );
   }
 
@@ -416,7 +427,7 @@ export class API {
       HTTPMethod.POST, '/auth/password/forgot',
       success,
       error,
-      { email: email },
+      {email: email},
     );
   }
 
@@ -512,11 +523,17 @@ export class API {
    * @param {API~error} error
    */
   submitSmartSliceJob(job: Buffer | Job, success: Callback, error: Callback) {
+    const encoding: Encoding = {
+      name: EncodingTypes.content,
+      value: EncodingValues.gzip,
+    };
+
     this._request(
       HTTPMethod.POST, '/smartslice',
       success,
       error,
       job,
+      encoding,
     );
   }
 
@@ -541,14 +558,19 @@ export class API {
    * @param {API~error} error
    * @param {boolean} withResults The job will include the result attribute if true
    */
-  getSmartSliceJob(jobId, success, error, withResults) {
+  getSmartSliceJob(jobId: string, success: Callback, error: Callback, withResults: boolean) {
     let route = `/smartslice/${jobId}`;
+    let encoding: Encoding;
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
+      encoding = {
+        name: EncodingTypes.accept,
+        value: EncodingValues.gzip,
+      };
     }
 
-    this._request(HTTPMethod.GET, route, success, error);
+    this._request(HTTPMethod.GET, route, success, error, encoding);
   }
 
   /**
@@ -568,8 +590,8 @@ export class API {
     const periodMultiplier = 1.25;
 
     function pollJob(period) {
-      return function () {
-        const handleJobStatus = function () {
+      return function() {
+        const handleJobStatus = function() {
           if (pollAgainStatuses.includes(this.status)) {
             if (poll !== undefined) {
               const abort = poll.bind(this)();
@@ -589,7 +611,7 @@ export class API {
           }
         };
 
-        const errorHandler = function () {
+        const errorHandler = function() {
           if (this.http_code == 429) {
             // If the error is a rate limit, then just continue polling.
             setTimeout(pollJob(period), period);
@@ -614,7 +636,7 @@ export class API {
    * @param {API~job-callback} failed
    * @param {API~job-poll-callback} poll
    */
-  submitSmartSliceJobAndPoll(job: Buffer | Job , error: Callback, finished: Callback, failed: Callback, poll: Callback) {
+  submitSmartSliceJobAndPoll(job: Buffer | Job, error: Callback, finished: Callback, failed: Callback, poll: Callback) {
     const that = this;
     this.submitSmartSliceJob(
       job,
