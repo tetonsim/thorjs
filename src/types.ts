@@ -53,26 +53,28 @@ export namespace Callback {
   }
 
   export type GetToken = {
-    id?: string
-    email?: string
-    first_name?: string
-    last_name?: string
+    this?: {
+      id?: string
+      email?: string
+      first_name?: string
+      last_name?: string
+    }
     (ObjectOrPrimitive): void
   }
 
-  export type sub = { (): void }
-
   export type Subscription = {
-    status?: string
-    start?: string
-    end?: string
-    trial_start?: string
-    trial_end?: string
-    products?: Array<BasicObject>
-    (arg0: ObjectOrPrimitive): void
+    this?: {
+      status?: string
+      start?: string
+      end?: string
+      trial_start?: string
+      trial_end?: string
+      products?: Array<BasicObject>
+    }
+    (ObjectOrPrimitive): void
   }
 
-  export type Job = {
+  type Job = {
     id: string
     status: string
     progress: number
@@ -81,19 +83,19 @@ export namespace Callback {
 
   export type JobCallback = {
     this?: Job,
-    (arg0: ObjectOrPrimitive): void
+    (ObjectOrPrimitive): void
   }
 
   export type JobPoll = {
     this?: Job
-    (arg0: ObjectOrPrimitive): boolean
+    (ObjectOrPrimitive): boolean
   }
 
   export type ListJob = {
     this?: Job[]
     page?: number
     total_pages?: number
-    (arg0: ObjectOrPrimitive): void
+    (ObjectOrPrimitive): void
   }
 
   interface APITeam {
@@ -115,21 +117,27 @@ export namespace Callback {
   }
 
   export type APIMembers = {
-    members?: APIMembership[]
-    invites?: APIInvite[]
+    this?: {
+      members?: APIMembership[]
+      invites?: APIInvite[]
+    }
     (arg0: ObjectOrPrimitive): void
   }
 
   export type APITeams = {
-    teams?: APITeam[]
+    this?: {
+      teams?: APITeam[]
+    }
     (arg0: ObjectOrPrimitive): void
   }
 
   export type APISupportIssue = {
-    message?: string
-    issue?: {
-      id: number
-      description: string
+    this?: {
+      message?: string
+      issue?: {
+        id: number
+        description: string
+      }
     }
     (arg0: ObjectOrPrimitive): void
   }
