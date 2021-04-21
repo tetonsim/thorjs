@@ -144,5 +144,5 @@ export namespace Callback {
 
   export type All = Subscription | Success | Error | JobCallback | APIMembers | APITeams | JobPoll | ListJob
 }
-``;
+
 export type APIJob = Buffer | BasicObject
