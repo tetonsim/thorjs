@@ -13,7 +13,7 @@ import * as readline from 'readline';
 import * as stream from 'stream';
 import {thor} from './thor';
 import {LocalStorage} from 'node-localstorage';
-import {APIConfig, Callback} from './types';
+import {APIConfig, ObjectOrPrimitive} from './types';
 
 // add muted property to writable
 declare module 'stream' {
@@ -190,7 +190,7 @@ function configure() {
   api.releaseToken(function() {}, function() {});
 }
 
-function _multipleQuestions(questions: Array<any>, callback: Callback) {
+function _multipleQuestions(questions: Array<any>, callback: (...ObjectOrPrimitive) => void) {
   const answers = [];
 
   const rl = readline.createInterface({
@@ -216,7 +216,7 @@ function _multipleQuestions(questions: Array<any>, callback: Callback) {
   askQuestion(0);
 }
 
-function _getCredentials(callback: Callback) {
+function _getCredentials(callback: (...ObjectOrPrimitive) => void) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: mutableStdout,
@@ -269,7 +269,7 @@ function login() {
   _getCredentials(loginWithCreds);
 }
 
-function whoAmI(callback: Callback, ...args) {
+function whoAmI(callback: (...ObjectOrPrimitive) => void, ...args) {
   api.whoAmI(
     (_) => callback(...args),
     function() {

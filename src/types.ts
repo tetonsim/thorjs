@@ -1,6 +1,3 @@
-import internal = require('node:stream')
-import {API} from './api';
-
 export type Token = {
   expires: string
   id: string
@@ -41,7 +38,7 @@ export interface APIConfig {
 
 type BasicPrimitive = string | number | boolean | null | undefined
 type BasicObject = Record<string, unknown>
-type ObjectOrPrimitive = BasicObject | BasicPrimitive
+export type ObjectOrPrimitive = BasicObject | BasicPrimitive
 
 export namespace Callback {
   type OneParamCallback<T1, T2 = void> = {
