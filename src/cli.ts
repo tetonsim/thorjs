@@ -4,7 +4,7 @@
 
 const version = 'dev';
 
-import * as app from 'commander';
+import app from 'commander';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -13,7 +13,7 @@ import * as readline from 'readline';
 import * as stream from 'stream';
 import {thor} from './thor';
 import {LocalStorage} from 'node-localstorage';
-import {APIConfig, ObjectOrPrimitive} from './types';
+import {APIConfig} from './types';
 
 // add muted property to writable
 declare module 'stream' {
@@ -190,7 +190,7 @@ function configure() {
   api.releaseToken(function() {}, function() {});
 }
 
-function _multipleQuestions(questions: Array<any>, callback: (...ObjectOrPrimitive) => void) {
+function _multipleQuestions(questions: Array<any>, callback: (...args) => void) {
   const answers = [];
 
   const rl = readline.createInterface({
@@ -216,7 +216,7 @@ function _multipleQuestions(questions: Array<any>, callback: (...ObjectOrPrimiti
   askQuestion(0);
 }
 
-function _getCredentials(callback: (...ObjectOrPrimitive) => void) {
+function _getCredentials(callback: (...args) => void) {
   const rl = readline.createInterface({
     input: process.stdin,
     output: mutableStdout,

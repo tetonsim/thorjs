@@ -1,5 +1,14 @@
 import * as zlib from 'zlib';
-import {APIJob, User, Callback, Encoding, EncodingTypes, EncodingValues, HTTPMethod, Token} from './types';
+import {
+  JobData,
+  User,
+  Callback,
+  Encoding,
+  EncodingTypes,
+  EncodingValues,
+  HTTPMethod,
+  Token,
+} from './types';
 
 let XMLHttpRequest;
 
@@ -273,7 +282,7 @@ export class API {
    */
   refreshToken(success: Callback.GetToken, error: Callback.Error) {
     if (this.token === null) {
-      error('null token');
+      error.call('null token');
       return;
     }
 
@@ -285,8 +294,6 @@ export class API {
    */
   releaseToken(success: Callback.Success, error: Callback.Error) {
     const api = this;
-    console.log('poop');
-    console.log(success);
 
     this._request(HTTPMethod.DELETE, '/auth/token',
       function() {
@@ -294,7 +301,7 @@ export class API {
           api.token = null;
           api.user = null;
           if (success !== undefined) {
-            success();
+            success.call(this);
           }
         } else {
           if (error !== undefined) {
@@ -387,7 +394,7 @@ export class API {
     );
   }
 
-  submitSmartSliceJob(job: APIJob, success: Callback.Job, error: Callback.Error) {
+  submitSmartSliceJob(job: JobData, success: Callback.Job, error: Callback.Error) {
     const encoding: Encoding = {
       name: EncodingTypes.content,
       value: EncodingValues.gzip,
@@ -485,7 +492,7 @@ export class API {
    * and then poll it until it has completed or failed.
    */
   submitSmartSliceJobAndPoll(
-    job: APIJob,
+    job: JobData,
     error: Callback.Error,
     finished: Callback.Job,
     failed: Callback.Job,

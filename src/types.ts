@@ -1,52 +1,4 @@
-interface Message {
-  http_code: string
-  message: string
-  success: boolean
-  error: string
-}
-
-interface GetTokenresponse {
-  id: string
-  email: string
-  first_name: string
-  last_name: string
-}
-
-interface SubscriptionResponse {
-  success: boolean
-  status: string
-  start: string
-  end: string
-  trial_start: string
-  trial_end: string
-  products: Array<Record<string, unknown>>
-}
-
-interface JobResponse {
-  id: string
-  status: string
-  progress: number
-  result: BasicObject
-  errors: any
-}
-
-interface Team {
-  id: string
-  name: string
-  full_name: string
-  roles: Array<string>
-}
-
-interface Invite {
-  email: string
-}
-
-interface Membership {
-  email: string
-  first_name: string
-  last_name: string
-  roles: Array<string>
-}
+import {Job} from './smartslice/job/job';
 
 interface XHTTPHeader<N, V> {
   name: N;
@@ -94,29 +46,74 @@ export interface APIConfig {
   token: Token;
 }
 
-export type ObjectOrPrimitive = BasicObject | BasicPrimitive
+namespace Response {
+  export interface Message {
+    status: string
+    http_code: string
+    message: string
+    success: boolean
+    error: string
+  }
 
+  export interface GetToken extends User {}
+
+  export interface Subscription {
+    success: boolean
+    status: string
+    start: string
+    end: string
+    trial_start: string
+    trial_end: string
+    products: Array<Record<string, unknown>>
+  }
+
+  export interface Job {
+    id: string
+    status: string
+    progress: number
+    result: BasicObject
+    errors: any
+  }
+
+  export interface Team {
+    id: string
+    name: string
+    full_name: string
+    roles: Array<string>
+  }
+
+  export interface Invite {
+    email: string
+  }
+
+  export interface Membership {
+    email: string
+    first_name: string
+    last_name: string
+    roles: Array<string>
+  }
+}
 
 export namespace Callback {
-  export type Success = { (this: Message): void | { (ObjectOrPrimitive): void } } & {(): void}
+  export type Success = { (this: Response.Message): void }
 
-  export type Error = { (this: Message): void | { (ObjectOrPrimitive): void } } & {(ObjectOrPrimitive): void}
+  export type Error = { (this: Response.Message): void }
 
   export type Version = {
     (compatible: boolean, client_version: string, server_version: string): void
   }
 
-  export type GetToken = { (this: GetTokenresponse, ...args): void }
+  export type GetToken = { (this: Response.GetToken, ...args): void }
 
-  export type Subscription = { (this: SubscriptionResponse): void }
+  export type Subscription = { (this: Response.Subscription): void }
 
-  export type Job = { (this: JobResponse): void }
+  export type Job = { (this: Response.Job): void }
 
-  export type JobPoll = { (this: JobResponse): boolean }
+  export type JobPoll = { (this: Response.Job): boolean }
 
   export type ListJob = {
     (this: {
-      jobs: JobResponse[]
+      jobs: Response.Job[]
       page: number
       total_pages: number
     }): void
@@ -124,14 +121,14 @@ export namespace Callback {
 
   export type TeamMembers = {
     (this: {
-      members: Membership[],
-      invites: Invite[]
+      members: Response.Membership[],
+      invites: Response.Invite[]
     }): void
   }
 
   export type Teams = {
     (this: {
-      teams: Team[]
+      teams: Response.Team[]
     }): void
   }
 
@@ -151,4 +148,4 @@ export namespace Callback {
     JobPoll | ListJob | Version | GetToken
 }
 
-export type APIJob = Buffer | BasicObject
+export type JobData = Buffer | Job
