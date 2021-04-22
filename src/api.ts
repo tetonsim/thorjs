@@ -1,5 +1,5 @@
 import * as zlib from 'zlib';
-import {APIJob, Callback, Encoding, EncodingTypes, EncodingValues, HTTPMethod, Token} from './types';
+import {APIJob, User, Callback, Encoding, EncodingTypes, EncodingValues, HTTPMethod, Token} from './types';
 
 let XMLHttpRequest;
 
@@ -45,10 +45,6 @@ class Message {
   }
 }
 
-export interface APIUser {
-
-}
-
 /**
  * Handles Thor API requests
  */
@@ -56,7 +52,7 @@ export class API {
   public host: string;
   public token: Token;
   public error: any;
-  public user: APIUser;
+  public user: User;
   public version: string | number;
   public success: any;
   public status: string;
@@ -89,7 +85,7 @@ export class API {
     };
   }
 
-  _request(method: HTTPMethod, route: string, success: Callback.All, error: Callback.Error, data?, encoding?: Encoding) {
+  _request(method: HTTPMethod, route: string, success: Callback.Any, error: Callback.Error, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
 
     xhttp.onreadystatechange = function() {
@@ -289,6 +285,8 @@ export class API {
    */
   releaseToken(success: Callback.Success, error: Callback.Error) {
     const api = this;
+    console.log('poop');
+    console.log(success);
 
     this._request(HTTPMethod.DELETE, '/auth/token',
       function() {
@@ -389,7 +387,7 @@ export class API {
     );
   }
 
-  submitSmartSliceJob(job: APIJob, success: Callback.JobCallback, error: Callback.Error) {
+  submitSmartSliceJob(job: APIJob, success: Callback.Job, error: Callback.Error) {
     const encoding: Encoding = {
       name: EncodingTypes.content,
       value: EncodingValues.gzip,
@@ -412,7 +410,7 @@ export class API {
     );
   }
 
-  getSmartSliceJob(jobId: string, success: Callback.JobCallback, error: Callback.Error, withResults: boolean) {
+  getSmartSliceJob(jobId: string, success: Callback.Job, error: Callback.Error, withResults: boolean) {
     let route = `/smartslice/${jobId}`;
     let encoding: Encoding;
 
@@ -433,8 +431,8 @@ export class API {
   pollSmartSliceJob(
     jobId: string,
     error: Callback.Error,
-    finished: Callback.JobCallback,
-    failed: Callback.JobCallback,
+    finished: Callback.Job,
+    failed: Callback.Job,
     poll: Callback.JobPoll,
   ) {
     const api: API = this;
@@ -489,8 +487,8 @@ export class API {
   submitSmartSliceJobAndPoll(
     job: APIJob,
     error: Callback.Error,
-    finished: Callback.JobCallback,
-    failed: Callback.JobCallback,
+    finished: Callback.Job,
+    failed: Callback.Job,
     poll: Callback.JobPoll,
   ) {
     const that = this;
@@ -539,7 +537,7 @@ export class API {
   /**
    * Get a list of the members for the given team.
    */
-  teamMembers(team: string, success: Callback.APIMembers, error: Callback.Error) {
+  teamMembers(team: string, success: Callback.TeamMembers, error: Callback.Error) {
     this._request(HTTPMethod.GET, `/teams/${team}/members`, success, error);
   }
 
@@ -604,7 +602,7 @@ export class API {
   /**
    * Creates a new customer support issue.
    */
-  createSupportIssue(description: string, success: Callback.APISupportIssue, error: Callback.Error, jobId: string) {
+  createSupportIssue(description: string, success: Callback.SupportIssue, error: Callback.Error, jobId: string) {
     if (jobId === undefined) {
       jobId = null;
     }

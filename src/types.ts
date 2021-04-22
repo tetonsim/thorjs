@@ -1,11 +1,65 @@
+interface Message {
+  http_code: string
+  message: string
+  success: boolean
+  error: string
+}
+
+interface GetTokenresponse {
+  id: string
+  email: string
+  first_name: string
+  last_name: string
+}
+
+interface SubscriptionResponse {
+  success: boolean
+  status: string
+  start: string
+  end: string
+  trial_start: string
+  trial_end: string
+  products: Array<Record<string, unknown>>
+}
+
+interface JobResponse {
+  id: string
+  status: string
+  progress: number
+  result: BasicObject
+  errors: any
+}
+
+interface Team {
+  id: string
+  name: string
+  full_name: string
+  roles: Array<string>
+}
+
+interface Invite {
+  email: string
+}
+
+interface Membership {
+  email: string
+  first_name: string
+  last_name: string
+  roles: Array<string>
+}
+
+interface XHTTPHeader<N, V> {
+  name: N;
+  value: V;
+}
+
+type BasicPrimitive = string | number | boolean | null | undefined
+
+type BasicObject = Record<string, unknown>
+
 export type Token = {
   expires: string
   id: string
-}
-
-export interface XHTTPHeader<N, V> {
-  name: N;
-  value: V;
 }
 
 export enum EncodingTypes {
@@ -27,8 +81,12 @@ export enum HTTPMethod {
   PUT = 'PUT'
 }
 
-export interface APIUser {
-
+export interface User {
+  email: string
+  email_verified: boolean
+  id: string
+  first_name: string
+  last_name: string
 }
 
 export interface APIConfig {
@@ -36,113 +94,61 @@ export interface APIConfig {
   token: Token;
 }
 
-type BasicPrimitive = string | number | boolean | null | undefined
-type BasicObject = Record<string, unknown>
 export type ObjectOrPrimitive = BasicObject | BasicPrimitive
 
-export namespace Callback {
-  type OneParamCallback<T1, T2 = void> = {
-    (param1: T1): T2
-  }
 
-  export type Success = OneParamCallback<void>
-  export type Error = OneParamCallback<ObjectOrPrimitive>
+export namespace Callback {
+  export type Success = { (this: Message): void | { (ObjectOrPrimitive): void } } & {(): void}
+
+  export type Error = { (this: Message): void | { (ObjectOrPrimitive): void } } & {(ObjectOrPrimitive): void}
 
   export type Version = {
     (compatible: boolean, client_version: string, server_version: string): void
   }
 
-  export type GetToken = {
-    this?: {
-      id?: string
-      email?: string
-      first_name?: string
-      last_name?: string
-    }
-    (ObjectOrPrimitive): void
-  }
+  export type GetToken = { (this: GetTokenresponse, ...args): void }
 
-  export type Subscription = {
-    this?: {
-      status?: string
-      start?: string
-      end?: string
-      trial_start?: string
-      trial_end?: string
-      products?: Array<BasicObject>
-    }
-    (ObjectOrPrimitive): void
-  }
+  export type Subscription = { (this: SubscriptionResponse): void }
 
-  type Job = {
-    id: string
-    status: string
-    progress: number
-    result: BasicObject
-  }
+  export type Job = { (this: JobResponse): void }
 
-  export type JobCallback = {
-    this?: Job,
-    (ObjectOrPrimitive): void
-  }
-
-  export type JobPoll = {
-    this?: Job
-    (ObjectOrPrimitive): boolean
-  }
+  export type JobPoll = { (this: JobResponse): boolean }
 
   export type ListJob = {
-    this?: Job[]
-    page?: number
-    total_pages?: number
-    (ObjectOrPrimitive): void
+    (this: {
+      jobs: JobResponse[]
+      page: number
+      total_pages: NumberConstructor
+    }): void
   }
 
-  interface APITeam {
-    id: string
-    name: string
-    full_name: string
-    roles: Array<string>
+  export type TeamMembers = {
+    (this: {
+      members: Membership[],
+      invites: Invite[]
+    }): void
   }
 
-  interface APIInvite {
-    email: string
+  export type Teams = {
+    (this: {
+      teams: Team[]
+    }): void
   }
 
-  interface APIMembership {
-    email: string
-    first_name: string
-    last_name: string
-    roles: Array<string>
-  }
-
-  export type APIMembers = {
-    this?: {
-      members?: APIMembership[]
-      invites?: APIInvite[]
-    }
-    (arg0: ObjectOrPrimitive): void
-  }
-
-  export type APITeams = {
-    this?: {
-      teams?: APITeam[]
-    }
-    (arg0: ObjectOrPrimitive): void
-  }
-
-  export type APISupportIssue = {
-    this?: {
-      message?: string
-      issue?: {
-        id: number
+  export type SupportIssue = {
+    (this: {
+      message: string,
+      issue: {
+        id: number,
         description: string
       }
-    }
-    (arg0: ObjectOrPrimitive): void
+    }): void
   }
 
-  export type All = Subscription | Success | Error | JobCallback | APIMembers | APITeams | JobPoll | ListJob
+  export type Any =
+    Subscription | SupportIssue | Success |
+    Error | Job | TeamMembers | Teams |
+    JobPoll | ListJob | Version | GetToken
 }
 
 export type APIJob = Buffer | BasicObject
