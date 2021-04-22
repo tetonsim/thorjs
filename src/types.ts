@@ -118,7 +118,7 @@ export namespace Callback {
     (this: {
       jobs: JobResponse[]
       page: number
-      total_pages: NumberConstructor
+      total_pages: number
     }): void
   }
 
