@@ -6,3 +6,4 @@ out/
 sandbox/
 .thor/
 npm-debug.log
+dist/
