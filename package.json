@@ -4,13 +4,14 @@
   "description": "Thor API JS Library",
   "type": "module",
   "private": false,
-  "main": "src/thor.js",
-  "exports": "./src/thor.js",
+  "main": "dist/thor.js",
+  "types": "dist/thor.d.ts",
+  "exports": "./dist/thor.js",
   "bin": {
-    "thorcli": "src/cli.js"
+    "thorcli": "dist/cli.js"
   },
   "files": [
-    "src/"
+    "dist/"
   ],
   "directories": {
     "test": "test"
@@ -35,7 +36,8 @@
     "webpack-cli": "^3.2.3"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "tsc",
   },
   "build": "webpack",
   "author": "tetonsim",

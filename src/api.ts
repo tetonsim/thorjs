@@ -1,7 +1,17 @@
 import * as zlib from 'zlib';
 import * as dotenv from "dotenv";
 import {JobType} from './smartslice/job/job';
-import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
+// import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
+import {
+  JobData,
+  User,
+  Callback,
+  Encoding,
+  EncodingTypes,
+  EncodingValues,
+  HTTPMethod,
+  Token,
+} from './types';
 
 let XMLHttpRequest;
 
@@ -10,7 +20,7 @@ if (typeof window === 'undefined') {
 }
 
 const _HelperCallbacks = {
-  getToken: function(api, success, error) {
+  getToken: function(api: API, success: Callback.GetToken, error: Callback.Error) {
     return function() {
       if (this.error && error !== undefined) {
         error.bind(this)();
@@ -26,18 +36,12 @@ const _HelperCallbacks = {
   },
 };
 
-/**
- * An API error
- * @property {number} http_code The HTTP status code returned by the server
- * @property {string} message Generic message
- * @property {string} error Error message
- * @property {boolean} success
- */
+
 class Message {
-	public http_code: number;
-	public message: string;
-	public success: boolean;
-	public error: string;
+  public http_code: number;
+  public message: string;
+  public success: boolean;
+  public error: string;
 
 
   constructor(http_code, message) {
@@ -58,28 +62,17 @@ dotenv.config()
  * Handles Thor API requests
  */
 export class API {
-	public host: any;
-	public token: any;
-	public error: any;
-	public user: any;
-	public success: any;
-	public status: any;
-	public http_code: number;
-	public id: string;
-	public version = process.env.THOR_VERSION;
+  public host: string;
+  public token: Token;
+  public error: any;
+  public user: User;
+  public success: any;
+  public status: string;
+  public http_code: number;
+  public id: string;
+  public version = process.env.THOR_VERSION;
 
 
-  /** @typedef Token
-   * @property {string} expires Token expiration date
-   * @property {string} id Token id
-   */
-
-  /**
-   * API Constructor
-   * @param {Object} [config] API configuration
-   * @param {string} config.host=https://api.smartslice.xyz API protocol and host name
-   * @param {Token} config.token Authorization bearer token to use in API calls
-   */
   constructor(config?) {
     if (config === undefined) {
       config = {
@@ -91,7 +84,7 @@ export class API {
     this.host = config.host;
     this.token = config.token;
 
-    this.error = function() {};
+    this.error = function() { };
     this.user = null;
   }
 
@@ -105,9 +98,8 @@ export class API {
     };
   }
 
-  _request(method, route, success, error, data?, encoding?: Encoding) {
+  _request(method: HTTPMethod, route: string, success: Callback.Any, error: Callback.Error, data?, encoding?: Encoding) {
     const xhttp = new XMLHttpRequest();
-    let response;
 
     xhttp.onreadystatechange = function() {
       let response;
@@ -197,35 +189,8 @@ export class API {
     }
   }
 
-  /**
-   * API general success callback to indicate a successful
-   * API call when no particular object information is returned.
-   * For example - to indicate a successful object deletion.
-   * @callback API~success
-   * @this {Object}
-   * @this {Message}
-   */
 
-  /**
-   * API error callback
-   * @callback API~error
-   * @this {Message}
-   */
-
-  /**
-    * Verify version successfull callback
-    * @callback API~verify-version
-    * @param {boolean} compatible True if the host version is compatible with this client library
-    * @param {string} client_version The client version - also available through API.version
-    * @param {string} server_version The server version
-    */
-
-  /**
-  *
-  * @param {API~verify-version} success
-  * @param {API~error} error
-  */
-  verifyVersion(success, error) {
+  verifyVersion(success: Callback.Version, error: Callback.Error) {
     const parseVersion = function() {
       const sv = this.version.split('.');
       const cv = API.version.split('.');
@@ -243,16 +208,14 @@ export class API {
       success(compatible, API.version, this.version);
     };
 
-    this._request('GET', '/', parseVersion, error);
+    this._request(HTTPMethod.GET, '/', parseVersion, error);
   }
 
   /**
     * Checks if a token is already in use and
     * returns the user information if available, otherwise null
-    * @param {API~getToken-success} success
-    * @param {API~error} error
     */
-  whoAmI(success, error) {
+  whoAmI(success: Callback.GetToken, error: Callback.Error) {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
@@ -271,7 +234,7 @@ export class API {
         error.bind(this)();
       };
 
-      this._request('GET', '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
+      this._request(HTTPMethod.GET, '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
       success.bind(this.user)();
     }
@@ -279,8 +242,17 @@ export class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, company, country, success, error) {
-    this._request('POST', '/auth/register', success, error,
+  register(
+    first_name: string,
+    last_name: string,
+    email: string,
+    password: string,
+    company: string,
+    country: string,
+    success: Callback.Success,
+    error: Callback.Error,
+  ) {
+    this._request(HTTPMethod.POST, '/auth/register', success, error,
       {
         email: email,
         first_name: first_name,
@@ -292,66 +264,37 @@ export class API {
     );
   }
 
-  /**
-   * Login successful callback.
-   * @callback API~getToken-success
-   * @this {Object}
-   * @param {string} this.id
-   * @param {string} this.email
-   * @param {string} this.first_name
-   * @param {string} this.last_name
-   */
-
-  /**
-   * Retrieves and stores an API token
-   * @param {string} email Email address
-   * @param {string} password Password
-   * @param {API~getToken-success} success Callback function if token is obtained.
-   * @param {API~error} error Callback function if token creation fails.
-   */
-  getToken(email, password, success, error) {
-    this._request('POST', '/auth/token', _HelperCallbacks.getToken(this, success, error),
+  getToken(email: string, password: string, success: Callback.GetToken, error: Callback.Error) {
+    this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
       error, {email: email, password: password});
   }
 
-  /**
-   *
-   * @param {Token} token
-   */
-  setToken(token) {
+  setToken(token: Token) {
     this.token = token;
   }
 
-  /**
-   * Refreshes the API token. This is not usable for expired tokens. If a refresh
-   * is attempted on an expired token the server will return 401 Unauthorized.
-   * @param {API~getToken-success} success Callback function if refresh is successful.
-   * @param {API~error} error Callback function if refresh is unsuccessful.
-   */
-  refreshToken(success, error) {
+  refreshToken(success: Callback.GetToken, error: Callback.Error) {
     if (this.token === null) {
-      error('null token');
+      error.call('null token');
       return;
     }
 
-    this._request('PUT', '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
+    this._request(HTTPMethod.PUT, '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
   }
 
   /**
    * Deletes the stored API token.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  releaseToken(success, error) {
+  releaseToken(success: Callback.Success, error: Callback.Error) {
     const api = this;
 
-    this._request('DELETE', '/auth/token',
+    this._request(HTTPMethod.DELETE, '/auth/token',
       function() {
         if (this.success) {
           api.token = null;
           api.user = null;
           if (success !== undefined) {
-            success();
+            success.call(this);
           }
         } else {
           if (error !== undefined) {
@@ -363,45 +306,27 @@ export class API {
     );
   }
 
-  /**
-   * Verifies registered email using the given code which is sent in the post-registration email.
-   * @param {string} code
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  verifyEmail(code, success, error) {
+  verifyEmail(code: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/auth/verify',
+      HTTPMethod.POST, '/auth/verify',
       success,
       error,
       {code: code},
     );
   }
 
-  /**
-   * Requests a resend of the post-registration email.
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  verifyEmailResend(email, success, error) {
+  verifyEmailResend(email: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/auth/verify/resend',
+      HTTPMethod.POST, '/auth/verify/resend',
       success,
       error,
       {email: email},
     );
   }
 
-  /**
-   * Change password of logged in user
-   * @param {string} oldPassword
-   * @param {string} newPassword
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  changePassword(oldPassword, newPassword, success, error) {
+  changePassword(oldPassword: string, newPassword: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/auth/password/change',
+      HTTPMethod.POST, '/auth/password/change',
       success,
       error,
       {
@@ -412,32 +337,18 @@ export class API {
     );
   }
 
-  /**
-   * Begin the reset password process by requesting an email to reset your password.
-   * @param {string} email
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  forgotPassword(email, success, error) {
+  forgotPassword(email: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/auth/password/forgot',
+      HTTPMethod.POST, '/auth/password/forgot',
       success,
       error,
       {email: email},
     );
   }
 
-  /**
-   * Use the code retrieved from the /auth/password/forgot call to reset password.
-   * @param {string} code
-   * @param {string} email
-   * @param {string} password
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  resetPassword(code, email, password, success, error) {
+  resetPassword(code: string, email: string, password: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/auth/password/reset',
+      HTTPMethod.POST, '/auth/password/reset',
       success,
       error,
       {
@@ -449,25 +360,11 @@ export class API {
     );
   }
 
-  /**
-   *
-   * @callback API~subscription-callback
-   * @this {Object}
-   * @param {string} this.status
-   * @param {string} this.start
-   * @param {string} this.end
-   * @param {string} this.trial_start
-   * @param {string} this.trial_end
-   * @param {Object[]} this.products
-   */
-
-  /**
-   * Retrieve the Smart Slice subscription the user has access to
-   * @param {API~subscription-callback} success
-   * @param {API~error} error
-   * @param {string} team Optional team name (short name) to retrieve subscription for
-   */
-  getSmartSliceSubscription(success, error, team) {
+  getSmartSliceSubscription(
+    success: Callback.Subscription,
+    error: Callback.Error,
+    team: string,
+  ) {
     let url = '/smartslice/subscription';
 
     if (team) {
@@ -475,57 +372,20 @@ export class API {
     }
 
     this._request(
-      'GET', url,
+      HTTPMethod.GET, url,
       success,
       error,
     );
   }
 
-  /**
-   * @typedef API~Job
-   * @type {object}
-   * @property {string} id
-   * @property {string} status
-   * @property {number} progress
-   * @property {Object} result
-   */
-
-  /**
-   *
-   * @callback API~job-callback
-   * @this {API~Job}
-   */
-
-  /**
-   *
-   * @callback API~job-poll-callback
-   * @this {API~Job}
-   * @returns {boolean} If true the job will be cancelled.
-   */
-
-  /**
-   *
-   * @callback API~list-job-callback
-   * @this {Object}
-   * @property {API~Job[]} this.jobs
-   * @property {integer} this.page
-   * @property {integer} this.total_pages
-   */
-
-  /**
-   * Submit and start a new job with the given 3MF specified as a buffer
-   * @param {Buffer | Object} job
-   * @param {API~job-callback} success
-   * @param {API~error} error
-   */
-  submitSmartSliceJob(job, success, error) {
+  submitSmartSliceJob(job: JobData, success: Callback.Job, error: Callback.Error) {
     const encoding: Encoding = {
       name: EncodingTypes.content,
       value: EncodingValues.gzip,
     };
 
     this._request(
-      'POST', '/smartslice',
+      HTTPMethod.POST, '/smartslice',
       success,
       error,
       job,
@@ -533,28 +393,15 @@ export class API {
     );
   }
 
-  /**
-   * Cancellation requestion of a running job
-   * @param {string} jobId
-   * @param {API~success} success
-   * @param {API~error} error
-   */
-  cancelSmartSliceJob(jobId, success, error) {
+  cancelSmartSliceJob(jobId: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'DELETE', `/smartslice/${jobId}`,
+      HTTPMethod.DELETE, `/smartslice/${jobId}`,
       success,
       error,
     );
   }
 
-  /**
-   * Retrieve a job by it's unique id
-   * @param {string} jobId
-   * @param {API~job-callback} success
-   * @param {API~error} error
-   * @param {boolean} withResults The job will include the result attribute if true
-   */
-  getSmartSliceJob(jobId, success, error, withResults) {
+  getSmartSliceJob(jobId: string, success: Callback.Job, error: Callback.Error, withResults: boolean) {
     let route = `/smartslice/${jobId}`;
     let encoding: Encoding;
 
@@ -566,19 +413,17 @@ export class API {
       };
     }
 
-    this._request('GET', route, success, error, encoding);
+    this._request(HTTPMethod.GET, route, success, error, encoding);
   }
 
-  /**
-   * Polls a running job until it has completed or failed.
-   * @param {string} jobId
-   * @param {API~error} error
-   * @param {API~job-callback} finished
-   * @param {API~job-callback} failed
-   * @param {API~job-poll-callback} poll
-   */
-  pollSmartSliceJob(jobId, error, finished, failed, poll) {
-    const api = this;
+  pollSmartSliceJob(
+    jobId: string,
+    error: Callback.Error,
+    finished: Callback.Job,
+    failed: Callback.Job,
+    poll: Callback.JobPoll,
+  ) {
+    const api: API = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
 
@@ -593,7 +438,7 @@ export class API {
               const abort = poll.bind(this)();
 
               if (abort) {
-                api.cancelSmartSliceJob(jobId, () => {}, () => {});
+                api.cancelSmartSliceJob(jobId, () => { }, () => { });
               }
             }
 
@@ -623,16 +468,13 @@ export class API {
     pollJob(1000)();
   }
 
-  /**
-   * Submit and start a new job with the given 3MF specified as a buffer,
-   * and then poll it until it has completed or failed.
-   * @param {Buffer} job
-   * @param {API~error} error
-   * @param {API~job-callback} finished
-   * @param {API~job-callback} failed
-   * @param {API~job-poll-callback} poll
-   */
-  submitSmartSliceJobAndPoll(job, error, finished, failed, poll) {
+  submitSmartSliceJobAndPoll(
+    job: JobData,
+    error: Callback.Error,
+    finished: Callback.Job,
+    failed: Callback.Job,
+    poll: Callback.JobPoll,
+  ) {
     const that = this;
     this.submitSmartSliceJob(
       job,
@@ -643,68 +485,23 @@ export class API {
     );
   }
 
-  /**
-   *
-   * @param {integer} limit Number of jobs to retrieve
-   * @param {integer} page The page of jobs to retrieve (offset)
-   * @param {API~list-job-callback} success
-   * @param {API~error} error
-   */
-  listSmartSliceJobs(limit, page, success, error) {
+  listSmartSliceJobs(
+    limit: number,
+    page: number,
+    success: Callback.ListJob,
+    error: Callback.Error,
+  ) {
     const route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
-    this._request('GET', route, success, error);
+    this._request(HTTPMethod.GET, route, success, error);
   }
 
   /**
-   * @typedef API~Team
-   * @type {object}
-   * @property {string} id
-   * @property {string} name
-   * @property {string} full_name
-   * @property {string[]} roles
-   */
-
-  /**
-   * @typedef API~Membership
-   * @type {object}
-   * @property {string} email
-   * @property {string} first_name
-   * @property {string} last_name
-   * @property {string[]} roles
-   */
-
-  /**
-   * @typedef API~Invite
-   * @type {object}
-   * @property {string} email
-   */
-
-  /**
-   *
-   * @callback API~teams-callback
-   * @this {Object}
-   * @property {API~Team[]} this.memberships
-   */
-
-  /**
-   *
-   * @callback API~members-callback
-   * @this {Object}
-   * @property {API~Membership[]} this.members
-   * @property {API~Invite[]} this.invites
-   */
-
-  /**
    * Create a new team.
-   * @param {string} name The short name of the team. Must be between 3-64 characters. Only lowercase a-z, 0-9, "_" and "-" are acceptable.
-   * @param {string} fullName The full name of the team.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  createTeam(name, fullName, success, error) {
+  createTeam(name: string, fullName: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', '/teams',
+      HTTPMethod.POST, '/teams',
       success,
       error,
       {
@@ -716,77 +513,52 @@ export class API {
 
   /**
    * Get a list of the teams the logged in user is a member of
-   * @param {API~teams-callback} success
-   * @param {API~error} error
    */
-  teamMemberships(success, error) {
-    this._request('GET', '/teams', success, error);
+  teamMemberships(success: Callback.Success, error: Callback.Error) {
+    this._request(HTTPMethod.GET, '/teams', success, error);
   }
 
   /**
    * Get a list of the members for the given team.
-   * @param {string} team Team name (short).
-   * @param {API~members-callback} success
-   * @param {API~error} error
    */
-  teamMembers(team, success, error) {
-    this._request('GET', `/teams/${team}/members`, success, error);
+  teamMembers(team: string, success: Callback.TeamMembers, error: Callback.Error) {
+    this._request(HTTPMethod.GET, `/teams/${team}/members`, success, error);
   }
 
   /**
    * Invite a user to the given team, by email.
-   * @param {string} team Team name (short).
-   * @param {string} email Email of user to invite. This can be the email of an existing user or a user who has not registered yet.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  inviteToTeam(team, email, success, error) {
-    this._request('POST', `/teams/${team}/invite`, success, error, {email: email});
+  inviteToTeam(team: string, email: string, success: Callback.Success, error: Callback.Error) {
+    this._request(HTTPMethod.POST, `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
    * Revoke an existing invitation to a user, by email. If the user has already accepted the invite, this will not remove them from the team.
-   * @param {string} team Team name (short).
-   * @param {string} email Email of user to for which to revoke an existing invitation.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  revokeTeamInvite(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/invite`, success, error, {email: email});
+  revokeTeamInvite(team: string, email: string, success: Callback.Success, error: Callback.Error) {
+    this._request(HTTPMethod.DELETE, `/teams/${team}/invite`, success, error, {email: email});
   }
 
   /**
    * Accept an invite to the given team.
-   * @param {string} team Team name (short).
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  acceptTeamInvite(team, success, error) {
-    this._request('GET', `/teams/${team}/invite`, success, error);
+  acceptTeamInvite(team: string, success: Callback.Success, error: Callback.Error) {
+    this._request(HTTPMethod.GET, `/teams/${team}/invite`, success, error);
   }
 
   /**
    * Remove a user from the team and all of their roles.
-   * @param {string} team Team name (short).
-   * @param {string} email Email of user to remove.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  removeTeamMember(team, email, success, error) {
-    this._request('DELETE', `/teams/${team}/member`, success, error, {email: email});
+  removeTeamMember(team: string, email: string, success: Callback.Success, error: Callback. Error) {
+    this._request(HTTPMethod.DELETE, `/teams/${team}/member`, success, error, {email: email});
   }
 
   /**
    * Add a role to a member of a given team.
-   * @param {string} team Team name (short).
-   * @param {string} email Email of user to add the given role to.
-   * @param {string} role The name of the role to add to the given user.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  addTeamMemberRole(team, email, role, success, error) {
+  addTeamMemberRole(team: string, email: string, role: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'POST', `/teams/${team}/role`,
+      HTTPMethod.POST, `/teams/${team}/role`,
       success,
       error,
       {
@@ -798,15 +570,10 @@ export class API {
 
   /**
    * Remove a role from a member of a given team.
-   * @param {string} team Team name (short).
-   * @param {string} email Email of user to add the given role to.
-   * @param {string} role The name of the role to add to the given user.
-   * @param {API~success} success
-   * @param {API~error} error
    */
-  revokeTeamMemberRole(team, email, role, success, error) {
+  revokeTeamMemberRole(team: string, email: string, role: string, success: Callback.Success, error: Callback.Error) {
     this._request(
-      'DELETE', `/teams/${team}/role`,
+      HTTPMethod.DELETE, `/teams/${team}/role`,
       success,
       error,
       {
@@ -817,29 +584,15 @@ export class API {
   }
 
   /**
-   *
-   * @callback API~support-issue-callback
-   * @this {Object}
-   * @property {string} this.message
-   * @property {Object} this.issue
-   * @property {integer} this.issue.id
-   * @property {string} this.issue.description
-   */
-
-  /**
    * Creates a new customer support issue.
-   * @param {string} description Description of issue/request
-   * @param {API~support-issue-callback} success
-   * @param {API~error} error
-   * @param {string} jobId Id of job the issue is related to. Can be null if the issue is not related to a job.
    */
-  createSupportIssue(description, success, error, jobId) {
+  createSupportIssue(description: string, success: Callback.SupportIssue, error: Callback.Error, jobId: string) {
     if (jobId === undefined) {
       jobId = null;
     }
 
     this._request(
-      'POST', '/support/issue',
+      HTTPMethod.POST, '/support/issue',
       success,
       error,
       {

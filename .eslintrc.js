@@ -22,5 +22,6 @@ module.exports = {
     'require-jsdoc': 'off',
     'indent': 'off',
     'no-extra-parens': 'off',
+    'valid-jsdoc': 'off'
 },
 };
