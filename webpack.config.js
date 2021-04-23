@@ -1,12 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const pjson = require('./package.json');
-
-let version = pjson.version;
-
-if (process.env.BUILD_NUMBER) {
-  version = version + '.' + process.env.BUILD_NUMBER;
-}
+require('dotenv').config();
 
 const externals = {
   xmlhttprequest: 'XMLHttpRequest',
@@ -17,7 +11,7 @@ externals['node-localstorage'] = 'localStorage';
 
 const definitions = new webpack.DefinePlugin(
   {
-    THOR_VERSION: JSON.stringify(version),
+    THOR_VERSION: JSON.stringify(process.env.THOR_VERSION),
   },
 );
 

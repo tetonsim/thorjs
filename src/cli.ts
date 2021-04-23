@@ -2,8 +2,6 @@
 
 ('use strict');
 
-const version = 'dev';
-
 import app from 'commander';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -25,7 +23,12 @@ declare module 'stream' {
 const location = path.join(os.homedir(), '.thor');
 const storage = new LocalStorage(location);
 
+import * as dotenv from "dotenv";
+
+
 // default configuration
+dotenv.config()
+const version = process.env.THOR_VERSION;
 const HOST = 'https://api.smartslice.xyz';
 
 let config: APIConfig = {

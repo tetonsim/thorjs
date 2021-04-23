@@ -1,4 +1,5 @@
 import * as zlib from 'zlib';
+import * as dotenv from 'dotenv';
 import {
   JobData,
   User,
@@ -54,6 +55,9 @@ class Message {
   }
 }
 
+dotenv.config();
+const thorVersion = process.env.THOR_VERSION;
+
 /**
  * Handles Thor API requests
  */
@@ -62,11 +66,12 @@ export class API {
   public token: Token;
   public error: any;
   public user: User;
-  public version: string | number;
   public success: any;
   public status: string;
   public http_code: number;
   public id: string;
+  public version = thorVersion;
+
 
   constructor(config?) {
     if (config === undefined) {
@@ -84,8 +89,7 @@ export class API {
   }
 
   static get version() {
-    return '21.0';
-    // return (typeof THOR_VERSION === 'undefined' ? '21.0' : THOR_VERSION);
+    return this.version;
   }
 
   get config() {
