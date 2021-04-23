@@ -11,7 +11,7 @@ externals['node-localstorage'] = 'localStorage';
 
 const definitions = new webpack.DefinePlugin(
   {
-    THOR_VERSION: JSON.stringify(process.env.THOR_VERSION + '.' + process.env.THOR_REVISION_NUMBER),
+    THOR_VERSION: JSON.stringify(process.env.THOR_VERSION),
   },
 );
 

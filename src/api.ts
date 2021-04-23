@@ -1,5 +1,5 @@
 import * as zlib from 'zlib';
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 import {
   JobData,
   User,
@@ -55,8 +55,8 @@ class Message {
   }
 }
 
-dotenv.config()
-const thorVersion = process.env.THOR_VERSION + '.' + process.env.THOR_REVISION_NUMBER;
+dotenv.config();
+const thorVersion = process.env.THOR_VERSION;
 
 /**
  * Handles Thor API requests
@@ -80,7 +80,7 @@ export class API {
         token: null,
       };
     }
-    
+
     this.host = config.host;
     this.token = config.token;
 
@@ -89,9 +89,9 @@ export class API {
   }
 
   static get version() {
-    return this.version
+    return this.version;
   }
-  
+
   get config() {
     return {
       host: this.host,
