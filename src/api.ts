@@ -260,26 +260,15 @@ export class API {
     );
   }
 
-  /**
-   * Retrieves API token
-   */
   getToken(email: string, password: string, success: Callback.GetToken, error: Callback.Error) {
     this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
       error, {email: email, password: password});
   }
 
-  /**
-   *
-   * @param {Token} token
-   */
   setToken(token: Token) {
     this.token = token;
   }
 
-  /**
-   * Refreshes the API token. This is not usable for expired tokens. If a refresh
-   * is attempted on an expired token the server will return 401 Unauthorized.
-   */
   refreshToken(success: Callback.GetToken, error: Callback.Error) {
     if (this.token === null) {
       error.call('null token');
@@ -344,9 +333,6 @@ export class API {
     );
   }
 
-  /**
-   * Begin the reset password process by requesting an email to reset your password.
-   */
   forgotPassword(email: string, success: Callback.Success, error: Callback.Error) {
     this._request(
       HTTPMethod.POST, '/auth/password/forgot',
@@ -356,9 +342,6 @@ export class API {
     );
   }
 
-  /**
-   * Use the code retrieved from the /auth/password/forgot call to reset password.
-   */
   resetPassword(code: string, email: string, password: string, success: Callback.Success, error: Callback.Error) {
     this._request(
       HTTPMethod.POST, '/auth/password/reset',
@@ -373,9 +356,6 @@ export class API {
     );
   }
 
-  /**
-   * Retrieve the Smart Slice subscription the user has access to
-   */
   getSmartSliceSubscription(
     success: Callback.Subscription,
     error: Callback.Error,
@@ -432,9 +412,6 @@ export class API {
     this._request(HTTPMethod.GET, route, success, error, encoding);
   }
 
-  /**
-   * Polls a running job until it has completed or failed.
-   */
   pollSmartSliceJob(
     jobId: string,
     error: Callback.Error,
@@ -487,10 +464,6 @@ export class API {
     pollJob(1000)();
   }
 
-  /**
-   * Submit and start a new job with the given 3MF specified as a buffer,
-   * and then poll it until it has completed or failed.
-   */
   submitSmartSliceJobAndPoll(
     job: JobData,
     error: Callback.Error,
