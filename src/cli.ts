@@ -28,7 +28,7 @@ import * as dotenv from "dotenv";
 
 // default configuration
 dotenv.config()
-const version = process.env.THOR_VERSION;
+const version = process.env.THOR_VERSION + '.' + process.env.THOR_REVISION_NUMBER;
 const HOST = 'https://api.smartslice.xyz';
 
 let config: APIConfig = {

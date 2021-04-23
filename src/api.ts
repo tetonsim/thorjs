@@ -58,6 +58,8 @@ class Message {
 }
 
 dotenv.config()
+const thorVersion = process.env.THOR_VERSION + '.' + process.env.THOR_REVISION_NUMBER;
+
 /**
  * Handles Thor API requests
  */
@@ -70,7 +72,7 @@ export class API {
   public status: string;
   public http_code: number;
   public id: string;
-  public version = process.env.THOR_VERSION;
+  public version = thorVersion;
 
 
   constructor(config?) {
@@ -89,7 +91,7 @@ export class API {
   }
 
   static get version() {
-    return process.env.THOR_VERSION
+    return this.version
   }
   
   get config() {

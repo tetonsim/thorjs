@@ -37,7 +37,7 @@
   },
   "scripts": {
     "test": "mocha",
-    "prepublish": "tsc",
+    "prepublish": "tsc"
   },
   "build": "webpack",
   "author": "tetonsim",
