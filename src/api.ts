@@ -1,7 +1,5 @@
 import * as zlib from 'zlib';
 import * as dotenv from "dotenv";
-import {JobType} from './smartslice/job/job';
-// import {Encoding, EncodingTypes, EncodingValues, XHTTPHeader} from './types';
 import {
   JobData,
   User,
