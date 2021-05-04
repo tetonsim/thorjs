@@ -86,7 +86,7 @@ class Message {
 }
 
 dotenv.config();
-const thorVersion = process.env.THOR_VERSION;
+const thorVersion = process.env.THOR_VERSION ?? '21.0';
 
 /**
  * Handles Thor API requests

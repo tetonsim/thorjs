@@ -2,7 +2,7 @@
 
 ('use strict');
 
-import app from 'commander';
+import app = require('commander');
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
@@ -28,7 +28,7 @@ import * as dotenv from "dotenv";
 
 // default configuration
 dotenv.config()
-const version = process.env.THOR_VERSION;
+const version = process.env.THOR_VERSION ?? '21.0';
 const HOST = 'https://api.smartslice.xyz';
 
 let config: APIConfig = {
