@@ -25,26 +25,26 @@ declare global {
 }
 
 XMLHttpRequest.prototype.getRequestHeader = function(value: string): string {
-  return this.headers[value]
-}
-// Reasign the existing setRequestHeader function to 
+  return this.headers[value];
+};
+// Reasign the existing setRequestHeader function to
 // something else on the XMLHtttpRequest class
-XMLHttpRequest.prototype.wrappedSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader; 
+XMLHttpRequest.prototype.wrappedSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
 
 // Override the existing setRequestHeader function so that it stores the headers
 XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
-    // Call the wrappedSetRequestHeader function first 
+    // Call the wrappedSetRequestHeader function first
     // so we get exceptions if we are in an erronous state etc.
     this.wrappedSetRequestHeader(header, value);
 
     // Create a headers map if it does not exist
-    if(!this.headers) {
+    if (!this.headers) {
         this.headers = {};
     }
 
     // Add the value to the header
     this.headers[header] = value;
-}
+};
 
 
 const _HelperCallbacks = {
