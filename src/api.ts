@@ -69,7 +69,6 @@ export class API {
   public status: string;
   public http_code: number;
   public id: string;
-  public version = thorVersion;
 
 
   constructor(config?: {host: string, token: Token}) {
@@ -85,6 +84,10 @@ export class API {
 
     this.error = function() { };
     this.user = null;
+  }
+
+  static get version() {
+    return thorVersion
   }
 
   get config() {
@@ -150,7 +153,7 @@ export class API {
 
     xhttp.open(method, this.host + route, true);
 
-    xhttp.setRequestHeader('Accept-version', this.version);
+    xhttp.setRequestHeader('Accept-version', API.version);
 
     if (encoding) {
       xhttp.setRequestHeader(encoding.name, encoding.value);
@@ -165,7 +168,6 @@ export class API {
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
       if (encoding && encoding.value == EncodingValues.gzip) {
-        console.log('this. works')
         zlib.gzip(data, (_, gz) => {
           xhttp.send(gz);
         });
@@ -187,8 +189,8 @@ export class API {
 
   verifyVersion(success: Callback.Version, error: Callback.Error) {
     const parseVersion = function() {
-      const sv = this.version.split('.');
-      const cv = this.version.split('.');
+      const sv = API.version.split('.');
+      const cv = API.version.split('.');
 
       const sv_maj = parseInt(sv[0]);
       const sv_min = parseInt(sv[1]);
@@ -200,7 +202,7 @@ export class API {
       // how can we make this less restrictive?
       const compatible = (sv_maj === cv_maj && sv_min === cv_min);
 
-      success(compatible, this.version, this.version);
+      success(compatible, API.version, API.version);
     };
 
     this._request(HTTPMethod.GET, '/', parseVersion, error);
