@@ -189,7 +189,7 @@ export class API {
 
   verifyVersion(success: Callback.Version, error: Callback.Error) {
     const parseVersion = function() {
-      const sv = API.version.split('.');
+      const sv = this.version.split('.');
       const cv = API.version.split('.');
 
       const sv_maj = parseInt(sv[0]);
@@ -202,7 +202,7 @@ export class API {
       // how can we make this less restrictive?
       const compatible = (sv_maj === cv_maj && sv_min === cv_min);
 
-      success(compatible, API.version, API.version);
+      success(compatible, API.version, this.version);
     };
 
     this._request(HTTPMethod.GET, '/', parseVersion, error);
