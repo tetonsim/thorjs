@@ -11,10 +11,9 @@ import {
   Token,
 } from './types';
 
-let XMLHttpRequest;
 
 if (typeof window === 'undefined') {
-  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
 
 const _HelperCallbacks = {
@@ -56,7 +55,7 @@ class Message {
 }
 
 dotenv.config();
-const thorVersion = process.env.THOR_VERSION;
+const thorVersion = process.env.THOR_VERSION ?? '21.0';
 
 /**
  * Handles Thor API requests
@@ -70,10 +69,9 @@ export class API {
   public status: string;
   public http_code: number;
   public id: string;
-  public version = thorVersion;
 
 
-  constructor(config?) {
+  constructor(config?: {host: string, token: Token}) {
     if (config === undefined) {
       config = {
         host: 'https://api.smartslice.xyz',
@@ -89,7 +87,7 @@ export class API {
   }
 
   static get version() {
-    return this.version;
+    return thorVersion
   }
 
   get config() {
@@ -169,7 +167,7 @@ export class API {
       xhttp.send();
     } else if (data instanceof Buffer) {
       xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+      if (encoding && encoding.value == EncodingValues.gzip) {
         zlib.gzip(data, (_, gz) => {
           xhttp.send(gz);
         });
@@ -178,8 +176,7 @@ export class API {
       }
     } else {
       xhttp.setRequestHeader('Content-Type', 'application/json');
-
-      if (xhttp.getRequestHeader(EncodingTypes.content) == EncodingValues.gzip) {
+      if (encoding && encoding.value == EncodingValues.gzip) {
         zlib.gzip(JSON.stringify(data), (_, gz) => {
           xhttp.send(gz);
         });
