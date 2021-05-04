@@ -2,7 +2,6 @@
   "name": "teton-thor",
   "version": "21.0.1",
   "description": "Thor API JS Library",
-  "type": "module",
   "private": false,
   "main": "dist/thor.js",
   "types": "dist/thor.d.ts",

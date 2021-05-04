@@ -11,11 +11,41 @@ import {
   Token,
 } from './types';
 
-let XMLHttpRequest;
 
 if (typeof window === 'undefined') {
-  XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
+  var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
+
+declare global {
+  interface XMLHttpRequest {
+    headers: any
+    wrappedSetRequestHeader(header: string, value: string): void
+    getRequestHeader(type: any):string
+  }
+}
+
+XMLHttpRequest.prototype.getRequestHeader = function(value: string): string {
+  return this.headers[value]
+}
+// Reasign the existing setRequestHeader function to 
+// something else on the XMLHtttpRequest class
+XMLHttpRequest.prototype.wrappedSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader; 
+
+// Override the existing setRequestHeader function so that it stores the headers
+XMLHttpRequest.prototype.setRequestHeader = function(header, value) {
+    // Call the wrappedSetRequestHeader function first 
+    // so we get exceptions if we are in an erronous state etc.
+    this.wrappedSetRequestHeader(header, value);
+
+    // Create a headers map if it does not exist
+    if(!this.headers) {
+        this.headers = {};
+    }
+
+    // Add the value to the header
+    this.headers[header] = value;
+}
+
 
 const _HelperCallbacks = {
   getToken: function(api: API, success: Callback.GetToken, error: Callback.Error) {
@@ -73,7 +103,7 @@ export class API {
   public version = thorVersion;
 
 
-  constructor(config?) {
+  constructor(config?: {host: string, token: Token}) {
     if (config === undefined) {
       config = {
         host: 'https://api.smartslice.xyz',
@@ -86,10 +116,6 @@ export class API {
 
     this.error = function() { };
     this.user = null;
-  }
-
-  static get version() {
-    return this.version;
   }
 
   get config() {
@@ -155,7 +181,7 @@ export class API {
 
     xhttp.open(method, this.host + route, true);
 
-    xhttp.setRequestHeader('Accept-version', API.version);
+    xhttp.setRequestHeader('Accept-version', this.version);
 
     if (encoding) {
       xhttp.setRequestHeader(encoding.name, encoding.value);
@@ -193,7 +219,7 @@ export class API {
   verifyVersion(success: Callback.Version, error: Callback.Error) {
     const parseVersion = function() {
       const sv = this.version.split('.');
-      const cv = API.version.split('.');
+      const cv = this.version.split('.');
 
       const sv_maj = parseInt(sv[0]);
       const sv_min = parseInt(sv[1]);
@@ -205,7 +231,7 @@ export class API {
       // how can we make this less restrictive?
       const compatible = (sv_maj === cv_maj && sv_min === cv_min);
 
-      success(compatible, API.version, this.version);
+      success(compatible, this.version, this.version);
     };
 
     this._request(HTTPMethod.GET, '/', parseVersion, error);
