@@ -18,9 +18,9 @@ if (typeof window === 'undefined') {
 
 declare global {
   interface XMLHttpRequest {
-    headers: any
-    wrappedSetRequestHeader(header: string, value: string): void
-    getRequestHeader(type: any):string
+    headers: any;
+    wrappedSetRequestHeader(header: string, value: string): void;
+    getRequestHeader(type: any): string;
   }
 }
 
