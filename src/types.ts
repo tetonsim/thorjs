@@ -55,7 +55,10 @@ namespace Response {
     error: string
   }
 
-  export interface GetToken extends User {}
+  export interface GetToken {
+    user: User
+    token: Token
+  }
 
   export interface Subscription {
     success: boolean
