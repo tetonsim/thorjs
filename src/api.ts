@@ -22,6 +22,9 @@ const _HelperCallbacks = {
       if (this.error && error !== undefined) {
         error.bind(this)();
       } else {
+        api.token = this.token;
+        api.user = this.user;
+
         if (success !== undefined) {
           success.bind(this)();
         }
