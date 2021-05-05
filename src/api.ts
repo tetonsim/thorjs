@@ -26,7 +26,7 @@ const _HelperCallbacks = {
         api.user = this.user;
 
         if (success !== undefined) {
-          success.bind(api.user)();
+          success.bind(this)();
         }
       }
     };
