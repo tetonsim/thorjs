@@ -96,94 +96,105 @@ export class API {
     };
   }
 
-  _request(method: HTTPMethod, route: string, success: Callback.Any, error: Callback.Error, data?, encoding?: Encoding) {
-    const xhttp = new XMLHttpRequest();
+  async _request(method: HTTPMethod, route: string, success: Callback.Any, error: Callback.Error, data?, encoding?: Encoding): Promise<void> {
+    return new Promise((resolve, reject) => {
 
-    xhttp.onreadystatechange = function() {
-      let response;
-
-      if (xhttp.readyState === 4) {
-        try {
-          response = JSON.parse(xhttp.responseText);
-        } catch (err) {
-          response = xhttp.responseText;
-        }
-
-        if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
-          zlib.gunzip(response, (_, data) => {
-            response = JSON.parse(data.toString());
-          });
-        }
-
-        let err = null;
-
-        if (xhttp.status === 200 || xhttp.status === 202) {
-          if (success !== undefined) {
-            success.bind(response)();
+      const xhttp = new XMLHttpRequest();
+  
+      xhttp.onreadystatechange = function() {
+        let response;
+  
+        if (xhttp.readyState === 4) {
+          try {
+            response = JSON.parse(xhttp.responseText);
+          } catch (err) {
+            response = xhttp.responseText;
           }
-        } else if (xhttp.status === 401) {
-          err = new Message(xhttp.status, 'Unauthorized');
-        } else if (xhttp.status === 404) {
-          err = new Message(xhttp.status, 'Not Found');
-        } else if (xhttp.status === 500) {
-          err = new Message(xhttp.status, 'Internal server error');
-        } else {
-          let message = null;
-
-          if (typeof response === 'string') {
-            message = response;
+  
+          if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
+            zlib.gunzip(response, (_, data) => {
+              response = JSON.parse(data.toString());
+            });
+          }
+  
+          let err = null;
+  
+          if (xhttp.status === 200 || xhttp.status === 202) {
+            if (success !== undefined) {
+              success.bind(response)();
+              resolve();
+            }
+          } else if (xhttp.status === 401) {
+            err = new Message(xhttp.status, 'Unauthorized');
+          } else if (xhttp.status === 404) {
+            err = new Message(xhttp.status, 'Not Found');
+          } else if (xhttp.status === 500) {
+            err = new Message(xhttp.status, 'Internal server error');
           } else {
-            if ('error' in response) {
-              message = response.error;
-            }
-
-            if (message === null) {
+            let message = null;
+  
+            if (typeof response === 'string') {
               message = response;
+            } else {
+              if ('error' in response) {
+                message = response.error;
+              }
+  
+              if (message === null) {
+                message = response;
+              }
             }
+  
+            err = new Message(xhttp.status, message);
           }
-
-          err = new Message(xhttp.status, message);
+  
+          if (err !== null && error !== undefined) {
+            error.bind(err)();
+            reject()
+          }
         }
-
-        if (err !== null && error !== undefined) {
-          error.bind(err)();
+      };
+  
+      xhttp.open(method, this.host + route, true);
+  
+      xhttp.setRequestHeader('Accept-version', API.version);
+  
+      if (encoding) {
+        xhttp.setRequestHeader(encoding.name, encoding.value);
+      }
+  
+      if (this.token) {
+        xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
+      }
+  
+      if (method === 'GET' || data === undefined) {
+        xhttp.send();
+        resolve()
+      } else if (data instanceof Buffer) {
+        xhttp.setRequestHeader('Content-Type', 'model/3mf');
+        if (encoding && encoding.value == EncodingValues.gzip) {
+          zlib.gzip(data, (_, gz) => {
+            xhttp.send(gz);
+            resolve()
+          });
+        } else {
+          xhttp.send(data);
+          resolve()
+        }
+      } else {
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        if (encoding && encoding.value == EncodingValues.gzip) {
+          zlib.gzip(JSON.stringify(data), (_, gz) => {
+            xhttp.send(gz);
+            resolve()
+          });
+        } else {
+          xhttp.send(JSON.stringify(data));
+          resolve()
         }
       }
-    };
-
-    xhttp.open(method, this.host + route, true);
-
-    xhttp.setRequestHeader('Accept-version', API.version);
-
-    if (encoding) {
-      xhttp.setRequestHeader(encoding.name, encoding.value);
-    }
-
-    if (this.token) {
-      xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
-    }
-
-    if (method === 'GET' || data === undefined) {
-      xhttp.send();
-    } else if (data instanceof Buffer) {
-      xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      if (encoding && encoding.value == EncodingValues.gzip) {
-        zlib.gzip(data, (_, gz) => {
-          xhttp.send(gz);
-        });
-      } else {
-        xhttp.send(data);
-      }
-    } else {
-      xhttp.setRequestHeader('Content-Type', 'application/json');
-      if (encoding && encoding.value == EncodingValues.gzip) {
-        zlib.gzip(JSON.stringify(data), (_, gz) => {
-          xhttp.send(gz);
-        });
-      } else {
-        xhttp.send(JSON.stringify(data));
-      }
-    }
+    })
+    
   }
 
 
@@ -212,7 +223,7 @@ export class API {
     * Checks if a token is already in use and
     * returns the user information if available, otherwise null
     */
-  whoAmI(success: Callback.GetToken, error: Callback.Error) {
+  async whoAmI(success: Callback.GetToken, error: Callback.Error) {
     let getUserInfoFromServer = false;
 
     if (this.token === null) {
@@ -231,7 +242,7 @@ export class API {
         error.bind(this)();
       };
 
-      this._request(HTTPMethod.GET, '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
+      await this._request(HTTPMethod.GET, '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
     } else {
       success.bind(this.user)();
     }
@@ -261,8 +272,8 @@ export class API {
     );
   }
 
-  getToken(email: string, password: string, success: Callback.GetToken, error: Callback.Error) {
-    this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
+  async getToken(email: string, password: string, success: Callback.GetToken, error: Callback.Error) {
+    await this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
       error, {email: email, password: password});
   }
 
