@@ -9,16 +9,13 @@ import {
   EncodingValues,
   HTTPMethod,
   Token,
-  Response
+  Response,
 } from './types';
-import { ServerResponse } from 'node:http';
-import { callbackify } from 'node:util';
 
 
 if (typeof window === 'undefined') {
   var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
-
 
 
 class Message {
@@ -43,6 +40,7 @@ class Message {
 
 dotenv.config();
 const thorVersion = process.env.THOR_VERSION ?? '21.0';
+
 
 /**
  * Handles Thor API requests
@@ -74,7 +72,7 @@ export class API {
   }
 
   static get version() {
-    return thorVersion
+    return thorVersion;
   }
 
   get config() {
@@ -85,37 +83,37 @@ export class API {
 
 
   /**
-   * 
+   *
    * @returns Promise that resolves or rejects to a thor response
    */
   private _request(
     method: HTTPMethod,
     route: string,
     data?,
-    encoding?: Encoding
+    encoding?: Encoding,
   ): Promise<Response.Any> {
     return new Promise((resolve, reject) => {
       const xhttp = new XMLHttpRequest();
-  
-      xhttp.onreadystatechange = function () {
-        let response;
-  
+
+      xhttp.onreadystatechange = function() {
+        let response: Response.Any;
+
         if (xhttp.readyState === 4) {
           try {
             response = JSON.parse(xhttp.responseText);
           } catch (err) {
             response = xhttp.responseText;
           }
-  
+
           if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
-            zlib.gunzip(response, (_, data) => {
+            zlib.gunzip(response as Buffer, (_, data) => {
               response = JSON.parse(data.toString());
             });
           }
-  
-          let err = null;
+
+          let err: Message = null;
           if (xhttp.status === 200 || xhttp.status === 202) {
-            resolve(response)
+            resolve(response);
           } else if (xhttp.status === 401) {
             err = new Message(xhttp.status, 'Unauthorized');
           } else if (xhttp.status === 404) {
@@ -124,40 +122,40 @@ export class API {
             err = new Message(xhttp.status, 'Internal server error');
           } else {
             let message = null;
-  
+
             if (typeof response === 'string') {
               message = response;
             } else {
               if ('error' in response) {
                 message = response.error;
               }
-  
+
               if (message === null) {
                 message = response;
               }
             }
-  
+
             err = new Message(xhttp.status, message);
           }
-  
+
           if (err !== null) {
-            reject(err)
+            reject(err);
           }
         }
       };
-  
+
       xhttp.open(method, this.host + route, true);
-  
+
       xhttp.setRequestHeader('Accept-version', API.version);
-  
+
       if (encoding) {
         xhttp.setRequestHeader(encoding.name, encoding.value);
       }
-  
+
       if (this.token) {
         xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
       }
-  
+
       if (method === 'GET' || data === undefined) {
         xhttp.send();
       } else if (data instanceof Buffer) {
@@ -179,7 +177,7 @@ export class API {
           xhttp.send(JSON.stringify(data));
         }
       }
-    })
+    });
   }
 
   async verifyVersion() {
@@ -204,32 +202,32 @@ export class API {
     * ```ts
     * async function whoAmI() {
     *  let response = await api.whoAmI()
-    *    .catch((err: Response.Message) => {
+    *    .catch((err: Message) => {
     *      console.log(err)
-    *    }) as Response.GetToken
+    *    });
     *  console.log(response)
     * }
-    * ```  
+    * ```
     */
-  async whoAmI(): Promise<Response.GetToken | Message> {
+  async whoAmI(): Promise<Response.GetToken> {
     const success = (response: Response.GetToken) => {
-      this.user = response.user
-      this.token = response.token
-      return response
-    }
+      this.user = response.user;
+      this.token = response.token;
+      return response;
+    };
 
     const error = () => {
-      this.user = null
-      this.token = null
-      return new Message(401, 'No token available')
-    }
+      this.user = null;
+      this.token = null;
+      return new Message(401, 'No token available');
+    };
 
     return await this._request(HTTPMethod.GET, '/auth/whoami')
-      .then(success, error)
+      .then(success, error) as Response.GetToken;
   }
 
   /**
-   * 
+   *
     * @returns Promise that resolves to Response.Message and rejects to Response.Message
    */
   async register(
@@ -240,20 +238,20 @@ export class API {
     company: string,
     country: string,
   ): Promise<Response.Message> {
-    const data =  {
+    const data = {
       email: email,
       first_name: first_name,
       last_name: last_name,
       password: password,
       company: company,
       country: country,
-    }
-    
+    };
+
     return await this._request(HTTPMethod.POST, '/auth/register', data) as Response.Message;
   }
-  
+
   /**
-   * 
+   *
    * @returns Promise that resolves to Response.GetToken and rejects to  Response.Message
    * @example
    *
@@ -265,16 +263,16 @@ export class API {
    *     }) as Response.GetToken
    *  console.log(response)
    * }
-   * ```   
+   * ```
    * */
-  async getToken(email: string, password: string): Promise<Response.GetToken | Response.Message>{
+  async getToken(email: string, password: string): Promise<Response.GetToken> {
     const success = (response: Response.GetToken) => {
-      this.token = response.token
-      this.user = response.user
-      return response
-    }
+      this.token = response.token;
+      this.user = response.user;
+      return response;
+    };
 
-    return await this._request(HTTPMethod.POST, '/auth/token', { email: email, password: password }).then(success)
+    return await this._request(HTTPMethod.POST, '/auth/token', {email: email, password: password}).then(success) as Response.GetToken;
   }
 
 
@@ -282,21 +280,12 @@ export class API {
     this.token = token;
   }
 
-  async refreshToken(): Promise<Response.GetToken | Response.Message> {
+  async refreshToken(): Promise<Response.GetToken> {
     if (this.token === null) {
       return;
     }
 
-    const success = (response: Response.GetToken) => {
-      return response
-    }
-
-    const error = (err: Response.Message) => {
-      return err
-    }
-
-    return await this._request(HTTPMethod.PUT, '/auth/token')
-      .then(success, error)
+    return await this._request(HTTPMethod.PUT, '/auth/token') as Response.GetToken;
   }
 
   /**
@@ -329,7 +318,7 @@ export class API {
     return await this._request(
       HTTPMethod.POST,
       '/auth/password/forgot',
-      { email: email }
+      {email: email},
     ) as Response.Message;
   }
 
@@ -346,48 +335,31 @@ export class API {
   }
 
   /**
-   * 
+   *
    * @returns Promise that resolves to Response.Subscription and rejects to Response.Message
    */
-  async getSmartSliceSubscription(team: string): Promise<Response.Subscription | Response.Message> {
+  async getSmartSliceSubscription(team: string): Promise<Response.Subscription> {
     let url = '/smartslice/subscription';
 
     if (team) {
       url += `?team=${team}`;
     }
 
-    const success = (response: Response.Subscription) => {
-      return response
-    }
-
-    const error = (response: Response.Message) => {
-      return response
-    }
-
-    return await this._request(HTTPMethod.GET, url)
-      .then(success, error);
+    return await this._request(HTTPMethod.GET, url) as Response.Subscription;
   }
 
   /**
    * @returns Promise that resolves to Response.Job and rejects to Response.Message
    */
-  async submitSmartSliceJob(job: JobData): Promise<Response.Job | Response.Message> {
+  async submitSmartSliceJob(job: JobData): Promise<Response.Job> {
     const encoding: Encoding = {
       name: EncodingTypes.content,
       value: EncodingValues.gzip,
     };
 
-    const success = (response: Response.Job) => {
-      return response
-    }
-
-    const error = (response: Response.Message) => {
-      return response
-    }
-
     return await this._request(
       HTTPMethod.POST, '/smartslice', job, encoding,
-    ).then(success, error);
+    ) as Response.Job;
   }
 
   async cancelSmartSliceJob(jobId: string): Promise<Response.Message> {
@@ -395,10 +367,10 @@ export class API {
   }
 
   /**
-   * 
-   * @returns Promise that resolves to Response.Job and rejects to Response.Message 
+   *
+   * @returns Promise that resolves to Response.Job and rejects to Response.Message
    */
-  async getSmartSliceJob(jobId: string, withResults: boolean): Promise<Response.Job | Response.Message> {
+  async getSmartSliceJob(jobId: string, withResults: boolean): Promise<Response.Job> {
     let route = `/smartslice/${jobId}`;
     let encoding: Encoding;
 
@@ -410,64 +382,51 @@ export class API {
       };
     }
 
-    const success = (response: Response.Job) => {
-      return response
-    }
-
-    const error = (response: Response.Message) => {
-      return response
-    }
-
-    return await this._request(HTTPMethod.GET, route, null, encoding)
-      .then(success, error);
+    return await this._request(HTTPMethod.GET, route, null, encoding) as Response.Job;
   }
 
-  async pollSmartSliceJob(
-    jobId: string,
-    poll: Callback.JobPoll,
-  ) {
+  async pollSmartSliceJob(response: Response.Job, callback: Callback.JobPoll) {
     const api: API = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
 
+    const period = 1000;
     const maxPeriod = 30000;
     const periodMultiplier = 1.25;
 
-    async function pollJob(period: number) {
-      return async function (response: Response.Job) {
-        const handleJobStatus = async function() {
-          if (pollAgainStatuses.includes(this.status)) {
-            if (poll !== undefined) {
-              const abort = poll.bind(this)();
+    async function handleJobStatus() {
+      if (pollAgainStatuses.includes(response.status)) {
+        if (callback !== undefined) {
+          const abort = callback.bind(response)();
 
-              if (abort) {
-                await api.cancelSmartSliceJob(jobId);
-              }
-            }
-            
-            period = Math.min(maxPeriod, period * periodMultiplier);
-
-            setTimeout(await pollJob(period), period);
-          } else {
-            return response
+          if (abort) {
+            api.cancelSmartSliceJob(response.id);
           }
-        };
+        }
 
-        const errorHandler = async function(response: Response.Message) {
-          if (this.http_code == 429) {
-            // If the error is a rate limit, then just continue polling.
-            setTimeout(await pollJob(period), period);
-          } else {
-            return response
-          }
-        };
+        response = await api.getSmartSliceJob(response.id, true)
+          .catch(() => errorHandler());
 
-        return await api.getSmartSliceJob(jobId, true)
-          .then(handleJobStatus, errorHandler);
-      };
+        callback(response);
+
+        const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
+        setTimeout(handleJobStatus, timeoutPeriod);
+      } else {
+        return response;
+      }
     }
 
-    return await pollJob(1000);
+    function errorHandler() {
+      if (this.http_code == 429) {
+        // If the error is a rate limit, then just continue polling.
+        setTimeout(handleJobStatus, period);
+      } else {
+        return response;
+      }
+    }
+
+    return await handleJobStatus()
+      .then(handleJobStatus, errorHandler);
   }
 
   async submitSmartSliceJobAndPoll(
@@ -476,14 +435,14 @@ export class API {
   ) {
     const that = this;
 
-    const success = async (response) => {
-      await that.pollSmartSliceJob(this.id, poll)
-    }
+    const success = async (response: Response.Job) => {
+      return await that.pollSmartSliceJob(response, poll);
+    };
 
-    const error = (response) => {
-      return response
-    }
-    
+    const error = (response: Response.Message) => {
+      return response;
+    };
+
     return await this.submitSmartSliceJob(job)
       .then(success, error);
   }
@@ -494,7 +453,7 @@ export class API {
   ) {
     const route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
-    return await this._request(HTTPMethod.GET, route);
+    return await this._request(HTTPMethod.GET, route) as Response.ListJob;
   }
 
   /**
@@ -507,49 +466,65 @@ export class API {
         name: name,
         full_name: fullName,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
    * Get a list of the teams the logged in user is a member of
    */
   async teamMemberships() {
-    return await this._request(HTTPMethod.GET, '/teams');
+    return await this._request(HTTPMethod.GET, '/teams') as Response.Message;
   }
 
   /**
    * Get a list of the members for the given team.
    */
   async teamMembers(team: string) {
-    return await this._request(HTTPMethod.GET, `/teams/${team}/members`);
+    return await this._request(
+      HTTPMethod.GET, `/teams/${team}/members`
+    ) as Response.TeamMembers;
   }
 
   /**
    * Invite a user to the given team, by email.
    */
   async inviteToTeam(team: string, email: string) {
-    return await this._request(HTTPMethod.POST, `/teams/${team}/invite`, {email: email});
+    return await this._request(HTTPMethod.POST, `/teams/${team}/invite`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
    * Revoke an existing invitation to a user, by email. If the user has already accepted the invite, this will not remove them from the team.
    */
   async revokeTeamInvite(team: string, email: string) {
-    return await this._request(HTTPMethod.DELETE, `/teams/${team}/invite`, {email: email});
+    return await this._request(HTTPMethod.DELETE, `/teams/${team}/invite`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
    * Accept an invite to the given team.
    */
   async acceptTeamInvite(team: string) {
-    return await this._request(HTTPMethod.GET, `/teams/${team}/invite`);
+    return await this._request(
+      HTTPMethod.GET, `/teams/${team}/invite`
+    ) as Response.Message;
   }
 
   /**
    * Remove a user from the team and all of their roles.
    */
   async removeTeamMember(team: string, email: string) {
-    return await this._request(HTTPMethod.DELETE, `/teams/${team}/member`, {email: email});
+    return await this._request(HTTPMethod.DELETE, `/teams/${team}/member`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
@@ -562,7 +537,7 @@ export class API {
         email: email,
         role: role,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
@@ -575,7 +550,7 @@ export class API {
         email: email,
         role: role,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
@@ -592,6 +567,6 @@ export class API {
         description: description,
         job: jobId,
       },
-    );
+    ) as Response.SupportIssue;
   }
 }

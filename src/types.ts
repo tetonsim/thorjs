@@ -46,7 +46,11 @@ export interface APIConfig {
   token: Token;
 }
 
-namespace Response {
+export namespace Response {
+  export interface Version {
+    version: string
+  }
+
   export interface Message {
     status: string
     http_code: string
@@ -95,6 +99,39 @@ namespace Response {
     last_name: string
     roles: Array<string>
   }
+
+  export interface ListJob {
+    jobs: Response.Job[]
+    page: number
+    total_pages: number
+  }
+
+  export interface SupportIssue {
+    message: string,
+    issue: {
+      id: number,
+      description: string
+    }
+  }
+
+  export interface TeamMembers {
+    members: Membership[],
+    invites: Invite[]
+  }
+
+  export type Any =
+    | Membership
+    | Invite
+    | Team
+    | Job
+    | Subscription
+    | GetToken
+    | Message
+    | Version
+    | Buffer
+    | TeamMembers
+    | SupportIssue
+    | ListJob
 }
 
 export namespace Callback {
@@ -112,7 +149,7 @@ export namespace Callback {
 
   export type Job = { (this: Response.Job): void }
 
-  export type JobPoll = { (this: Response.Job): boolean }
+  export type JobPoll = (response:Response.Job) => void
 
   export type ListJob = {
     (this: {
@@ -152,3 +189,4 @@ export namespace Callback {
 }
 
 export type JobData = Buffer | Job
+
