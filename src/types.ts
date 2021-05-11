@@ -119,6 +119,17 @@ export namespace Response {
     invites: Invite[]
   }
 
+  export interface TeamMember {
+    full_name: string,
+    id: string
+    name: string
+    roles: Array<string>
+  }
+
+  export interface Memberships {
+    memberships: Array<TeamMember>
+  }
+
   export type Any =
     | Membership
     | Invite
@@ -132,6 +143,7 @@ export namespace Response {
     | TeamMembers
     | SupportIssue
     | ListJob
+    | Memberships
 }
 
 export namespace Callback {
