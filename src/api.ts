@@ -9,29 +9,13 @@ import {
   EncodingValues,
   HTTPMethod,
   Token,
+  Response,
 } from './types';
 
 
 if (typeof window === 'undefined') {
   var XMLHttpRequest = require('xmlhttprequest').XMLHttpRequest;
 }
-
-const _HelperCallbacks = {
-  getToken: function(api: API, success: Callback.GetToken, error: Callback.Error) {
-    return function() {
-      if (this.error && error !== undefined) {
-        error.bind(this)();
-      } else {
-        api.token = this.token;
-        api.user = this.user;
-
-        if (success !== undefined) {
-          success.bind(this)();
-        }
-      }
-    };
-  },
-};
 
 
 class Message {
@@ -57,6 +41,7 @@ class Message {
 dotenv.config();
 const thorVersion = process.env.THOR_VERSION ?? '21.0';
 
+
 /**
  * Handles Thor API requests
  */
@@ -71,7 +56,7 @@ export class API {
   public id: string;
 
 
-  constructor(config?: {host: string, token: Token}) {
+  constructor(config?: { host: string, token: Token }) {
     if (config === undefined) {
       config = {
         host: 'https://api.smartslice.xyz',
@@ -87,7 +72,7 @@ export class API {
   }
 
   static get version() {
-    return thorVersion
+    return thorVersion;
   }
 
   get config() {
@@ -96,309 +81,296 @@ export class API {
     };
   }
 
-  _request(method: HTTPMethod, route: string, success: Callback.Any, error: Callback.Error, data?, encoding?: Encoding) {
-    const xhttp = new XMLHttpRequest();
 
-    xhttp.onreadystatechange = function() {
-      let response;
+  /**
+   *
+   * @returns Promise that resolves or rejects to a thor response
+   */
+  private _request(
+    method: HTTPMethod,
+    route: string,
+    data?,
+    encoding?: Encoding,
+  ): Promise<Response.Any> {
+    return new Promise((resolve, reject) => {
+      const xhttp = new XMLHttpRequest();
 
-      if (xhttp.readyState === 4) {
-        try {
-          response = JSON.parse(xhttp.responseText);
-        } catch (err) {
-          response = xhttp.responseText;
-        }
+      xhttp.onreadystatechange = function() {
+        let response: Response.Any;
 
-        if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
-          zlib.gunzip(response, (_, data) => {
-            response = JSON.parse(data.toString());
-          });
-        }
-
-        let err = null;
-
-        if (xhttp.status === 200 || xhttp.status === 202) {
-          if (success !== undefined) {
-            success.bind(response)();
+        if (xhttp.readyState === 4) {
+          try {
+            response = JSON.parse(xhttp.responseText);
+          } catch (err) {
+            response = xhttp.responseText;
           }
-        } else if (xhttp.status === 401) {
-          err = new Message(xhttp.status, 'Unauthorized');
-        } else if (xhttp.status === 404) {
-          err = new Message(xhttp.status, 'Not Found');
-        } else if (xhttp.status === 500) {
-          err = new Message(xhttp.status, 'Internal server error');
-        } else {
-          let message = null;
 
-          if (typeof response === 'string') {
-            message = response;
+          if (xhttp.getResponseHeader(EncodingTypes.content) == EncodingValues.gzip) {
+            zlib.gunzip(response as Buffer, (_, data) => {
+              response = JSON.parse(data.toString());
+            });
+          }
+
+          let err: Message = null;
+          if (xhttp.status === 200 || xhttp.status === 202) {
+            resolve(response);
+          } else if (xhttp.status === 401) {
+            err = new Message(xhttp.status, 'Unauthorized');
+          } else if (xhttp.status === 404) {
+            err = new Message(xhttp.status, 'Not Found');
+          } else if (xhttp.status === 500) {
+            err = new Message(xhttp.status, 'Internal server error');
           } else {
-            if ('error' in response) {
-              message = response.error;
+            let message = null;
+
+            if (typeof response === 'string') {
+              message = response;
+            } else {
+              if ('error' in response) {
+                message = response.error;
+              }
+
+              if (message === null) {
+                message = response;
+              }
             }
 
-            if (message === null) {
-              message = response;
-            }
+            err = new Message(xhttp.status, message);
           }
 
-          err = new Message(xhttp.status, message);
+          if (err !== null) {
+            reject(err);
+          }
         }
+      };
 
-        if (err !== null && error !== undefined) {
-          error.bind(err)();
+      xhttp.open(method, this.host + route, true);
+
+      xhttp.setRequestHeader('Accept-version', API.version);
+
+      if (encoding) {
+        xhttp.setRequestHeader(encoding.name, encoding.value);
+      }
+
+      if (this.token) {
+        xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
+      }
+
+      if (method === 'GET' || data === undefined) {
+        xhttp.send();
+      } else if (data instanceof Buffer) {
+        xhttp.setRequestHeader('Content-Type', 'model/3mf');
+        if (encoding && encoding.value == EncodingValues.gzip) {
+          zlib.gzip(data, (_, gz) => {
+            xhttp.send(gz);
+          });
+        } else {
+          xhttp.send(data);
+        }
+      } else {
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+        if (encoding && encoding.value == EncodingValues.gzip) {
+          zlib.gzip(JSON.stringify(data), (_, gz) => {
+            xhttp.send(gz);
+          });
+        } else {
+          xhttp.send(JSON.stringify(data));
         }
       }
-    };
-
-    xhttp.open(method, this.host + route, true);
-
-    xhttp.setRequestHeader('Accept-version', API.version);
-
-    if (encoding) {
-      xhttp.setRequestHeader(encoding.name, encoding.value);
-    }
-
-    if (this.token) {
-      xhttp.setRequestHeader('Authorization', 'Bearer ' + this.token.id);
-    }
-
-    if (method === 'GET' || data === undefined) {
-      xhttp.send();
-    } else if (data instanceof Buffer) {
-      xhttp.setRequestHeader('Content-Type', 'model/3mf');
-      if (encoding && encoding.value == EncodingValues.gzip) {
-        zlib.gzip(data, (_, gz) => {
-          xhttp.send(gz);
-        });
-      } else {
-        xhttp.send(data);
-      }
-    } else {
-      xhttp.setRequestHeader('Content-Type', 'application/json');
-      if (encoding && encoding.value == EncodingValues.gzip) {
-        zlib.gzip(JSON.stringify(data), (_, gz) => {
-          xhttp.send(gz);
-        });
-      } else {
-        xhttp.send(JSON.stringify(data));
-      }
-    }
+    });
   }
 
+  async verifyVersion() {
+    const sv = (await this._request(HTTPMethod.GET, '/') as Response.Version)
+      .version.split('.');
+    const cv = API.version.split('.');
 
-  verifyVersion(success: Callback.Version, error: Callback.Error) {
-    const parseVersion = function() {
-      const sv = this.version.split('.');
-      const cv = API.version.split('.');
+    const sv_maj = parseInt(sv[0]);
+    const sv_min = parseInt(sv[1]);
 
-      const sv_maj = parseInt(sv[0]);
-      const sv_min = parseInt(sv[1]);
+    const cv_maj = parseInt(cv[0]);
+    const cv_min = parseInt(cv[1]);
 
-      const cv_maj = parseInt(cv[0]);
-      const cv_min = parseInt(cv[1]);
-
-      // Require the exact same version. As versions advance
-      // how can we make this less restrictive?
-      const compatible = (sv_maj === cv_maj && sv_min === cv_min);
-
-      success(compatible, API.version, this.version);
-    };
-
-    this._request(HTTPMethod.GET, '/', parseVersion, error);
+    // Require the exact same version. As versions advance
+    // how can we make this less restrictive?
+    return (sv_maj === cv_maj && sv_min === cv_min);
   }
 
   /**
-    * Checks if a token is already in use and
-    * returns the user information if available, otherwise null
+    * @returns Promise that resolves to Response.GetToken and rejects to Response.Message
+    * @example
+    * ```ts
+    * async function whoAmI() {
+    *  let response = await api.whoAmI()
+    *    .catch((err: Message) => {
+    *      console.log(err)
+    *    });
+    *  console.log(response)
+    * }
+    * ```
     */
-  whoAmI(success: Callback.GetToken, error: Callback.Error) {
-    let getUserInfoFromServer = false;
+  async whoAmI(): Promise<Response.GetToken> {
+    const success = (response: Response.GetToken) => {
+      this.user = response.user;
+      this.token = response.token;
+      return response;
+    };
 
-    if (this.token === null) {
-      getUserInfoFromServer = true;
+    const error = () => {
+      this.user = null;
+      this.token = null;
+      return new Message(401, 'No token available');
+    };
 
-      error.bind(new Message(401, 'No token available'))();
-      return false;
-    }
-
-    if (this.user === null || getUserInfoFromServer) {
-      const api = this;
-
-      const clearUser = function() {
-        api.user = null;
-        api.token = null;
-        error.bind(this)();
-      };
-
-      this._request(HTTPMethod.GET, '/auth/whoami', _HelperCallbacks.getToken(api, success, error), clearUser);
-    } else {
-      success.bind(this.user)();
-    }
-
-    return true;
+    return await this._request(HTTPMethod.GET, '/auth/whoami')
+      .then(success, error) as Response.GetToken;
   }
 
-  register(
+  /**
+   *
+    * @returns Promise that resolves to Response.Message and rejects to Response.Message
+   */
+  async register(
     first_name: string,
     last_name: string,
     email: string,
     password: string,
     company: string,
     country: string,
-    success: Callback.Success,
-    error: Callback.Error,
-  ) {
-    this._request(HTTPMethod.POST, '/auth/register', success, error,
-      {
-        email: email,
-        first_name: first_name,
-        last_name: last_name,
-        password: password,
-        company: company,
-        country: country,
-      },
-    );
+  ): Promise<Response.Message> {
+    const data = {
+      email: email,
+      first_name: first_name,
+      last_name: last_name,
+      password: password,
+      company: company,
+      country: country,
+    };
+
+    return await this._request(HTTPMethod.POST, '/auth/register', data) as Response.Message;
   }
 
-  getToken(email: string, password: string, success: Callback.GetToken, error: Callback.Error) {
-    this._request(HTTPMethod.POST, '/auth/token', _HelperCallbacks.getToken(this, success, error),
-      error, {email: email, password: password});
+  /**
+   *
+   * @returns Promise that resolves to Response.GetToken and rejects to  Response.Message
+   * @example
+   *
+   * ```ts
+   * async function getToken(email:string, pass: string) {
+   *  let response = await api.getToken(email, pass)
+   *    .catch((err: Response.Message) => {
+   *      console.log(err)
+   *     }) as Response.GetToken
+   *  console.log(response)
+   * }
+   * ```
+   * */
+  async getToken(email: string, password: string): Promise<Response.GetToken> {
+    const success = (response: Response.GetToken) => {
+      this.token = response.token;
+      this.user = response.user;
+      return response;
+    };
+
+    return await this._request(HTTPMethod.POST, '/auth/token', {email: email, password: password}).then(success) as Response.GetToken;
   }
+
 
   setToken(token: Token) {
     this.token = token;
   }
 
-  refreshToken(success: Callback.GetToken, error: Callback.Error) {
+  async refreshToken(): Promise<Response.GetToken> {
     if (this.token === null) {
-      error.call('null token');
       return;
     }
 
-    this._request(HTTPMethod.PUT, '/auth/token', _HelperCallbacks.getToken(this, success, error), error);
+    return await this._request(HTTPMethod.PUT, '/auth/token') as Response.GetToken;
   }
 
   /**
    * Deletes the stored API token.
    */
-  releaseToken(success: Callback.Success, error: Callback.Error) {
-    const api = this;
-
-    this._request(HTTPMethod.DELETE, '/auth/token',
-      function() {
-        if (this.success) {
-          api.token = null;
-          api.user = null;
-          if (success !== undefined) {
-            success.call(this);
-          }
-        } else {
-          if (error !== undefined) {
-            error.bind(new Message(400, 'Failed to logout'));
-          }
-        }
-      },
-      error,
-    );
+  async releaseToken(): Promise<Response.Message> {
+    return await this._request(HTTPMethod.DELETE, '/auth/token') as Response.Message;
   }
 
-  verifyEmail(code: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
-      HTTPMethod.POST, '/auth/verify',
-      success,
-      error,
-      {code: code},
-    );
+  async verifyEmail(code: string): Promise<Response.Message> {
+    return await this._request(HTTPMethod.POST, '/auth/verify', {code: code}) as Response.Message;
   }
 
-  verifyEmailResend(email: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
-      HTTPMethod.POST, '/auth/verify/resend',
-      success,
-      error,
-      {email: email},
-    );
+  async verifyEmailResend(email: string): Promise<Response.Message> {
+    return await this._request(HTTPMethod.POST, '/auth/verify/resend', {email: email}) as Response.Message;
   }
 
-  changePassword(oldPassword: string, newPassword: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
+  async changePassword(oldPassword: string, newPassword: string): Promise<Response.Message> {
+    return await this._request(
       HTTPMethod.POST, '/auth/password/change',
-      success,
-      error,
       {
         old_password: oldPassword,
         password: newPassword,
         confirm_password: newPassword,
       },
-    );
+    ) as Response.Message;
   }
 
-  forgotPassword(email: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
-      HTTPMethod.POST, '/auth/password/forgot',
-      success,
-      error,
+  async forgotPassword(email: string): Promise<Response.Message> {
+    return await this._request(
+      HTTPMethod.POST,
+      '/auth/password/forgot',
       {email: email},
-    );
+    ) as Response.Message;
   }
 
-  resetPassword(code: string, email: string, password: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
+  async resetPassword(code: string, email: string, password: string): Promise<Response.Message> {
+    return await this._request(
       HTTPMethod.POST, '/auth/password/reset',
-      success,
-      error,
       {
         email: email,
         code: code,
         password: password,
         confirm_password: password,
       },
-    );
+    ) as Response.Message;
   }
 
-  getSmartSliceSubscription(
-    success: Callback.Subscription,
-    error: Callback.Error,
-    team: string,
-  ) {
+  /**
+   *
+   * @returns Promise that resolves to Response.Subscription and rejects to Response.Message
+   */
+  async getSmartSliceSubscription(team: string): Promise<Response.Subscription> {
     let url = '/smartslice/subscription';
 
     if (team) {
       url += `?team=${team}`;
     }
 
-    this._request(
-      HTTPMethod.GET, url,
-      success,
-      error,
-    );
+    return await this._request(HTTPMethod.GET, url) as Response.Subscription;
   }
 
-  submitSmartSliceJob(job: JobData, success: Callback.Job, error: Callback.Error) {
+  /**
+   * @returns Promise that resolves to Response.Job and rejects to Response.Message
+   */
+  async submitSmartSliceJob(job: JobData): Promise<Response.Job> {
     const encoding: Encoding = {
       name: EncodingTypes.content,
       value: EncodingValues.gzip,
     };
 
-    this._request(
-      HTTPMethod.POST, '/smartslice',
-      success,
-      error,
-      job,
-      encoding,
-    );
+    return await this._request(
+      HTTPMethod.POST, '/smartslice', job, encoding,
+    ) as Response.Job;
   }
 
-  cancelSmartSliceJob(jobId: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
-      HTTPMethod.DELETE, `/smartslice/${jobId}`,
-      success,
-      error,
-    );
+  async cancelSmartSliceJob(jobId: string): Promise<Response.Job> {
+    return await this._request(HTTPMethod.DELETE, `/smartslice/${jobId}`) as Response.Job;
   }
 
-  getSmartSliceJob(jobId: string, success: Callback.Job, error: Callback.Error, withResults: boolean) {
+  /**
+   *
+   * @returns Promise that resolves to Response.Job and rejects to Response.Message
+   */
+  async getSmartSliceJob(jobId: string, withResults: boolean): Promise<Response.Job> {
     let route = `/smartslice/${jobId}`;
     let encoding: Encoding;
 
@@ -410,192 +382,190 @@ export class API {
       };
     }
 
-    this._request(HTTPMethod.GET, route, success, error, encoding);
+    return await this._request(HTTPMethod.GET, route, null, encoding) as Response.Job;
   }
 
-  pollSmartSliceJob(
-    jobId: string,
-    error: Callback.Error,
-    finished: Callback.Job,
-    failed: Callback.Job,
-    poll: Callback.JobPoll,
-  ) {
+  async pollSmartSliceJob(response: Response.Job, callback: Callback.JobPoll) {
     const api: API = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
 
+    const period = 1000;
     const maxPeriod = 30000;
     const periodMultiplier = 1.25;
 
-    function pollJob(period) {
-      return function() {
-        const handleJobStatus = function() {
-          if (pollAgainStatuses.includes(this.status)) {
-            if (poll !== undefined) {
-              const abort = poll.bind(this)();
+    async function handleJobStatus() {
+      if (pollAgainStatuses.includes(response.status)) {
+        if (callback !== undefined) {
+          const abort = callback.bind(response)();
 
-              if (abort) {
-                api.cancelSmartSliceJob(jobId, () => { }, () => { });
-              }
-            }
-
-            period = Math.min(maxPeriod, period * periodMultiplier);
-
-            setTimeout(pollJob(period), period);
-          } else if (finishedStatuses.includes(this.status)) {
-            finished.bind(this)();
-          } else {
-            failed.bind(this)();
+          if (abort) {
+            api.cancelSmartSliceJob(response.id);
           }
-        };
+        }
 
-        const errorHandler = function() {
-          if (this.http_code == 429) {
-            // If the error is a rate limit, then just continue polling.
-            setTimeout(pollJob(period), period);
-          } else {
-            error.bind(this)();
-          }
-        };
+        response = await api.getSmartSliceJob(response.id, true)
+          .catch(() => errorHandler());
 
-        api.getSmartSliceJob(jobId, handleJobStatus, errorHandler, true);
-      };
+        callback(response);
+
+        const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
+        setTimeout(handleJobStatus, timeoutPeriod);
+      } else  {
+        return response;
+      }
     }
 
-    pollJob(1000)();
+    async function errorHandler() {
+      if (this.http_code == 429) {
+        // If the error is a rate limit, then just continue polling.
+        setTimeout(handleJobStatus, maxPeriod);
+      } else if (response) {
+        return response;
+      }
+    }
+
+    return await handleJobStatus()
   }
 
-  submitSmartSliceJobAndPoll(
+  async submitSmartSliceJobAndPoll(
     job: JobData,
-    error: Callback.Error,
-    finished: Callback.Job,
-    failed: Callback.Job,
     poll: Callback.JobPoll,
   ) {
     const that = this;
-    this.submitSmartSliceJob(
-      job,
-      function() {
-        that.pollSmartSliceJob(this.id, error, finished, failed, poll);
-      },
-      error,
-    );
+
+    const success = async (response: Response.Job) => {
+      return await that.pollSmartSliceJob(response, poll);
+    };
+
+    const error = (response: Response.Message) => {
+      return response;
+    };
+
+    const response = await this.submitSmartSliceJob(job)
+    return await that.pollSmartSliceJob(response, poll)
   }
 
-  listSmartSliceJobs(
+  async listSmartSliceJobs(
     limit: number,
     page: number,
-    success: Callback.ListJob,
-    error: Callback.Error,
   ) {
     const route = `/smartslice/jobs?limit=${limit}&page=${page}`;
 
-    this._request(HTTPMethod.GET, route, success, error);
+    return await this._request(HTTPMethod.GET, route) as Response.ListJob;
   }
 
   /**
    * Create a new team.
    */
-  createTeam(name: string, fullName: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
+  async createTeam(name: string, fullName: string) {
+    return await this._request(
       HTTPMethod.POST, '/teams',
-      success,
-      error,
       {
         name: name,
         full_name: fullName,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
    * Get a list of the teams the logged in user is a member of
    */
-  teamMemberships(success: Callback.Success, error: Callback.Error) {
-    this._request(HTTPMethod.GET, '/teams', success, error);
+  async teamMemberships() {
+    return await this._request(HTTPMethod.GET, '/teams') as Response.Memberships;
   }
 
   /**
    * Get a list of the members for the given team.
    */
-  teamMembers(team: string, success: Callback.TeamMembers, error: Callback.Error) {
-    this._request(HTTPMethod.GET, `/teams/${team}/members`, success, error);
+  async teamMembers(team: string) {
+    return await this._request(
+      HTTPMethod.GET, `/teams/${team}/members`
+    ) as Response.TeamMembers;
   }
 
   /**
    * Invite a user to the given team, by email.
    */
-  inviteToTeam(team: string, email: string, success: Callback.Success, error: Callback.Error) {
-    this._request(HTTPMethod.POST, `/teams/${team}/invite`, success, error, {email: email});
+  async inviteToTeam(team: string, email: string) {
+    return await this._request(HTTPMethod.POST, `/teams/${team}/invite`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
    * Revoke an existing invitation to a user, by email. If the user has already accepted the invite, this will not remove them from the team.
    */
-  revokeTeamInvite(team: string, email: string, success: Callback.Success, error: Callback.Error) {
-    this._request(HTTPMethod.DELETE, `/teams/${team}/invite`, success, error, {email: email});
+  async revokeTeamInvite(team: string, email: string) {
+    return await this._request(HTTPMethod.DELETE, `/teams/${team}/invite`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
    * Accept an invite to the given team.
    */
-  acceptTeamInvite(team: string, success: Callback.Success, error: Callback.Error) {
-    this._request(HTTPMethod.GET, `/teams/${team}/invite`, success, error);
+  async acceptTeamInvite(team: string) {
+    return await this._request(
+      HTTPMethod.GET, `/teams/${team}/invite`
+    ) as Response.Message;
   }
 
   /**
    * Remove a user from the team and all of their roles.
    */
-  removeTeamMember(team: string, email: string, success: Callback.Success, error: Callback. Error) {
-    this._request(HTTPMethod.DELETE, `/teams/${team}/member`, success, error, {email: email});
+  async removeTeamMember(team: string, email: string) {
+    return await this._request(HTTPMethod.DELETE, `/teams/${team}/member`,
+      {
+        email: email
+      }
+    ) as Response.Message;
   }
 
   /**
    * Add a role to a member of a given team.
    */
-  addTeamMemberRole(team: string, email: string, role: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
+  async addTeamMemberRole(team: string, email: string, role: string) {
+    return await this._request(
       HTTPMethod.POST, `/teams/${team}/role`,
-      success,
-      error,
       {
         email: email,
         role: role,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
    * Remove a role from a member of a given team.
    */
-  revokeTeamMemberRole(team: string, email: string, role: string, success: Callback.Success, error: Callback.Error) {
-    this._request(
+  async revokeTeamMemberRole(team: string, email: string, role: string) {
+    return await this._request(
       HTTPMethod.DELETE, `/teams/${team}/role`,
-      success,
-      error,
       {
         email: email,
         role: role,
       },
-    );
+    ) as Response.Message;
   }
 
   /**
    * Creates a new customer support issue.
    */
-  createSupportIssue(description: string, success: Callback.SupportIssue, error: Callback.Error, jobId: string) {
+  async createSupportIssue(description: string, jobId: string) {
     if (jobId === undefined) {
       jobId = null;
     }
 
-    this._request(
+    return await this._request(
       HTTPMethod.POST, '/support/issue',
-      success,
-      error,
       {
         description: description,
         job: jobId,
       },
-    );
+    ) as Response.SupportIssue;
   }
 }
