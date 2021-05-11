@@ -411,22 +411,21 @@ export class API {
 
         const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
         setTimeout(handleJobStatus, timeoutPeriod);
-      } else {
+      } else  {
         return response;
       }
     }
 
-    function errorHandler() {
+    async function errorHandler() {
       if (this.http_code == 429) {
         // If the error is a rate limit, then just continue polling.
-        setTimeout(handleJobStatus, period);
-      } else {
+        setTimeout(handleJobStatus, maxPeriod);
+      } else if (response) {
         return response;
       }
     }
 
     return await handleJobStatus()
-      .then(handleJobStatus, errorHandler);
   }
 
   async submitSmartSliceJobAndPoll(
@@ -443,8 +442,8 @@ export class API {
       return response;
     };
 
-    return await this.submitSmartSliceJob(job)
-      .then(success, error);
+    const response = await this.submitSmartSliceJob(job)
+    return await that.pollSmartSliceJob(response, poll)
   }
 
   async listSmartSliceJobs(
@@ -473,7 +472,7 @@ export class API {
    * Get a list of the teams the logged in user is a member of
    */
   async teamMemberships() {
-    return await this._request(HTTPMethod.GET, '/teams') as Response.Message;
+    return await this._request(HTTPMethod.GET, '/teams') as Response.Memberships;
   }
 
   /**
