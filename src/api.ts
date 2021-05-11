@@ -362,8 +362,8 @@ export class API {
     ) as Response.Job;
   }
 
-  async cancelSmartSliceJob(jobId: string): Promise<Response.Message> {
-    return await this._request(HTTPMethod.DELETE, `/smartslice/${jobId}`) as Response.Message;
+  async cancelSmartSliceJob(jobId: string): Promise<Response.Job> {
+    return await this._request(HTTPMethod.DELETE, `/smartslice/${jobId}`) as Response.Job;
   }
 
   /**
