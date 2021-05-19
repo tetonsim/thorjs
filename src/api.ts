@@ -406,7 +406,9 @@ export class API {
           const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
 
           await new Promise<void>((resolve) => {
-            setTimeout(()=> {resolve();}, timeoutPeriod);
+            setTimeout(()=> {
+              resolve();
+            }, timeoutPeriod);
           });
         } else if (finishedStatuses.includes(response.status)) {
           poll = false;
@@ -418,7 +420,9 @@ export class API {
           return error;
         } else {
           await new Promise<void>((resolve) => {
-            setTimeout(()=> {resolve();}, maxPeriod);
+            setTimeout(()=> {
+              resolve();
+            }, maxPeriod);
           });
         };
       };

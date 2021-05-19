@@ -302,7 +302,6 @@ function register() {
   });
 
   const registerWithCreds = async function(email: string, pass: string) {
-    // try {
     await api.register(first_name, last_name, email, pass, company, country)
       .then((r) => {
         _basicSuccessResponse(r);
