@@ -161,7 +161,7 @@ export namespace Callback {
 
   export type Job = { (this: Response.Job): void }
 
-  export type JobPoll = (response:Response.Job) => void
+  export type JobPoll =  { (response: Response.Job): boolean | void}
 
   export type ListJob = {
     (this: {
