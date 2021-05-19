@@ -476,9 +476,7 @@ async function listSmartSliceJobs(page: number, limit: number) {
 
   const response = await api.listSmartSliceJobs(limit, page);
   console.log(`Page ${response.page}/${response.total_pages}`);
-  for (const job of response.jobs) {
-    console.log(`${job.id} : ${job.status} (${job.progress})`);
-  }
+  console.table(response.jobs)
   console.log(`Page ${response.page}/${response.total_pages}`);
 }
 
@@ -494,12 +492,15 @@ function createTeam() {
 
 async function listMemberships() {
   const response = await api.teamMemberships();
-  console.log(response);
+  console.table(response.memberships);
 }
 
 async function listTeamMembers(team: string) {
   const response = await api.teamMembers(team);
-  console.log(response);
+  console.log('Invites:');
+  console.table(response.invites);
+  console.log('Members:');
+  console.table(response.members);
 }
 
 async function manageTeamInvite(team: string, email: string, revoke: boolean) {
