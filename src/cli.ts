@@ -12,6 +12,7 @@ import * as stream from 'stream';
 import {thor} from './thor';
 import {LocalStorage} from 'node-localstorage';
 import {APIConfig} from './types';
+import {Response} from './types';
 
 // add muted property to writable
 declare module 'stream' {
@@ -23,11 +24,11 @@ declare module 'stream' {
 const location = path.join(os.homedir(), '.thor');
 const storage = new LocalStorage(location);
 
-import * as dotenv from "dotenv";
+import * as dotenv from 'dotenv';
 
 
 // default configuration
-dotenv.config()
+dotenv.config();
 const version = process.env.THOR_VERSION ?? '21.0';
 const HOST = 'https://api.smartslice.xyz';
 
@@ -163,7 +164,7 @@ teams
 
 app.parse(process.argv);
 
-function configure() {
+async function configure() {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
@@ -190,7 +191,7 @@ function configure() {
     },
   );
 
-  api.releaseToken(function() {}, function() {});
+  await api.releaseToken().catch(() => {});
 }
 
 function _multipleQuestions(questions: Array<any>, callback: (...args) => void) {
@@ -245,76 +246,72 @@ function _getCredentials(callback: (...args) => void) {
   );
 }
 
-function _basicSuccessCallback() {
-  console.log(this.message);
+function _basicSuccessResponse(message: Response.Message) {
+  console.log(message.message);
 }
 
-function _basicErrorCallback() {
-  console.error(`(${this.http_code}) ${this.error}`);
-}
+// Using node process to handle basic promise rejections
+process.on('unhandledRejection', (reason: Response.Message) => {
+  console.error(`(${reason.http_code}) ${reason.error}`);
+  process.exit(1);
+});
 
-function login() {
-  const loginWithCreds = function(email, pass) {
-    api.getToken(email, pass,
-      function() {
-        const new_config = {
-          host: api.config.host,
-          token: api.token,
-        };
-        storage.setItem('config', JSON.stringify(new_config));
-        console.log('Hi ' + this.first_name + ', you are logged in.');
-        console.log('Use the logout command to log out.');
-      },
-      _basicErrorCallback,
-    );
+
+async function login() {
+  const loginWithCreds = async function(email, pass) {
+    const response = await api.getToken(email, pass);
+    const new_config = {
+      host: api.config.host,
+      token: response.token,
+    };
+    storage.setItem('config', JSON.stringify(new_config));
+    console.log('Hi ' + response.user.first_name + ', you are logged in.');
+    console.log('Use the logout command to log out.');
   };
 
   _getCredentials(loginWithCreds);
 }
 
-function whoAmI(callback: (...ObjectOrPrimitive) => void, ...args) {
-  api.whoAmI(
-    (_) => callback(...args),
-    function() {
-      console.error('No user is currently logged in');
-    },
-  );
+async function whoAmI(callback: (...ObjectOrPrimitive) => void, ...args) {
+  try {
+      await api.whoAmI();
+      callback(...args);
+  } catch (error) {
+      console.error('no user logged in');
+  }
 }
 
 function logout() {
   whoAmI(
-    function() {
-      api.releaseToken(
-        function() {
-          console.log('Logged out');
-        },
-        _basicErrorCallback,
-      );
+    async function() {
+      await api.releaseToken();
+      console.log('Logged out');
     },
   );
 }
 
 function register() {
-  let first_name;
-  let last_name;
-  let country;
-  let company;
+  let first_name: string;
+  let last_name: string;
+  let country: string;
+  let company: string;
 
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
 
-  const registerWithCreds = function(email, pass) {
-    api.register(
-      first_name, last_name, email, pass, company, country,
-      _basicSuccessCallback,
-      function() {
+  const registerWithCreds = async function(email: string, pass: string) {
+    // try {
+    await api.register(first_name, last_name, email, pass, company, country)
+      .then((r) => {
+        _basicSuccessResponse(r);
+      })
+      .catch((e) => {
         console.error('Failed to register');
-        console.error(this.message);
+        console.error(e.message);
         rl.close();
-      },
-    );
+      });
   };
 
   const countryAsk = function() {
@@ -357,19 +354,13 @@ function register() {
   );
 }
 
-function verifyEmail() {
+async function verifyEmail() {
   if (this.resend !== undefined) {
-    api.verifyEmailResend(
-      this.resend,
-      _basicSuccessCallback,
-      _basicErrorCallback,
-    );
+    const response = await api.verifyEmailResend(this.resend);
+    _basicSuccessResponse(response);
   } else {
-    api.verifyEmail(
-      this.code,
-      _basicSuccessCallback,
-      _basicErrorCallback,
-    );
+    const response = await api.verifyEmail(this.code);
+    _basicSuccessResponse(response);
   }
 }
 
@@ -391,17 +382,11 @@ function changePassword() {
           process.stdout.write('\nNew Password: ');
 
           rl.question('',
-            function(newPassword) {
+            async function(newPassword) {
               console.log('');
-              api.changePassword(
-                oldPassword,
-                newPassword,
-                function() {
-                  console.log(this.message);
-                  console.log('You will need to log back in.');
-                },
-                _basicErrorCallback,
-              );
+              const response = await api.changePassword(oldPassword, newPassword);
+              console.log(response.message);
+              console.log('You will need to log back in');
 
               rl.close();
             },
@@ -412,26 +397,18 @@ function changePassword() {
   );
 }
 
-function forgotPassword() {
-  api.forgotPassword(
-    this.email,
-    _basicSuccessCallback,
-    _basicErrorCallback,
-  );
+async function forgotPassword() {
+  const response = await api.forgotPassword(this.email);
+  _basicSuccessResponse(response);
 }
 
 function resetPassword() {
   const code = this.code;
 
   _getCredentials(
-    function(email, password) {
-      api.resetPassword(
-        code,
-        email,
-        password,
-        _basicSuccessCallback,
-        _basicErrorCallback,
-      );
+    async function(email, password) {
+      const response = await api.resetPassword(code, email, password);
+      _basicSuccessResponse(response);
     },
   );
 }
@@ -444,7 +421,7 @@ function submitSmartSliceJob(job: string, is3mf: boolean) {
 
   fs.readFile(
     job,
-    (error, data: any) => {
+    async (error, data: any) => {
       if (error) {
         console.error(error);
       } else {
@@ -464,47 +441,33 @@ function submitSmartSliceJob(job: string, is3mf: boolean) {
           abort = true;
         });
 
-        api.submitSmartSliceJobAndPoll(
-          data,
-          function() {
-            console.error(this);
-          },
-          function() {
-            if (this.status === 'finished') {
-              console.log(`Job finished, writing result to ${outputFile}`);
-              fs.writeFileSync(outputFile, JSON.stringify(this.result));
-            } else {
-              console.log(`Job ${this.status}`);
-            }
-          },
-          function() {
-            console.error('Job failed');
-            for (const e of this.errors) {
-              console.error(e);
-            }
-          },
-          function() {
-            const now = new Date();
-            console.debug(`${now.toLocaleTimeString()} - Job ${this.id}: ${this.status} (${this.progress})`);
-            return abort;
-          },
-        );
+        const jobPoll = (response: Response.Job): boolean => {
+          const now = new Date();
+          console.debug(`${now.toLocaleTimeString()} - Job ${response.id}: ${response.status} (${response.progress})`);
+          return abort;
+        };
+
+        try {
+          const response: Response.Job = await api.submitSmartSliceJobAndPoll(data, jobPoll);
+          if (response.status === 'finished') {
+            console.log(`Job finished, writing result to ${outputFile}`);
+            fs.writeFileSync(outputFile, JSON.stringify(response.result));
+          }
+        } catch (error) {
+          console.error('Job Failed');
+          console.error(error);
+        }
       }
     },
   );
 }
 
-function cancelSmartSliceJob(jobId: string) {
-  api.cancelSmartSliceJob(
-    jobId,
-    function() {
-      console.log(`Job status: ${this.status}`);
-    },
-    _basicErrorCallback,
-  );
+async function cancelSmartSliceJob(jobId: string) {
+  const response = await api.cancelSmartSliceJob(jobId);
+  console.log(`Job status: ${response.status}`);
 }
 
-function listSmartSliceJobs(page: number, limit: number) {
+async function listSmartSliceJobs(page: number, limit: number) {
   if (limit === undefined) {
     limit = 10;
   }
@@ -512,60 +475,44 @@ function listSmartSliceJobs(page: number, limit: number) {
   page = Math.max(1, page);
   limit = Math.max(1, limit);
 
-  const success = function() {
-    console.log(`Page ${this.page}/${this.total_pages}`);
-    for (const job of this.jobs) {
-      console.log(`${job.id} : ${job.status} (${job.progress})`);
-    }
-    console.log(`Page ${this.page}/${this.total_pages}`);
-  };
-
-  api.listSmartSliceJobs(limit, page, success, _basicErrorCallback);
+  const response = await api.listSmartSliceJobs(limit, page);
+  console.log(`Page ${response.page}/${response.total_pages}`);
+  for (const job of response.jobs) {
+    console.log(`${job.id} : ${job.status} (${job.progress})`);
+  }
+  console.log(`Page ${response.page}/${response.total_pages}`);
 }
 
 function createTeam() {
   _multipleQuestions(
     ['Team Name (lowercase a-z, 0-9, "_", and "-" only, 3-64 characters): ', 'Full Team Name: '],
-    function(name, fullName) {
-      api.createTeam(
-        name,
-        fullName,
-        _basicSuccessCallback,
-        _basicErrorCallback,
-      );
+    async function(name, fullName) {
+      const response = await api.createTeam(name, fullName);
+      _basicSuccessResponse(response);
     },
   );
 }
 
-function listMemberships() {
-  api.teamMemberships(
-    function() {
-      console.log(this);
-    },
-    _basicErrorCallback,
-  );
+async function listMemberships() {
+  const response = await api.teamMemberships();
+  console.log(response);
 }
 
-function listTeamMembers(team: string) {
-  api.teamMembers(
-    team,
-    function() {
-      console.log(this);
-    },
-    _basicErrorCallback,
-  );
+async function listTeamMembers(team: string) {
+  const response = await api.teamMembers(team);
+  console.log(response);
 }
 
-function manageTeamInvite(team: string, email: string, revoke: boolean) {
+async function manageTeamInvite(team: string, email: string, revoke: boolean) {
   if (revoke) {
-    api.revokeTeamInvite(team, email, _basicSuccessCallback, _basicErrorCallback);
+    await api.revokeTeamInvite(team, email).then((r) => _basicSuccessResponse(r));
   } else {
-    api.inviteToTeam(team, email, _basicSuccessCallback, _basicErrorCallback);
+    await api.inviteToTeam(team, email).then((r) => _basicSuccessResponse(r));
   }
 }
 
-function acceptTeamInvite(team: string) {
-  api.acceptTeamInvite(team, _basicSuccessCallback, _basicErrorCallback);
+async function acceptTeamInvite(team: string) {
+  await api. acceptTeamInvite(team).then((r) => _basicSuccessResponse(r));
 }
 
 function removeTeamMember(team: string, email: string) {
@@ -576,9 +523,9 @@ function removeTeamMember(team: string, email: string) {
 
   rl.question(
     `Are you sure you want to remove ${email} from ${team} (y/N): `,
-    (answer) => {
+    async (answer) => {
       if (answer.length == 1 && answer.toLowerCase()[0] == 'y') {
-        api.removeTeamMember(team, email, _basicSuccessCallback, _basicErrorCallback);
+        await api.removeTeamMember(team, email).then((r) => _basicSuccessResponse(r));
       } else {
         console.log('Member removal action canceled');
       }
@@ -587,10 +534,10 @@ function removeTeamMember(team: string, email: string) {
   );
 }
 
-function addTeamMemberRole(team: string, email: string, role: string) {
-  api.addTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
+async function addTeamMemberRole(team: string, email: string, role: string) {
+  await api.addTeamMemberRole(team, email, role).then((r) => _basicSuccessResponse(r));
 }
 
-function revokeTeamMemberRole(team: string, email: string, role: string) {
-  api.revokeTeamMemberRole(team, email, role, _basicSuccessCallback, _basicErrorCallback);
+async function revokeTeamMemberRole(team: string, email: string, role: string) {
+  await api.revokeTeamMemberRole(team, email, role).then((r) => _basicSuccessResponse(r));
 }

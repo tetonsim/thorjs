@@ -377,16 +377,12 @@ export class API {
 
     if (withResults) {
       route = `/smartslice/result/${jobId}`;
-      encoding = {
-        name: EncodingTypes.accept,
-        value: EncodingValues.gzip,
-      };
     }
 
     return await this._request(HTTPMethod.GET, route, null, encoding) as Response.Job;
   }
 
-  async pollSmartSliceJob(response: Response.Job, pollCallback) {
+  async pollSmartSliceJob(response: Response.Job, pollCallback: Callback.JobPoll) {
     const api = this;
     const pollAgainStatuses = ['idle', 'queued', 'running'];
     const finishedStatuses = ['finished', 'aborted'];
@@ -400,13 +396,17 @@ export class API {
     while (poll) {
       try {
         response = await api.getSmartSliceJob(response.id, true);
-        pollCallback(response);
+        const abort = pollCallback(response);
 
         if (pollAgainStatuses.includes(response.status)) {
-          const p = Math.min(maxPeriod, period * periodMultiplier);
+          if (abort) {
+            console.log('canceling job');
+            await api.cancelSmartSliceJob(response.id);
+          }
+          const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
 
           await new Promise<void>((resolve) => {
-            setTimeout(()=> {resolve();}, p);
+            setTimeout(()=> {resolve();}, timeoutPeriod);
           });
         } else if (finishedStatuses.includes(response.status)) {
           poll = false;
@@ -428,7 +428,7 @@ export class API {
 
   async submitSmartSliceJobAndPoll(job: JobData, poll: Callback.JobPoll) {
     const response = await this.submitSmartSliceJob(job);
-    return await this.pollSmartSliceJob(response, poll);
+    return await this.pollSmartSliceJob(response, poll) as Response.Job;
   }
 
   async listSmartSliceJobs(
