@@ -400,7 +400,7 @@ export class API {
 
         if (pollAgainStatuses.includes(response.status)) {
           if (abort) {
-            console.log('canceling job');
+            console.log('Canceling job');
             await api.cancelSmartSliceJob(response.id);
           }
           const timeoutPeriod = Math.min(maxPeriod, period * periodMultiplier);
