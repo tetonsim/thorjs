@@ -1,4 +1,5 @@
 import {Job} from './smartslice/job/job';
+import { Result } from './smartslice/result/result';
 
 interface XHTTPHeader<N, V> {
   name: N;
@@ -74,12 +75,63 @@ export namespace Response {
     products: Array<Record<string, unknown>>
   }
 
+  export type Error = {
+    message: string
+  }
+
   export interface Job {
+    /**
+     * A unique id that is used in subsequent requests to refer to this job.
+     */
     id: string
+    /**
+     * The status of the job. It will be one of "idle", "queued",
+     * "running", "finished", or "failed"
+     */
     status: string
+    /**
+     * The datetime the job entered the queue.
+     * This will be null if the status is "idle" (not yet queued).
+     */
+    queued?: string
+    /**
+     * The datetime the job started running.
+     * This will be null if the status is "idle" or "queued".
+     */
+    started?: string
+    /**
+     * The datetime the job completed.
+     * This will be null if the status is "idle", "queued", or "running".
+     */
+    finished?: string
+    /**
+     * The progress of the job as a percentage.
+     */
     progress: number
-    result: BasicObject
-    errors: any
+    /**
+     * The runtime of the job, in seconds.
+     * This will be null if the job has not completed.
+     */
+    runtime?: number
+    /**
+     * The estimated runtime of the job in seconds.
+     * This will be null if the estimate has not been made yet.
+     */
+    runtime_estimate?: number
+    /**
+     * The estimated remaining runtime of the job in seconds.
+     * This will be null if the estimate has not been made yet.
+     */
+    runtime_remaining?: number
+    /**
+     * A list of errors if the status is "failed".
+     * Typically, there will only be one error.
+     */
+    errors: [Error]
+    /**
+     * The result object if the job has completed. This will only be present if the results are requested.
+     */
+    result?: Result
   }
 
   export interface Team {
