@@ -246,7 +246,7 @@ class API {
     return true;
   }
 
-  register(first_name, last_name, email, password, company, country, success, error) {
+  register(first_name, last_name, email, password, company, country, trial, success, error) {
     this._request('POST', '/auth/register', success, error,
       {
         email: email,
@@ -254,7 +254,8 @@ class API {
         last_name: last_name,
         password: password,
         company: company,
-        country: country
+        country: country,
+        assign_trial: trial
       }
     );
   }
